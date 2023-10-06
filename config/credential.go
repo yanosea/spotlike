@@ -1,13 +1,12 @@
 /*
 Copyright © 2023 yanosea <myanoshi0626@gmail.com>
 */
-package app
+package config
 
 import (
-	"fmt"
-	"os"
 	"path/filepath"
 
+	// https://github.com/spf13/viper
 	"github.com/spf13/viper"
 )
 
@@ -20,7 +19,11 @@ type Client struct {
 	ClientSecret string `toml:"client_secret"`
 }
 
-func LoadConfig() (*Credential, error) {
+var (
+	cred Credential
+)
+
+func LoadCred() (*Credential, error) {
 	viper.AddConfigPath("$XDG_CONFIG_HOME/spotlike/")
 	viper.SetConfigName("credential")
 	viper.SetConfigType("toml")
@@ -31,19 +34,15 @@ func LoadConfig() (*Credential, error) {
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			if err := viper.WriteConfigAs(filepath.Join("$XDG_CONFIG_HOME/spotlike/", "credential.toml")); err != nil {
-				fmt.Println(err)
-				os.Exit(1)
+				return nil, err
 			}
 		} else {
-			fmt.Println(err)
-			os.Exit(1)
+			return nil, err
 		}
 	}
 
-	var cred Credential
 	if err := viper.Unmarshal(&cred); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	return &cred, nil

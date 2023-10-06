@@ -30,8 +30,8 @@ You can choose a content type below.
 	},
 }
 
-func init() {
-	rootCmd.AddCommand(getCmd)
+func (cmd *Cmd) init() {
+	cmd.rootCmd.AddCommand(getCmd)
 	getCmd.Flags().StringVarP(&contentType, "type", "t", "", "type of content")
 	if err := getCmd.MarkFlagRequired("type"); err != nil {
 		fmt.Println(err)

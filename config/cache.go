@@ -1,12 +1,12 @@
 /*
 Copyright © 2023 yanosea <myanoshi0626@gmail.com>
 */
-package app
+package config
 
 import (
-	"fmt"
 	"path/filepath"
 
+	// https://github.com/spf13/viper
 	"github.com/spf13/viper"
 )
 
@@ -17,7 +17,6 @@ type Cache struct {
 
 var (
 	cache Cache
-	err   error = nil
 )
 
 func LoadCache() (*Cache, error) {
@@ -25,28 +24,26 @@ func LoadCache() (*Cache, error) {
 	viper.SetConfigType("json")
 	viper.SetConfigName("cache")
 
-	if err = viper.ReadInConfig(); err != nil {
+	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			if err = viper.WriteConfigAs(filepath.Join("$XDG_CACHE_HOME/spotlike/", "cache.json")); err != nil {
-				fmt.Println(err)
+				return nil, err
 			}
 		} else {
-			fmt.Println(err)
+			return nil, err
 		}
 	}
 
-	if err != nil {
-		if err = viper.Unmarshal(&cache); err != nil {
-			fmt.Println(err)
-		}
+	if err := viper.Unmarshal(&cache); err != nil {
+		return nil, err
 	}
 
-	return &cache, err
+	return &cache, nil
 }
 
 func SaveCache(cache *Cache) error {
+	var err error
 	if err = viper.WriteConfigAs(filepath.Join("$XDG_CACHE_HOME/spotlike/", "cache.json")); err != nil {
-		fmt.Println(err)
 		return err
 	}
 	return nil
