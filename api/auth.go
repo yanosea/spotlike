@@ -5,55 +5,27 @@ package api
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 
 	"golang.org/x/oauth2/clientcredentials"
 
-	// https://github.com/zmb3/spotify
-	"github.com/zmb3/spotify"
+	// https://github.com/zmb3/spotify/v2
+	"github.com/zmb3/spotify/v2"
+	// https://github.com/zmb3/spotify/v2/auth
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
-func GetTokens(clientID string, clientSecret string) (string, string, error) {
+func GetClient(clientID string, clientSecret string) (*spotify.Client, error) {
 	ctx := context.Background()
 
 	config := &clientcredentials.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
-		TokenURL:     spotify.TokenURL,
+		TokenURL:     spotifyauth.TokenURL,
 	}
 
 	if token, err := config.Token(ctx); err != nil {
-		return "", "", err
+		return nil, err
 	} else {
-		return token.AccessToken, token.RefreshToken, nil
+		return spotify.New(spotifyauth.New().Client(ctx, token)), nil
 	}
-}
-
-func CheckToken(accessToken string) (bool, error) {
-	client := &http.Client{}
-
-	req, err := http.NewRequest("GET", "https://api.spotify.com/v1/tracks/20q73dOrP7ceLGAJQVtuTq", nil)
-	if err != nil {
-		return false, err
-	}
-
-	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-
-	res, err := client.Do(req)
-	if err != nil {
-		return false, err
-	}
-	defer res.Body.Close()
-
-	if res.StatusCode != http.StatusOK {
-		if res.StatusCode == http.StatusUnauthorized {
-			return false, nil
-		}
-	}
-
-	return true, nil
-}
-
-func Refresh(clientID string, clientSecret string, refreshToken string) (string, error) {
 }

@@ -9,16 +9,7 @@ import (
 )
 
 func main() {
-	// get new command
-	command := cmd.New()
-
-	// init command
-	if err := command.Init(); err != nil {
-		log.ErrorExit(err.Error(), log.ExitCodeErrInit)
-	}
-
-	// execute command
-	if err := command.Execute(); err != nil {
+	if err := cmd.Execute(); err != nil {
 		log.ErrorExit(err.Error(), log.ExitCodeErrCmd)
 	}
 }

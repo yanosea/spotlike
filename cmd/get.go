@@ -5,12 +5,17 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
+	"github.com/yanosea/spotlike/client"
+
+	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
+	// https://github.com/zmb3/spotify/v2
+	"github.com/zmb3/spotify/v2"
 )
 
 var (
+	Client      *spotify.Client
 	contentType string
 	query       string
 )
@@ -25,21 +30,28 @@ You can choose a content type below.
 	* artist`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
-		fmt.Printf("Your mind number is %s !\n", contentType)
 		return nil
 	},
 }
 
-func (cmd *Cmd) init() {
-	cmd.rootCmd.AddCommand(getCmd)
+func init() {
+	rootCmd.AddCommand(getCmd)
+
+	if client, err := client.New(); err != nil {
+		fmt.Println(err)
+		return
+	} else {
+		Client = client
+	}
+
 	getCmd.Flags().StringVarP(&contentType, "type", "t", "", "type of content")
 	if err := getCmd.MarkFlagRequired("type"); err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 	getCmd.Flags().StringVarP(&query, "query", "q", "", "search query")
 	if err := getCmd.MarkFlagRequired("query"); err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 }
