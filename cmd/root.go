@@ -8,8 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// version : version of spotlike
 var version = ""
 
+// rootCmd : cobra root command
 var rootCmd = &cobra.Command{
 	Use:     "spotlike",
 	Version: version,

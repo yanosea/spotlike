@@ -11,11 +11,6 @@ import (
 // ExitCode : exit code of spotlike
 type ExitCode int
 
-// GetNumber : get number of exit code
-func (exitCode ExitCode) GetNumber() int {
-	return int(exitCode)
-}
-
 const (
 	// Ok : ok
 	Ok ExitCode = iota
@@ -25,18 +20,23 @@ const (
 	ErrCmd
 )
 
-// Exit : output log and exit command
-func Exit(message string) {
+// GetNumber : get number of exit code
+func (exitCode ExitCode) GetNumber() int {
+	return int(exitCode)
+}
+
+// Exit : output message and exit spotlike
+func Exjt(message string) {
 	fmt.Println(message)
 	os.Exit(Ok.GetNumber())
 }
 
-// ErrorExit : exit command with exit code
+// ErrorExit : output exit code and exit spotlike
 func ErrorExit(exitCode ExitCode) {
 	os.Exit(exitCode.GetNumber())
 }
 
-// ErrorExitWithMessage : output error message and exit code, then exit command with exit code
+// ErrorExitWithMessage : output error message and exit code, then exit spotlike
 func ErrorExitWithMessage(message string, exitCode ExitCode) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", message)
 	os.Exit(exitCode.GetNumber())
