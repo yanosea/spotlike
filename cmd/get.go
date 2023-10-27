@@ -20,6 +20,7 @@ type SearchResult struct {
 	ID     string
 	Type   string
 	Name   string
+	Album  string
 	Artist string
 }
 
@@ -35,13 +36,14 @@ var getCmd = &cobra.Command{
 
 You can choose a content type below.
   * artist
-  * album`,
+  * album
+	* track`,
 
 	RunE: func(cmd *cobra.Command, args []string) error {
 
 		// check type
-		if strings.ToLower(contentType) != "artist" && strings.ToLower(contentType) != "album" {
-			return errors.New("'type' must be 'artist' or 'album'")
+		if strings.ToLower(contentType) != "artist" && strings.ToLower(contentType) != "album" && strings.ToLower(contentType) != "track" {
+			return errors.New("'type' must be 'artist', 'album' or 'track'")
 		}
 
 		// get client
@@ -57,6 +59,8 @@ You can choose a content type below.
 			searchType = spotify.SearchTypeArtist
 		} else if strings.ToLower(contentType) == "album" {
 			searchType = spotify.SearchTypeAlbum
+		} else if strings.ToLower(contentType) == "track" {
+			searchType = spotify.SearchTypeTrack
 		}
 
 		// search
@@ -67,6 +71,8 @@ You can choose a content type below.
 
 		// set search results
 		var searchResult SearchResult
+
+		// artist
 		if result.Artists != nil {
 			searchResult = SearchResult{
 				ID:   result.Artists.Artists[0].ID.String(),
@@ -75,6 +81,7 @@ You can choose a content type below.
 			}
 		}
 
+		// album
 		if result.Albums != nil {
 			searchResult = SearchResult{
 				ID:     result.Albums.Albums[0].ID.String(),
@@ -84,10 +91,24 @@ You can choose a content type below.
 			}
 		}
 
+		// track
+		if result.Tracks != nil {
+			searchResult = SearchResult{
+				ID:     result.Tracks.Tracks[0].ID.String(),
+				Type:   "Track",
+				Name:   result.Tracks.Tracks[0].Name,
+				Album:  result.Tracks.Tracks[0].Album.Name,
+				Artist: result.Tracks.Tracks[0].Artists[0].Name,
+			}
+		}
+
 		// output
 		fmt.Printf("ID: %s\n", searchResult.ID)
 		fmt.Printf("Type: %s\n", searchResult.Type)
 		fmt.Printf("Name: %s\n", searchResult.Name)
+		if searchResult.Album != "" {
+			fmt.Printf("Album: %s\n", searchResult.Album)
+		}
 		if searchResult.Artist != "" {
 			fmt.Printf("Artist: %s\n", searchResult.Artist)
 		}
