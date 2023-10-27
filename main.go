@@ -8,6 +8,7 @@ import (
 	"github.com/yanosea/spotlike/log"
 )
 
+// main : entry point of spotlike
 func main() {
 	if err := cmd.Execute(); err != nil {
 		log.ErrorExit(log.ErrCmd)

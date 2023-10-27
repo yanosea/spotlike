@@ -8,6 +8,7 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
+// SearchResult : search result from spotify api
 type SearchResult struct {
 	// ID : content's id
 	ID string
@@ -21,23 +22,13 @@ type SearchResult struct {
 	Artist string
 }
 
-var (
-	spt          SpotifyClient
-	searchResult *SearchResult
-)
-
-func Search(searchType spotify.SearchType, query string) (*SearchResult, error) {
-	// get client
-	if client, err := GetClient(); err != nil {
-		return nil, err
-	} else {
-		spt = *client
-	}
-
-	// search
+// Search : returns search with spotify library
+func Search(spt *SpotifyClient, searchType spotify.SearchType, query string) (*SearchResult, error) {
+	// execute search
 	if result, err := spt.Client.Search(spt.Context, query, searchType, spotify.Limit(1)); err != nil {
 		return nil, err
 	} else {
+		var searchResult *SearchResult
 		// artist
 		if result.Artists != nil {
 			searchResult = &SearchResult{

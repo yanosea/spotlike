@@ -22,6 +22,7 @@ You can get the ID of some contents in Spotify.
 You can LIKE the contents in Spotify by ID.`,
 }
 
+// Execute : point of root command
 func Execute() error {
 	if err := rootCmd.Execute(); err != nil {
 		return err
@@ -29,5 +30,6 @@ func Execute() error {
 	return nil
 }
 
+// init : executed before func Execute executed
 func init() {
 }

@@ -18,6 +18,14 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
+// ClientInfo : spotify client info
+type ClientInfo struct {
+	// ClientID : spotify client id
+	ClientID string
+	// ClientSecret : spotify client secret
+	ClientSecret string
+}
+
 // SpotifyClient : spotify client for using spotify api
 type SpotifyClient struct {
 	// Client : client of spotify
@@ -26,66 +34,79 @@ type SpotifyClient struct {
 	Context context.Context
 }
 
-var (
-	clientID     string
-	clientSecret string
-)
-
+// GetClient : returns spotify client
 func GetClient() (*SpotifyClient, error) {
-	if client, ctx, err := auth(clientID, clientSecret); err != nil {
+	// get client info
+	if clientInfo, err := getClientInfo(); err != nil {
 		return nil, err
 	} else {
-		return &SpotifyClient{
-			Client:  client,
-			Context: ctx,
-		}, nil
+		// authenticate and get spotify client
+		if client, ctx, err := auth(clientInfo.ClientID, clientInfo.ClientSecret); err != nil {
+			return nil, err
+		} else {
+			return &SpotifyClient{
+				Client:  client,
+				Context: ctx,
+			}, nil
+		}
 	}
 }
 
-func setClientInfo() error {
+// gitClientInfo : returns client info from env
+func getClientInfo() (*ClientInfo, error) {
+	var clientInfo *ClientInfo = new(ClientInfo)
 	viper.SetConfigType("env")
 	viper.SetEnvPrefix("SPOTIFY")
 	viper.AutomaticEnv()
 
-	if viper.GetString("CLIENT_ID") == "" || viper.GetString("CLIENT_SECRET") == "" {
-		promptID := promptui.Prompt{
+	// SPOTIFY_CLIENT_ID
+	if clientID := viper.GetString("CLIENT_ID"); clientID == "" {
+		prompt := promptui.Prompt{
 			Label: "Input your Spotify Client ID",
 		}
 
-		inputID, err := promptID.Run()
+		input, err := prompt.Run()
 		if err != nil {
-			return err
+			return nil, err
 		} else {
-			clientID = inputID
+			clientInfo.ClientID = input
 		}
+	} else {
+		clientInfo.ClientID = clientID
+	}
 
-		promptSecret := promptui.Prompt{
+	// SPOTIFY_CLIENT_SECRET
+	if clientSecret := viper.GetString("CLIENT_SECRET"); clientSecret == "" {
+		prompt := promptui.Prompt{
 			Label: "Input your Spotify Client Secret",
 			Mask:  '*',
 		}
 
-		inputSecret, err := promptSecret.Run()
+		input, err := prompt.Run()
 		if err != nil {
-			return err
+			return nil, err
 		} else {
-			clientSecret = inputSecret
+			clientInfo.ClientSecret = input
 		}
 	} else {
-
+		clientInfo.ClientSecret = clientSecret
 	}
 
-	return nil
+	return clientInfo, nil
 }
 
+// auth: authenticates client info and returns spotify client with context
 func auth(clientID string, clientSecret string) (*spotify.Client, context.Context, error) {
 	ctx := context.Background()
 
+	// authenticate config
 	config := &clientcredentials.Config{
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		TokenURL:     spotifyauth.TokenURL,
 	}
 
+	// authenticate
 	if token, err := config.Token(ctx); err != nil {
 		return nil, nil, err
 	} else {

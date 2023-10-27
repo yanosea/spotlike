@@ -17,6 +17,8 @@ import (
 )
 
 var (
+	// spt : spotify client
+	spt *api.SpotifyClient
 	// searchType : content type for searching
 	searchType string
 	// query : query for searching
@@ -34,10 +36,19 @@ You can choose a type of content for searching below.
   * album
 	* track`,
 
+	// RunE : search command
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// validate search type
 		if strings.ToLower(searchType) != "artist" && strings.ToLower(searchType) != "album" && strings.ToLower(searchType) != "track" {
 			return errors.New("'type' must be 'artist', 'album' or 'track'")
+		}
+
+		// get client
+		if client, err := api.GetClient(); err != nil {
+			return err
+		} else {
+			// set client
+			spt = client
 		}
 
 		// define search type
@@ -50,8 +61,10 @@ You can choose a type of content for searching below.
 			st = spotify.SearchTypeTrack
 		}
 
-		// exec search
-		if searchResult, err := api.Search(st, query); err != nil {
+		// execute search
+		if searchResult, err := api.Search(spt, st, query); err != nil {
+			return err
+		} else {
 			// output search result
 			fmt.Printf("ID: %s\n", searchResult.ID)
 			fmt.Printf("Type: %s\n", searchResult.Type)
@@ -68,6 +81,7 @@ You can choose a type of content for searching below.
 	},
 }
 
+// init : executed before seach command executed
 func init() {
 	rootCmd.AddCommand(searchCmd)
 
