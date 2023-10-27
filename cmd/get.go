@@ -66,39 +66,30 @@ You can choose a content type below.
 		}
 
 		// set search results
-		var searchResults []SearchResult
+		var searchResult SearchResult
 		if result.Artists != nil {
-			for _, artist := range result.Artists.Artists {
-				searchResultArtist := SearchResult{
-					ID:   artist.ID.String(),
-					Type: "Artist",
-					Name: artist.Name,
-				}
-				searchResults = append(searchResults, searchResultArtist)
+			searchResult = SearchResult{
+				ID:   result.Artists.Artists[0].ID.String(),
+				Type: "Artist",
+				Name: result.Artists.Artists[0].Name,
 			}
 		}
+
 		if result.Albums != nil {
-			for _, album := range result.Albums.Albums {
-				searchResultAlbum := SearchResult{
-					ID:   album.ID.String(),
-					Type: "Album",
-					Name: album.Name,
-				}
-				for _, artist := range album.Artists {
-					searchResultAlbum.Artist = artist.Name
-				}
-				searchResults = append(searchResults, searchResultAlbum)
+			searchResult = SearchResult{
+				ID:     result.Albums.Albums[0].ID.String(),
+				Type:   "Album",
+				Name:   result.Albums.Albums[0].Name,
+				Artist: result.Albums.Albums[0].Artists[0].Name,
 			}
 		}
 
 		// output
-		for _, searchResult := range searchResults {
-			fmt.Printf("ID: %s\n", searchResult.ID)
-			fmt.Printf("Type: %s\n", searchResult.Type)
-			fmt.Printf("Name: %s\n", searchResult.Name)
-			if searchResult.Artist != "" {
-				fmt.Printf("Artist: %s\n", searchResult.Artist)
-			}
+		fmt.Printf("ID: %s\n", searchResult.ID)
+		fmt.Printf("Type: %s\n", searchResult.Type)
+		fmt.Printf("Name: %s\n", searchResult.Name)
+		if searchResult.Artist != "" {
+			fmt.Printf("Artist: %s\n", searchResult.Artist)
 		}
 
 		return nil
