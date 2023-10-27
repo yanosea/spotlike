@@ -4,6 +4,8 @@ Copyright © 2023 yanosea <myanoshi0626@gmail.com>
 package client
 
 import (
+	"context"
+
 	"github.com/yanosea/spotlike/api"
 
 	// https://github.com/manifoldco/promptui
@@ -14,7 +16,12 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-func New() (*spotify.Client, error) {
+type SpotifyClient struct {
+	Client  *spotify.Client
+	Context context.Context
+}
+
+func New() (*SpotifyClient, error) {
 	viper.SetConfigType("env")
 	viper.SetEnvPrefix("SPOTIFY")
 	viper.AutomaticEnv()
@@ -48,9 +55,12 @@ func New() (*spotify.Client, error) {
 		clientSecret = input
 	}
 
-	if client, err := api.GetClient(clientID, clientSecret); err != nil {
+	if client, ctx, err := api.GetClient(clientID, clientSecret); err != nil {
 		return nil, err
 	} else {
-		return client, nil
+		return &SpotifyClient{
+			Client:  client,
+			Context: ctx,
+		}, nil
 	}
 }

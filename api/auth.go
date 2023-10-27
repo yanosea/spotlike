@@ -14,7 +14,7 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
-func GetClient(clientID string, clientSecret string) (*spotify.Client, error) {
+func GetClient(clientID string, clientSecret string) (*spotify.Client, context.Context, error) {
 	ctx := context.Background()
 
 	config := &clientcredentials.Config{
@@ -24,8 +24,8 @@ func GetClient(clientID string, clientSecret string) (*spotify.Client, error) {
 	}
 
 	if token, err := config.Token(ctx); err != nil {
-		return nil, err
+		return nil, nil, err
 	} else {
-		return spotify.New(spotifyauth.New().Client(ctx, token)), nil
+		return spotify.New(spotifyauth.New().Client(ctx, token)), ctx, nil
 	}
 }

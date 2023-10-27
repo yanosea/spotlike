@@ -17,22 +17,27 @@ func (exitCode ExitCode) GetNumber() int {
 }
 
 const (
-	// ExitCodeOK : ok
-	ExitCodeOK ExitCode = iota
-	// ExitCodeErrInit : init error
-	ExitCodeErrInit
-	// ExitCodeErrCmd : command error
-	ExitCodeErrCmd
+	// Ok : ok
+	Ok ExitCode = iota
+	// ErrInit : init error
+	ErrInit
+	// ErrCmd : command error
+	ErrCmd
 )
 
 // Exit : output log and exit command
 func Exit(message string) {
 	fmt.Println(message)
-	os.Exit(ExitCodeOK.GetNumber())
+	os.Exit(Ok.GetNumber())
 }
 
-// ErrorExit : output error log and exit command
-func ErrorExit(message string, exitCode ExitCode) {
+// ErrorExit : exit command with exit code
+func ErrorExit(exitCode ExitCode) {
+	os.Exit(exitCode.GetNumber())
+}
+
+// ErrorExitWithMessage : output error message and exit code, then exit command with exit code
+func ErrorExitWithMessage(message string, exitCode ExitCode) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", message)
 	os.Exit(exitCode.GetNumber())
 }

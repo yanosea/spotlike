@@ -10,6 +10,6 @@ import (
 
 func main() {
 	if err := cmd.Execute(); err != nil {
-		log.ErrorExit(err.Error(), log.ExitCodeErrCmd)
+		log.ErrorExit(log.ErrCmd)
 	}
 }
