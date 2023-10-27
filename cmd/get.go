@@ -17,9 +17,10 @@ import (
 )
 
 type SearchResult struct {
-	ID   string
-	Type string
-	Name string
+	ID     string
+	Type   string
+	Name   string
+	Artist string
 }
 
 var (
@@ -83,6 +84,9 @@ You can choose a content type below.
 					Type: "Album",
 					Name: album.Name,
 				}
+				for _, artist := range album.Artists {
+					searchResultAlbum.Artist = artist.Name
+				}
 				searchResults = append(searchResults, searchResultAlbum)
 			}
 		}
@@ -92,7 +96,9 @@ You can choose a content type below.
 			fmt.Printf("ID: %s\n", searchResult.ID)
 			fmt.Printf("Type: %s\n", searchResult.Type)
 			fmt.Printf("Name: %s\n", searchResult.Name)
-			fmt.Println("---------------------")
+			if searchResult.Artist != "" {
+				fmt.Printf("Artist: %s\n", searchResult.Artist)
+			}
 		}
 
 		return nil
