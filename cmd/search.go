@@ -34,7 +34,7 @@ var searchCmd = &cobra.Command{
 You can choose a type of content for searching below.
   * artist
   * album
-	* track`,
+  * track`,
 
 	// RunE : search command
 	RunE: func(cmd *cobra.Command, args []string) error {
