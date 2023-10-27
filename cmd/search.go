@@ -66,14 +66,14 @@ You can choose a type of content for searching below.
 			return err
 		} else {
 			// output search result
-			fmt.Printf("ID: %s\n", searchResult.ID)
-			fmt.Printf("Type: %s\n", searchResult.Type)
-			fmt.Printf("Name: %s\n", searchResult.Name)
+			fmt.Printf("ID:\t%s\n", searchResult.ID)
+			fmt.Printf("Type:\t%s\n", searchResult.Type)
+			fmt.Printf("Name:\t%s\n", searchResult.Name)
 			if searchResult.Album != "" {
-				fmt.Printf("Album: %s\n", searchResult.Album)
+				fmt.Printf("Album:\t%s\n", searchResult.Album)
 			}
 			if searchResult.Artist != "" {
-				fmt.Printf("Artist: %s\n", searchResult.Artist)
+				fmt.Printf("Artist:\t%s\n", searchResult.Artist)
 			}
 		}
 
