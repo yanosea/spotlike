@@ -86,13 +86,13 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 
 	// validate flag 'type'
-	searchCmd.Flags().StringVarP(&searchType, "type", "t", "", "type of content for searching")
+	searchCmd.Flags().StringVarP(&searchType, "type", "t", "", "type of content for search")
 	if err := searchCmd.MarkFlagRequired("type"); err != nil {
 		return
 	}
 
 	// validate flag 'query'
-	searchCmd.Flags().StringVarP(&query, "query", "q", "", "query for searching")
+	searchCmd.Flags().StringVarP(&query, "query", "q", "", "query for search")
 	if err := searchCmd.MarkFlagRequired("query"); err != nil {
 		return
 	}
