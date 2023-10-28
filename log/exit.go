@@ -20,23 +20,23 @@ const (
 	ErrCmd
 )
 
-// GetNumber : get number of exit code
+// GetNumber : get the number of exit code
 func (exitCode ExitCode) GetNumber() int {
 	return int(exitCode)
 }
 
-// Exit : output message and exit spotlike
+// Exit : output the message and exit spotlike
 func Exjt(message string) {
 	fmt.Println(message)
 	os.Exit(Ok.GetNumber())
 }
 
-// ErrorExit : output exit code and exit spotlike
+// ErrorExit : output the exit code and exit spotlike
 func ErrorExit(exitCode ExitCode) {
 	os.Exit(exitCode.GetNumber())
 }
 
-// ErrorExitWithMessage : output error message and exit code, then exit spotlike
+// ErrorExitWithMessage : output the error message and the exit code, then exit spotlike
 func ErrorExitWithMessage(message string, exitCode ExitCode) {
 	fmt.Fprintf(os.Stderr, "Error: %s\n", message)
 	os.Exit(exitCode.GetNumber())

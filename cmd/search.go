@@ -19,9 +19,9 @@ import (
 var (
 	// spt : spotify client
 	spt *api.SpotifyClient
-	// searchType : content type for searching
+	// searchType : content type for search
 	searchType string
-	// query : query for searching
+	// query : query for search
 	query string
 )
 
@@ -43,7 +43,7 @@ You can choose a type of content for searching below.
 			return errors.New("'type' must be 'artist', 'album' or 'track'")
 		}
 
-		// get client
+		// get the client
 		if client, err := api.GetClient(); err != nil {
 			return err
 		} else {
@@ -69,9 +69,11 @@ You can choose a type of content for searching below.
 			fmt.Printf("ID:\t%s\n", searchResult.ID)
 			fmt.Printf("Type:\t%s\n", searchResult.Type)
 			fmt.Printf("Name:\t%s\n", searchResult.Name)
+
 			if searchResult.Album != "" {
 				fmt.Printf("Album:\t%s\n", searchResult.Album)
 			}
+
 			if searchResult.Artist != "" {
 				fmt.Printf("Artist:\t%s\n", searchResult.Artist)
 			}
@@ -81,17 +83,17 @@ You can choose a type of content for searching below.
 	},
 }
 
-// init : executed before seach command executed
+// init : executed before search command executed
 func init() {
 	rootCmd.AddCommand(searchCmd)
 
-	// validate flag 'type'
+	// validate the flag 'type'
 	searchCmd.Flags().StringVarP(&searchType, "type", "t", "", "type of content for search")
 	if err := searchCmd.MarkFlagRequired("type"); err != nil {
 		return
 	}
 
-	// validate flag 'query'
+	// validate the flag 'query'
 	searchCmd.Flags().StringVarP(&query, "query", "q", "", "query for search")
 	if err := searchCmd.MarkFlagRequired("query"); err != nil {
 		return

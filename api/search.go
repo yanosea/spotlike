@@ -22,13 +22,15 @@ type SearchResult struct {
 	Artist string
 }
 
+// searchResult : search result from spotify api
+var searchResult *SearchResult
+
 // Search : returns search with spotify library
 func Search(spt *SpotifyClient, searchType spotify.SearchType, query string) (*SearchResult, error) {
 	// execute search
 	if result, err := spt.Client.Search(spt.Context, query, searchType, spotify.Limit(1)); err != nil {
 		return nil, err
 	} else {
-		var searchResult *SearchResult
 		// artist
 		if result.Artists != nil {
 			searchResult = &SearchResult{
