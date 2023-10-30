@@ -4,6 +4,8 @@ Copyright © 2023 yanosea <myanoshi0626@gmail.com>
 package api
 
 import (
+	"errors"
+
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
 )
@@ -25,8 +27,8 @@ type SearchResult struct {
 // searchResult : search result from spotify api
 var searchResult *SearchResult
 
-// Search : returns search with spotify library
-func Search(spt *SpotifyClient, searchType spotify.SearchType, query string) (*SearchResult, error) {
+// SearchByQuery : returns the search result by query
+func SearchByQuery(spt *SpotifyClient, searchType spotify.SearchType, query string) (*SearchResult, error) {
 	// execute search
 	if result, err := spt.Client.Search(spt.Context, query, searchType, spotify.Limit(1)); err != nil {
 		return nil, err
@@ -63,4 +65,39 @@ func Search(spt *SpotifyClient, searchType spotify.SearchType, query string) (*S
 
 		return searchResult, nil
 	}
+}
+
+// SearchById : returns the search result by ID
+func SearchById(spt *SpotifyClient, id string) (*SearchResult, error) {
+	// execute search
+	if result, err := spt.Client.GetArtist(spt.Context, spotify.ID(id)); err == nil {
+		// artist
+		searchResult = &SearchResult{
+			ID:   result.ID.String(),
+			Type: "Artist",
+			Name: result.Name,
+		}
+	} else if result, err := spt.Client.GetAlbum(spt.Context, spotify.ID(id)); err == nil {
+		// album
+		searchResult = &SearchResult{
+			ID:     result.ID.String(),
+			Type:   "Album",
+			Name:   result.Name,
+			Artist: result.Artists[0].Name,
+		}
+	} else if result, err := spt.Client.GetTrack(spt.Context, spotify.ID(id)); err == nil {
+		// track
+		searchResult = &SearchResult{
+			ID:     result.ID.String(),
+			Type:   "Track",
+			Name:   result.Name,
+			Album:  result.Album.Name,
+			Artist: result.Artists[0].Name,
+		}
+	} else {
+		// content not found
+		return nil, errors.New("the content was not found")
+	}
+
+	return searchResult, nil
 }

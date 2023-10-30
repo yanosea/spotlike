@@ -17,9 +17,7 @@ import (
 )
 
 var (
-	// spt : spotify client
-	spt *api.SpotifyClient
-	// searchType : content type for search
+	// searchType : type of the content for search
 	searchType string
 	// query : query for search
 	query string
@@ -44,6 +42,7 @@ You can choose a type of content for searching below.
 		}
 
 		// get the client
+		var spt *api.SpotifyClient
 		if client, err := api.GetClient(); err != nil {
 			return err
 		} else {
@@ -61,8 +60,8 @@ You can choose a type of content for searching below.
 			st = spotify.SearchTypeTrack
 		}
 
-		// execute search
-		if searchResult, err := api.Search(spt, st, query); err != nil {
+		// execute search by query
+		if searchResult, err := api.SearchByQuery(spt, st, query); err != nil {
 			return err
 		} else {
 			// output search result
@@ -88,7 +87,7 @@ func init() {
 	rootCmd.AddCommand(searchCmd)
 
 	// validate the flag 'type'
-	searchCmd.Flags().StringVarP(&searchType, "type", "t", "", "type of content for search")
+	searchCmd.Flags().StringVarP(&searchType, "type", "t", "", "type of the content for search")
 	if err := searchCmd.MarkFlagRequired("type"); err != nil {
 		return
 	}
