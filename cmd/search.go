@@ -61,9 +61,9 @@ You can choose a type of content for searching below.
 		}
 
 		// execute search by query
-		if searchResult, err := api.SearchByQuery(spt, st, query); err != nil {
-			return err
-		} else {
+		searchResult := api.SearchByQuery(spt, st, query)
+
+		if searchResult.Result {
 			// output search result
 			fmt.Printf("ID:\t%s\n", searchResult.ID)
 			fmt.Printf("Type:\t%s\n", searchResult.Type)
@@ -76,6 +76,8 @@ You can choose a type of content for searching below.
 			if searchResult.Artist != "" {
 				fmt.Printf("Artist:\t%s\n", searchResult.Artist)
 			}
+		} else {
+			fmt.Printf("Search %s failed...\n%s\n", searchResult.Type, searchResult.Error)
 		}
 
 		return nil

@@ -22,23 +22,33 @@ type SearchResult struct {
 	Album string
 	// Artist : artist of album or track
 	Artist string
+	Result bool
+	Error  error
 }
 
 // searchResult : search result from spotify api
 var searchResult *SearchResult
 
 // SearchByQuery : returns the search result by query
-func SearchByQuery(spt *SpotifyClient, searchType spotify.SearchType, query string) (*SearchResult, error) {
+func SearchByQuery(spt *SpotifyClient, searchType spotify.SearchType, query string) *SearchResult {
 	// execute search
 	if result, err := spt.Client.Search(spt.Context, query, searchType, spotify.Limit(1)); err != nil {
-		return nil, err
+		searchResult = &SearchResult{
+			ID:     "",
+			Type:   "Artist",
+			Name:   "",
+			Result: false,
+			Error:  err,
+		}
 	} else {
 		// artist
 		if result.Artists != nil {
 			searchResult = &SearchResult{
-				ID:   result.Artists.Artists[0].ID.String(),
-				Type: "Artist",
-				Name: result.Artists.Artists[0].Name,
+				ID:     result.Artists.Artists[0].ID.String(),
+				Type:   "Artist",
+				Name:   result.Artists.Artists[0].Name,
+				Result: true,
+				Error:  nil,
 			}
 		}
 
@@ -49,6 +59,8 @@ func SearchByQuery(spt *SpotifyClient, searchType spotify.SearchType, query stri
 				Type:   "Album",
 				Name:   result.Albums.Albums[0].Name,
 				Artist: result.Albums.Albums[0].Artists[0].Name,
+				Result: true,
+				Error:  nil,
 			}
 		}
 
@@ -60,15 +72,17 @@ func SearchByQuery(spt *SpotifyClient, searchType spotify.SearchType, query stri
 				Name:   result.Tracks.Tracks[0].Name,
 				Album:  result.Tracks.Tracks[0].Album.Name,
 				Artist: result.Tracks.Tracks[0].Artists[0].Name,
+				Result: true,
+				Error:  nil,
 			}
 		}
-
-		return searchResult, nil
 	}
+
+	return searchResult
 }
 
 // SearchById : returns the search result by ID
-func SearchById(spt *SpotifyClient, id string) (*SearchResult, error) {
+func SearchById(spt *SpotifyClient, id string) *SearchResult {
 	// execute search
 	if result, err := spt.Client.GetArtist(spt.Context, spotify.ID(id)); err == nil {
 		// artist
@@ -96,8 +110,14 @@ func SearchById(spt *SpotifyClient, id string) (*SearchResult, error) {
 		}
 	} else {
 		// content not found
-		return nil, errors.New("the content was not found")
+		searchResult = &SearchResult{
+			ID:     "",
+			Type:   "",
+			Name:   "",
+			Result: false,
+			Error:  errors.New("the content was not found"),
+		}
 	}
 
-	return searchResult, nil
+	return searchResult
 }
