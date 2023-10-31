@@ -89,9 +89,11 @@ func SearchById(spt *SpotifyClient, id string) *SearchResult {
 	if result, err := spt.Client.GetArtist(spt.Context, spotify.ID(id)); err == nil {
 		// artist
 		searchResult = &SearchResult{
-			ID:   result.ID.String(),
-			Type: "Artist",
-			Name: result.Name,
+			ID:     result.ID.String(),
+			Type:   "Artist",
+			Name:   result.Name,
+			Result: true,
+			Error:  nil,
 		}
 	} else if result, err := spt.Client.GetAlbum(spt.Context, spotify.ID(id)); err == nil {
 		// album
@@ -100,6 +102,8 @@ func SearchById(spt *SpotifyClient, id string) *SearchResult {
 			Type:   "Album",
 			Name:   result.Name,
 			Artist: result.Artists[0].Name,
+			Result: true,
+			Error:  nil,
 		}
 	} else if result, err := spt.Client.GetTrack(spt.Context, spotify.ID(id)); err == nil {
 		// track
@@ -109,6 +113,8 @@ func SearchById(spt *SpotifyClient, id string) *SearchResult {
 			Name:   result.Name,
 			Album:  result.Album.Name,
 			Artist: result.Artists[0].Name,
+			Result: true,
+			Error:  nil,
 		}
 	} else {
 		// content not found

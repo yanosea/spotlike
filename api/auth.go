@@ -110,6 +110,6 @@ func auth(clientID string, clientSecret string) (*spotify.Client, context.Contex
 	if token, err := config.Token(ctx); err != nil {
 		return nil, nil, err
 	} else {
-		return spotify.New(spotifyauth.New().Client(ctx, token)), ctx, nil
+		return spotify.New(spotifyauth.New(spotifyauth.WithScopes(spotifyauth.ScopeUserFollowModify, spotifyauth.ScopeUserLibraryModify)).Client(ctx, token)), ctx, nil
 	}
 }
