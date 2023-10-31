@@ -22,8 +22,10 @@ type SearchResult struct {
 	Album string
 	// Artist : artist of album or track
 	Artist string
+	// Result : search result (true : succeeded / false : failed)
 	Result bool
-	Error  error
+	// Error : error returned from spotify api
+	Error error
 }
 
 // searchResult : search result from spotify api
