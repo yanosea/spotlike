@@ -140,7 +140,7 @@ func init() {
 	rootCmd.AddCommand(likeCmd)
 
 	// validate flag 'id'
-	likeCmd.Flags().StringVarP(&id, "id", "i", "", "id of the content")
+	likeCmd.Flags().StringVarP(&id, "id", "i", "", "id of the content for like")
 	if err := likeCmd.MarkFlagRequired("id"); err != nil {
 		return
 	}
