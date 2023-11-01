@@ -4,6 +4,10 @@ Copyright © 2023 yanosea <myanoshi0626@gmail.com>
 package api
 
 import (
+	"context"
+	"fmt"
+	"sort"
+
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
 )
@@ -14,51 +18,60 @@ type LikeResult struct {
 	ID string
 	// Type : content type
 	Type string
-	// Name : content name
-	Name string
+	// ArtistName : artist name
+	ArtistName string
+	// AlbumName : album name
+	AlbumName string
+	// TrackName : track name
+	TrackName string
 	// Result : like result (true : succeeded / false : failed)
 	Result bool
 	// Error : error returned from spotify api
 	Error error
-	// Message : message for like result
-	Message string
+	// ErrorMessage : error message for like result
+	ErrorMessage string
+}
+
+// TrackWithAlbumName : spotify simple track with album name
+type TrackWithAlbumName struct {
+	// Track : spotify simple track
+	Track spotify.SimpleTrack
+	// AlbumName : name of album the track included
+	AlbumName string
 }
 
 // likelikeResults : like results from spotify api
 var likeResults []*LikeResult
 
 // LikeArtistById : returns like result
-func LikeArtistById(spt *SpotifyClient, id string) []*LikeResult {
+func LikeArtistById(client *spotify.Client, id string) []*LikeResult {
 	// execute search by id
-	if sr := SearchById(spt, id); sr.Result && sr.Type == "Artist" {
+	if sr := SearchById(client, id); sr.Result && sr.Type == "Artist" {
 		// execute like artist
-		if err := spt.Client.FollowUser(spt.Context, spotify.ID(sr.ID)); err != nil {
+		if err := client.FollowArtist(context.Background(), spotify.ID(sr.ID)); err != nil {
+			// like the artist was failed
 			likeResults = append(likeResults, &LikeResult{
-				ID:      sr.ID,
-				Type:    "Artist",
-				Name:    sr.Name,
-				Result:  false,
-				Error:   err,
-				Message: "Like the artist failed...",
+				ID:         sr.ID,
+				Type:       "Artist",
+				ArtistName: sr.Name,
+				Result:     false,
+				Error:      err,
 			})
 		} else {
+			// like the artist was succeeded
 			likeResults = append(likeResults, &LikeResult{
-				ID:      sr.ID,
-				Type:    "Artist",
-				Name:    sr.Name,
-				Result:  true,
-				Error:   nil,
-				Message: "Like the artist succeeded!",
+				ID:         sr.ID,
+				Type:       "Artist",
+				ArtistName: sr.Name,
+				Result:     true,
 			})
 		}
 	} else {
+		// search the artist by id was failed
 		likeResults = append(likeResults, &LikeResult{
-			ID:      id,
-			Type:    "",
-			Name:    "",
-			Result:  false,
-			Error:   sr.Error,
-			Message: "Search the artist by ID failed...",
+			Result:       false,
+			Error:        sr.Error,
+			ErrorMessage: fmt.Sprintf("Search the artist by ID failed...\t:\t[%s]", id),
 		})
 	}
 
@@ -66,51 +79,52 @@ func LikeArtistById(spt *SpotifyClient, id string) []*LikeResult {
 }
 
 // LikeAllAlbumsReleasedByArtistById : returns like results
-func LikeAllAlbumsReleasedByArtistById(spt *SpotifyClient, id string) []*LikeResult {
+func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string) []*LikeResult {
 	// execute search by id
-	if sr := SearchById(spt, id); sr.Result && sr.Type == "Artist" {
+	if sr := SearchById(client, id); sr.Result && sr.Type == "Artist" {
 		// get all albums released by the artist
-		if allAlbums, err := spt.Client.GetArtistAlbums(spt.Context, spotify.ID(sr.ID), nil); err != nil {
+		if allAlbums, err := client.GetArtistAlbums(context.Background(), spotify.ID(sr.ID), nil); err != nil {
 			likeResults = append(likeResults, &LikeResult{
-				ID:      sr.ID,
-				Type:    "",
-				Name:    "",
-				Result:  false,
-				Error:   err,
-				Message: "Get all albums by the artist searched by ID failed...",
+				// get all albums by the artist searched by id was failed
+				Result:       false,
+				Error:        err,
+				ErrorMessage: fmt.Sprintf("Get all albums by the artist searched by ID failed...\t:\t[%s]", id),
 			})
 		} else {
+			// sort albums by release date
+			sort.Slice(allAlbums.Albums, func(i, j int) bool {
+				return allAlbums.Albums[i].ReleaseDateTime().Before(allAlbums.Albums[j].ReleaseDateTime())
+			})
 			// like by album
 			for _, album := range allAlbums.Albums {
-				if spt.Client.AddAlbumsToLibrary(spt.Context, album.ID); err != nil {
+				if client.AddAlbumsToLibrary(context.Background(), album.ID); err != nil {
 					likeResults = append(likeResults, &LikeResult{
-						ID:      album.ID.String(),
-						Type:    "Album",
-						Name:    album.Name,
-						Result:  false,
-						Error:   err,
-						Message: "Like the album by the artist searched by ID failed...",
+						// like the album by the artist searched by id was failed
+						ID:         album.ID.String(),
+						Type:       "Album",
+						ArtistName: sr.Name,
+						AlbumName:  album.Name,
+						Result:     false,
+						Error:      err,
 					})
 				} else {
+					// like the album by the artist searched by id was succeeded
 					likeResults = append(likeResults, &LikeResult{
-						ID:      album.ID.String(),
-						Type:    "Album",
-						Name:    album.Name,
-						Result:  true,
-						Error:   nil,
-						Message: "Like the album succeeded!",
+						ID:         album.ID.String(),
+						Type:       "Album",
+						ArtistName: sr.Name,
+						AlbumName:  album.Name,
+						Result:     true,
 					})
 				}
 			}
 		}
 	} else {
+		// search the artist by id was failed
 		likeResults = append(likeResults, &LikeResult{
-			ID:      id,
-			Type:    "",
-			Name:    "",
-			Result:  false,
-			Error:   sr.Error,
-			Message: "Search the artist by ID failed...",
+			Result:       false,
+			Error:        sr.Error,
+			ErrorMessage: fmt.Sprintf("Search the artist by ID failed...\t:\t[%s]", id),
 		})
 	}
 
@@ -118,69 +132,77 @@ func LikeAllAlbumsReleasedByArtistById(spt *SpotifyClient, id string) []*LikeRes
 }
 
 // LikeAllTracksReleasedByArtistById : returns results
-func LikeAllTracksReleasedByArtistById(spt *SpotifyClient, id string) []*LikeResult {
+func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string) []*LikeResult {
 	// execute search by id
-	if sr := SearchById(spt, id); sr.Result && sr.Type == "Artist" {
+	if sr := SearchById(client, id); sr.Result && sr.Type == "Artist" {
 		// get all albums released by the artist
-		if allAlbums, err := spt.Client.GetArtistAlbums(spt.Context, spotify.ID(sr.ID), nil); err != nil {
+		if allAlbums, err := client.GetArtistAlbums(context.Background(), spotify.ID(sr.ID), nil); err != nil {
+			// get all albums by the artist searched by id was failed
 			likeResults = append(likeResults, &LikeResult{
-				ID:      sr.ID,
-				Type:    "",
-				Name:    "",
-				Result:  false,
-				Error:   err,
-				Message: "Get all albums by the artist searched by ID failed...",
+				Result:       false,
+				Error:        err,
+				ErrorMessage: fmt.Sprintf("Get all albums by the artist searched by ID failed...\t:\t[%s]", id),
 			})
 		} else {
+			// sort albums by release date
+			sort.Slice(allAlbums.Albums, func(i, j int) bool {
+				return allAlbums.Albums[i].ReleaseDateTime().Before(allAlbums.Albums[j].ReleaseDateTime())
+			})
+
 			// get all tracks from all albums
-			var allTracks []spotify.SimpleTrack
+			var allTracks []TrackWithAlbumName
 			for _, album := range allAlbums.Albums {
-				if tracks, err := spt.Client.GetAlbumTracks(spt.Context, album.ID); err != nil {
+				if tracks, err := client.GetAlbumTracks(context.Background(), album.ID); err != nil {
+					// get all tracks in all albums by the artist searched by id was failed
 					likeResults = append(likeResults, &LikeResult{
-						ID:      id,
-						Type:    "",
-						Name:    "",
-						Result:  false,
-						Error:   err,
-						Message: "Get all tracks in all albums by the artist searched by ID failed...",
+						Result:       false,
+						Error:        err,
+						ErrorMessage: fmt.Sprintf("Get all tracks in all albums by the artist searched by ID failed...\t:\t[%s]", id),
 					})
 				} else {
 					for _, track := range tracks.Tracks {
-						allTracks = append(allTracks, track)
-					}
-					// like by track
-					for _, track := range allTracks {
-						if spt.Client.AddTracksToLibrary(spt.Context, track.ID); err != nil {
-							likeResults = append(likeResults, &LikeResult{
-								ID:      track.ID.String(),
-								Type:    "Track",
-								Name:    track.Name,
-								Result:  false,
-								Error:   err,
-								Message: "Like the track in the album by the artist searched by ID failed...",
-							})
-						} else {
-							likeResults = append(likeResults, &LikeResult{
-								ID:      track.ID.String(),
-								Type:    "Track",
-								Name:    track.Name,
-								Result:  true,
-								Error:   nil,
-								Message: "Like the track succeeded!",
-							})
+						trackWithAlbumName := &TrackWithAlbumName{
+							Track:     track,
+							AlbumName: album.Name,
 						}
+						allTracks = append(allTracks, *trackWithAlbumName)
 					}
+
+				}
+			}
+
+			// like by track
+			for _, track := range allTracks {
+				if client.AddTracksToLibrary(context.Background(), track.Track.ID); err != nil {
+					// like the track in all albums by the artist searched by id was failed
+					likeResults = append(likeResults, &LikeResult{
+						ID:         track.Track.ID.String(),
+						Type:       "Track",
+						ArtistName: sr.Name,
+						AlbumName:  track.AlbumName,
+						TrackName:  track.Track.Name,
+						Result:     false,
+						Error:      err,
+					})
+				} else {
+					// like the track in all albums by the artist searched by id was succeeded
+					likeResults = append(likeResults, &LikeResult{
+						ID:         track.Track.ID.String(),
+						Type:       "Track",
+						ArtistName: sr.Name,
+						AlbumName:  track.AlbumName,
+						TrackName:  track.Track.Name,
+						Result:     true,
+					})
 				}
 			}
 		}
 	} else {
+		// search the artist by id was failed
 		likeResults = append(likeResults, &LikeResult{
-			ID:      id,
-			Type:    "",
-			Name:    "",
-			Result:  false,
-			Error:   sr.Error,
-			Message: "Search the artist by ID failed...",
+			Result:       false,
+			Error:        sr.Error,
+			ErrorMessage: fmt.Sprintf("Search the artist by ID failed...\t:\t[%s]", id),
 		})
 	}
 
@@ -188,89 +210,87 @@ func LikeAllTracksReleasedByArtistById(spt *SpotifyClient, id string) []*LikeRes
 }
 
 // LikeAlbumById : returns error if liking is failed
-func LikeAlbumById(spt *SpotifyClient, id string) []*LikeResult {
+func LikeAlbumById(client *spotify.Client, id string) []*LikeResult {
 	// execute search by id
-	if sr := SearchById(spt, id); sr.Result && sr.Type == "Album" {
+	if sr := SearchById(client, id); sr.Result && sr.Type == "Album" {
 		// execute like album
-		if err := spt.Client.AddAlbumsToLibrary(spt.Context, spotify.ID(id)); err != nil {
+		if err := client.AddAlbumsToLibrary(context.Background(), spotify.ID(id)); err != nil {
+			// like the album was failed
 			likeResults = append(likeResults, &LikeResult{
-				ID:      id,
-				Type:    "Album",
-				Name:    sr.Name,
-				Result:  false,
-				Error:   err,
-				Message: "Like the album failed...",
+				ID:         id,
+				Type:       "Album",
+				ArtistName: sr.Artist,
+				AlbumName:  sr.Name,
+				Result:     false,
+				Error:      err,
 			})
 		} else {
+			// like the album was succeeded
 			likeResults = append(likeResults, &LikeResult{
-				ID:      id,
-				Type:    "Album",
-				Name:    sr.Name,
-				Result:  true,
-				Error:   nil,
-				Message: "Like the album succeeded!",
+				ID:         id,
+				Type:       "Album",
+				ArtistName: sr.Artist,
+				AlbumName:  sr.Name,
+				Result:     true,
 			})
 		}
 	} else {
+		// search the album by id was failed
 		likeResults = append(likeResults, &LikeResult{
-			ID:      id,
-			Type:    "",
-			Name:    "",
-			Result:  false,
-			Error:   sr.Error,
-			Message: "Search the album by ID failed...",
+			Result:       false,
+			Error:        sr.Error,
+			ErrorMessage: fmt.Sprintf("Search the album by ID failed...\t:\t[%s]", id),
 		})
 	}
 
 	return likeResults
 }
 
-// LikeAllTracksOnAlbumById : returns error if liking is failed
-func LikeAllTracksOnAlbumById(spt *SpotifyClient, id string) []*LikeResult {
+// LikeAllTracksInAlbumById : returns error if liking is failed
+func LikeAllTracksInAlbumById(client *spotify.Client, id string) []*LikeResult {
 	// execute search by id
-	if sr := SearchById(spt, id); sr.Result && sr.Type == "ALbum" {
+	if sr := SearchById(client, id); sr.Result && sr.Type == "Album" {
 		// get all tracks on the artist
-		if allTracks, err := spt.Client.GetAlbumTracks(spt.Context, spotify.ID(id)); err != nil {
+		if allTracks, err := client.GetAlbumTracks(context.Background(), spotify.ID(id)); err != nil {
+			// get all tracks in the album searched by id was failed
 			likeResults = append(likeResults, &LikeResult{
-				ID:      sr.ID,
-				Type:    "",
-				Name:    "",
-				Result:  false,
-				Error:   err,
-				Message: "Get all tracks in the album searched by ID failed...",
+				Result:       false,
+				Error:        err,
+				ErrorMessage: fmt.Sprintf("Get all tracks in the album searched by ID failed...\t:\t[%s]", id),
 			})
 		} else {
 			for _, track := range allTracks.Tracks {
 				// execute like track
-				if spt.Client.AddTracksToLibrary(spt.Context, track.ID); err != nil {
+				if client.AddTracksToLibrary(context.Background(), track.ID); err != nil {
+					// like the track in the album searched by id was failed
 					likeResults = append(likeResults, &LikeResult{
-						ID:      track.ID.String(),
-						Type:    "Track",
-						Name:    track.Name,
-						Result:  false,
-						Error:   err,
-						Message: "Like the track in the album searched by ID failed...",
+						ID:         track.ID.String(),
+						Type:       "Track",
+						ArtistName: sr.Name,
+						AlbumName:  sr.Name,
+						TrackName:  track.Name,
+						Result:     false,
+						Error:      err,
 					})
 				} else {
+					// like the track in the album searched by id was succeeded
 					likeResults = append(likeResults, &LikeResult{
-						ID:      track.ID.String(),
-						Type:    "Track",
-						Name:    track.Name,
-						Result:  true,
-						Error:   nil,
-						Message: "Like the track succeeded!",
+						ID:         track.ID.String(),
+						Type:       "Track",
+						ArtistName: sr.Name,
+						AlbumName:  sr.Name,
+						TrackName:  track.Name,
+						Result:     true,
 					})
 				}
 			}
 		}
 	} else {
+		// search the album by id was failed
 		likeResults = append(likeResults, &LikeResult{
-			ID:      id,
-			Type:    "",
-			Name:    "",
-			Result:  false,
-			Error:   sr.Error,
-			Message: "Search the album by ID failed...",
+			Result:       false,
+			Error:        sr.Error,
+			ErrorMessage: fmt.Sprintf("Search the album by ID failed...\t:\t[%s]", id),
 		})
 	}
 
@@ -278,37 +298,38 @@ func LikeAllTracksOnAlbumById(spt *SpotifyClient, id string) []*LikeResult {
 }
 
 // LikeTrackById : returns error if liking is failed
-func LikeTrackById(spt *SpotifyClient, id string) []*LikeResult {
+func LikeTrackById(client *spotify.Client, id string) []*LikeResult {
 	// execute search by id
-	if sr := SearchById(spt, id); sr.Result && sr.Type == "Track" {
+	if sr := SearchById(client, id); sr.Result && sr.Type == "Track" {
 		// execute like track
-		if err := spt.Client.AddTracksToLibrary(spt.Context, spotify.ID(id)); err != nil {
+		if err := client.AddTracksToLibrary(context.Background(), spotify.ID(id)); err != nil {
 			likeResults = append(likeResults, &LikeResult{
-				ID:      sr.ID,
-				Type:    "Track",
-				Name:    sr.Name,
-				Result:  false,
-				Error:   err,
-				Message: "Like the track failed...",
+				// like the track searched by id was failed
+				ID:         sr.ID,
+				Type:       "Track",
+				ArtistName: sr.Artist,
+				AlbumName:  sr.Album,
+				TrackName:  sr.Name,
+				Result:     false,
+				Error:      err,
 			})
 		} else {
+			// like the track searched by id was succeeded
 			likeResults = append(likeResults, &LikeResult{
-				ID:      sr.ID,
-				Type:    "Track",
-				Name:    sr.Name,
-				Result:  true,
-				Error:   nil,
-				Message: "Like the track succeeded!",
+				ID:         sr.ID,
+				Type:       "Track",
+				ArtistName: sr.Artist,
+				AlbumName:  sr.Album,
+				TrackName:  sr.Name,
+				Result:     true,
 			})
 		}
 	} else {
+		// search the track by id was failed
 		likeResults = append(likeResults, &LikeResult{
-			ID:      id,
-			Type:    "",
-			Name:    "",
-			Result:  false,
-			Error:   sr.Error,
-			Message: "Search the track by ID failed...",
+			Result:       false,
+			Error:        sr.Error,
+			ErrorMessage: fmt.Sprintf("Search the track by ID failed...\t:\t[%s]", id),
 		})
 
 	}

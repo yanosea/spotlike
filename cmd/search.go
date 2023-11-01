@@ -42,7 +42,7 @@ You can choose a type of content for searching below.
 		}
 
 		// get the client
-		var spt *api.SpotifyClient
+		var spt *spotify.Client
 		if client, err := api.GetClient(); err != nil {
 			return err
 		} else {
@@ -65,19 +65,19 @@ You can choose a type of content for searching below.
 
 		if searchResult.Result {
 			// output search result
-			fmt.Printf("ID:\t%s\n", searchResult.ID)
-			fmt.Printf("Type:\t%s\n", searchResult.Type)
-			fmt.Printf("Name:\t%s\n", searchResult.Name)
-
+			fmt.Printf("ID\t:\t%s\n", searchResult.ID)
+			fmt.Printf("Type\t:\t%s\n", searchResult.Type)
+			fmt.Printf("Name\t:\t%s\n", searchResult.Name)
 			if searchResult.Album != "" {
-				fmt.Printf("Album:\t%s\n", searchResult.Album)
+				fmt.Printf("Album\t:\t%s\n", searchResult.Album)
 			}
-
 			if searchResult.Artist != "" {
-				fmt.Printf("Artist:\t%s\n", searchResult.Artist)
+				fmt.Printf("Artist\t:\t%s\n", searchResult.Artist)
 			}
 		} else {
-			fmt.Printf("Search %s failed...\n%s\n", searchResult.Type, searchResult.Error)
+			fmt.Printf("Search %s failed...\n", searchResult.Type)
+			fmt.Printf("query\t:\t%s\n", query)
+			fmt.Printf("Error\t:\t%s\n", searchResult.Error)
 		}
 
 		return nil

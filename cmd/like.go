@@ -12,13 +12,15 @@ import (
 
 	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
+	// https://github.com/zmb3/spotify/v2
+	"github.com/zmb3/spotify/v2"
 )
 
 var (
 	// id : id of the content
 	id string
-	// unit : unit for like
-	unit string
+	// level : level for like
+	level string
 )
 
 // likeCmd : cobra like command
@@ -27,16 +29,18 @@ var likeCmd = &cobra.Command{
 	Short: "You can like the contents in Spotify by ID.",
 	Long: `You can like the contents in Spotify by ID.
 
-You can like the content(s) by the units below.
+You can like the content(s) using the level option below.
   * artist (If you pass the artist ID, spotlike will like the artist.)
   * album  (If you pass the artist ID, spotlike will like all albums released by the artist.)
+           (If you pass the album ID, spotlike will like the the album.)
   * track  (If you pass the artist ID, spotlike will like all tracks released by the artist.)
-           (If you pass the album ID, spotlike will like all tracks contained in the the album.)`,
+           (If you pass the album ID, spotlike will like all tracks contained in the the album.)
+           (If you pass the track ID, spotlike will like the track.)`,
 
 	// RunE : like command
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// get the client
-		var spt *api.SpotifyClient
+		var spt *spotify.Client
 		if client, err := api.GetClient(); err != nil {
 			return err
 		} else {
@@ -57,55 +61,73 @@ You can like the content(s) by the units below.
 		// artist
 		var likeResults []*api.LikeResult
 		if searchResult.Type == "Artist" {
-			// validate unit
-			if strings.ToLower(unit) == "artist" || unit == "" {
+			// validate level
+			if strings.ToLower(level) == "artist" || level == "" {
 				// like artist
 				likeResults = api.LikeArtistById(spt, searchResult.ID)
-			} else if strings.ToLower(unit) == "album" {
+			} else if strings.ToLower(level) == "album" {
 				// like all albums released by the artist
 				likeResults = api.LikeAllAlbumsReleasedByArtistById(spt, searchResult.ID)
-			} else if strings.ToLower(unit) == "track" {
+			} else if strings.ToLower(level) == "track" {
 				// like all tracks released by the artist
 				likeResults = api.LikeAllTracksReleasedByArtistById(spt, searchResult.ID)
 			} else {
-				// wrong unit passed
-				return errors.New("You passed the artist ID, so you have to pass 'artist' for the unit option. Or you should not specify the unit option.")
+				// wrong level passed
+				return errors.New("You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist.")
 			}
 		}
 
 		// album
 		if searchResult.Type == "Album" {
-			// validate unit
-			if strings.ToLower(unit) == "album" || unit == "" {
+			// validate level
+			if strings.ToLower(level) == "album" || level == "" {
 				// like album
 				likeResults = api.LikeAlbumById(spt, searchResult.ID)
-			} else if strings.ToLower(unit) != "track" {
+			} else if strings.ToLower(level) == "track" {
 				// like all tracks on the album
-				likeResults = api.LikeAllTracksOnAlbumById(spt, searchResult.ID)
+				likeResults = api.LikeAllTracksInAlbumById(spt, searchResult.ID)
 			} else {
-				// wrong unit passed
-				return errors.New("You passed the album ID, so you have to pass 'album' for the unit option. Or you should not specify the unit option.")
+				// wrong level passed
+				return errors.New("You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album.")
 			}
 		}
 
 		// track
 		if searchResult.Type == "Track" {
-			// validate unit
-			if strings.ToLower(unit) == "track" || unit == "" {
+			// validate level
+			if strings.ToLower(level) == "track" || level == "" {
 				// like track
 				likeResults = api.LikeTrackById(spt, searchResult.ID)
 			} else {
-				// wrong unit passed
-				return errors.New("You passed the track ID, so you have to pass 'track' for the unit option. Or you should not specify the unit option.")
+				// wrong level passed
+				return errors.New("You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track.")
 			}
 		}
 
 		// output like result
 		for _, result := range likeResults {
 			if result.Result {
-				fmt.Printf("Like %s:%s succeeded!\n", result.Type, result.Name)
+				if result.Type == "artist" {
+					fmt.Printf("Like %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistName)
+				} else if result.Type == "Album" {
+					fmt.Printf("Like %s by %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistName, result.AlbumName)
+				} else if result.Type == "Track" {
+					fmt.Printf("Like %s in %s by %s succeeded!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistName, result.TrackName)
+				}
 			} else {
-				fmt.Printf("Like %s:%s failed...\n%s\n", result.Type, result.Name, result.Error)
+				if result.ErrorMessage == "" {
+					if result.Type == "artist" {
+						fmt.Printf("Like %s failed...\t:\t[%s]\n", result.Type, result.ArtistName)
+					} else if result.Type == "Album" {
+						fmt.Printf("Like %s by %s failed...\t:\t[%s]\n", result.Type, result.ArtistName, result.AlbumName)
+					} else if result.Type == "Track" {
+						fmt.Printf("Like %s in %s by %s failed...\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistName, result.TrackName)
+					}
+					fmt.Printf("Error :\t%s\n", result.Error)
+				} else {
+					fmt.Printf("%s\n", result.ErrorMessage)
+					fmt.Printf("Error :\t%s\n", result.Error)
+				}
 			}
 		}
 
@@ -123,6 +145,6 @@ func init() {
 		return
 	}
 
-	// validate flag 'unit'
-	likeCmd.Flags().StringVarP(&unit, "unit", "u", "", "unit for like")
+	// validate flag 'level'
+	likeCmd.Flags().StringVarP(&level, "level", "l", "", "level for like")
 }

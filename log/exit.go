@@ -38,6 +38,6 @@ func ErrorExit(exitCode ExitCode) {
 
 // ErrorExitWithMessage : output the error message and the exit code, then exit spotlike
 func ErrorExitWithMessage(message string, exitCode ExitCode) {
-	fmt.Fprintf(os.Stderr, "Error: %s\n", message)
+	fmt.Fprintf(os.Stderr, "Error :\t%s\n", message)
 	os.Exit(exitCode.GetNumber())
 }

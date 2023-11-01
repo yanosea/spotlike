@@ -4,6 +4,7 @@ Copyright © 2023 yanosea <myanoshi0626@gmail.com>
 package api
 
 import (
+	"context"
 	"errors"
 
 	// https://github.com/zmb3/spotify/v2
@@ -32,9 +33,9 @@ type SearchResult struct {
 var searchResult *SearchResult
 
 // SearchByQuery : returns the search result by query
-func SearchByQuery(spt *SpotifyClient, searchType spotify.SearchType, query string) *SearchResult {
+func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query string) *SearchResult {
 	// execute search
-	if result, err := spt.Client.Search(spt.Context, query, searchType, spotify.Limit(1)); err != nil {
+	if result, err := client.Search(context.Background(), query, searchType, spotify.Limit(1)); err != nil {
 		searchResult = &SearchResult{
 			ID:     "",
 			Type:   "Artist",
@@ -84,9 +85,9 @@ func SearchByQuery(spt *SpotifyClient, searchType spotify.SearchType, query stri
 }
 
 // SearchById : returns the search result by ID
-func SearchById(spt *SpotifyClient, id string) *SearchResult {
+func SearchById(client *spotify.Client, id string) *SearchResult {
 	// execute search
-	if result, err := spt.Client.GetArtist(spt.Context, spotify.ID(id)); err == nil {
+	if result, err := client.GetArtist(context.Background(), spotify.ID(id)); err == nil {
 		// artist
 		searchResult = &SearchResult{
 			ID:     result.ID.String(),
@@ -95,7 +96,7 @@ func SearchById(spt *SpotifyClient, id string) *SearchResult {
 			Result: true,
 			Error:  nil,
 		}
-	} else if result, err := spt.Client.GetAlbum(spt.Context, spotify.ID(id)); err == nil {
+	} else if result, err := client.GetAlbum(context.Background(), spotify.ID(id)); err == nil {
 		// album
 		searchResult = &SearchResult{
 			ID:     result.ID.String(),
@@ -105,7 +106,7 @@ func SearchById(spt *SpotifyClient, id string) *SearchResult {
 			Result: true,
 			Error:  nil,
 		}
-	} else if result, err := spt.Client.GetTrack(spt.Context, spotify.ID(id)); err == nil {
+	} else if result, err := client.GetTrack(context.Background(), spotify.ID(id)); err == nil {
 		// track
 		searchResult = &SearchResult{
 			ID:     result.ID.String(),
