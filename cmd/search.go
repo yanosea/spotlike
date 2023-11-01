@@ -26,10 +26,10 @@ var (
 // searchCmd : cobra search command
 var searchCmd = &cobra.Command{
 	Use:   "search",
-	Short: "You can search the ID of some contents in Spotify.",
-	Long: `You can search the ID of some contents in Spotify.
+	Short: "You can search the ID of the content in Spotify.",
+	Long: `You can search the ID of the content in Spotify.
 
-You can choose a type of content for searching below.
+You can search the content using type option below.
   * artist
   * album
   * track`,

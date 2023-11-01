@@ -29,7 +29,7 @@ var likeCmd = &cobra.Command{
 	Short: "You can like the contents in Spotify by ID.",
 	Long: `You can like the contents in Spotify by ID.
 
-You can like the content(s) using the level option below.
+You can like the content(s) using level option below.
   * artist (If you pass the artist ID, spotlike will like the artist.)
   * album  (If you pass the artist ID, spotlike will like all albums released by the artist.)
            (If you pass the album ID, spotlike will like the the album.)
