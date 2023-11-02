@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 yanosea <myanoshi0626@gmail.com>
+Package cmd defines and configures the sub commands for the spotlike CLI application using Cobra.
 */
 package cmd
 
@@ -16,51 +16,54 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
+// variables
 var (
-	// id : id of the content
+	// id is the ID of content
 	id string
-	// level : level for like
+	// level is levelfor like
 	level string
 )
 
-// likeCmd : cobra like command
+// likeCmd is the Cobra like sub command of spotlike
 var likeCmd = &cobra.Command{
 	Use:   "like",
-	Short: "You can like the contents in Spotify by ID.",
-	Long: `You can like the contents in Spotify by ID.
+	Short: "Like content in Spotify by ID.",
+	Long: `Like content in Spotify by ID.
 
-You can like the content(s) using level option below.
+You can like content(s) using the level option below:
   * artist (If you pass the artist ID, spotlike will like the artist.)
   * album  (If you pass the artist ID, spotlike will like all albums released by the artist.)
-           (If you pass the album ID, spotlike will like the the album.)
+           (If you pass the album ID, spotlike will like the album.)
   * track  (If you pass the artist ID, spotlike will like all tracks released by the artist.)
-           (If you pass the album ID, spotlike will like all tracks contained in the the album.)
+           (If you pass the album ID, spotlike will like all tracks contained in the album.)
            (If you pass the track ID, spotlike will like the track.)`,
 
-	// RunE : like command
+	// RunE is the function to like
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// get the client
+		// get the Spotify client
 		var spt *spotify.Client
 		if client, err := api.GetClient(); err != nil {
 			return err
 		} else {
-			// set client
+			// set the client
 			spt = client
 		}
 
-		// execute search by id
+		// first, execute search by ID
 		var searchResult *api.SearchResult
 		sr := api.SearchById(spt, id)
 		if !sr.Result {
+			// the content was not found
 			return sr.Error
 		} else {
-			// the content was not found
 			searchResult = sr
 		}
 
-		// artist
+		// execute like
 		var likeResults []*api.LikeResult
-		if searchResult.Type == "Artist" {
+		switch searchResult.Type {
+		// the type of the content is artist
+		case "Artist":
 			// validate level
 			if strings.ToLower(level) == "artist" || level == "" {
 				// like artist
@@ -75,10 +78,9 @@ You can like the content(s) using level option below.
 				// wrong level passed
 				return errors.New("You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist.")
 			}
-		}
 
-		// album
-		if searchResult.Type == "Album" {
+		// the type of the content is album
+		case "Album":
 			// validate level
 			if strings.ToLower(level) == "album" || level == "" {
 				// like album
@@ -90,10 +92,9 @@ You can like the content(s) using level option below.
 				// wrong level passed
 				return errors.New("You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album.")
 			}
-		}
 
-		// track
-		if searchResult.Type == "Track" {
+		// the type of the content is track
+		case "Track":
 			// validate level
 			if strings.ToLower(level) == "track" || level == "" {
 				// like track
@@ -102,26 +103,29 @@ You can like the content(s) using level option below.
 				// wrong level passed
 				return errors.New("You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track.")
 			}
+
+		default:
+			return errors.New("Search result is wrong.")
 		}
 
-		// output like result
+		// print like result
 		for _, result := range likeResults {
 			if result.Result {
-				if result.Type == "artist" {
-					fmt.Printf("Like %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistName)
+				if result.Type == "Artist" {
+					fmt.Printf("Like %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames)
 				} else if result.Type == "Album" {
-					fmt.Printf("Like %s by %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistName, result.AlbumName)
+					fmt.Printf("Like %s by %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
 				} else if result.Type == "Track" {
-					fmt.Printf("Like %s in %s by %s succeeded!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistName, result.TrackName)
+					fmt.Printf("Like %s in %s by %s succeeded!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
 				}
 			} else {
 				if result.ErrorMessage == "" {
-					if result.Type == "artist" {
-						fmt.Printf("Like %s failed...\t:\t[%s]\n", result.Type, result.ArtistName)
+					if result.Type == "Artist" {
+						fmt.Printf("Like %s failed...\t:\t[%s]\n", result.Type, result.ArtistNames)
 					} else if result.Type == "Album" {
-						fmt.Printf("Like %s by %s failed...\t:\t[%s]\n", result.Type, result.ArtistName, result.AlbumName)
+						fmt.Printf("Like %s by %s failed...\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
 					} else if result.Type == "Track" {
-						fmt.Printf("Like %s in %s by %s failed...\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistName, result.TrackName)
+						fmt.Printf("Like %s in %s by %s failed...\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
 					}
 					fmt.Printf("Error :\t%s\n", result.Error)
 				} else {
@@ -135,16 +139,16 @@ You can like the content(s) using level option below.
 	},
 }
 
-// init : executed before like command executed
+// init is executed before the like command is executed
 func init() {
 	rootCmd.AddCommand(likeCmd)
 
 	// validate flag 'id'
-	likeCmd.Flags().StringVarP(&id, "id", "i", "", "id of the content for like")
+	likeCmd.Flags().StringVarP(&id, "id", "i", "", "ID of the content for like")
 	if err := likeCmd.MarkFlagRequired("id"); err != nil {
 		return
 	}
 
 	// validate flag 'level'
-	likeCmd.Flags().StringVarP(&level, "level", "l", "", "level for like")
+	likeCmd.Flags().StringVarP(&level, "level", "l", "", "Level for like")
 }

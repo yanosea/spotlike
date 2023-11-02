@@ -1,18 +1,16 @@
 /*
-Copyright © 2023 yanosea <myanoshi0626@gmail.com>
+Package api provides functions for sending requests to the Spotify API
 */
 package api
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
-	"errors"
 	"fmt"
 	"golang.org/x/oauth2"
 	"net/http"
 	"os"
-	"regexp"
+
+	"github.com/yanosea/spotlike/app"
 
 	// https://github.com/manifoldco/promptui
 	"github.com/manifoldco/promptui"
@@ -22,22 +20,23 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
+// variables
 var (
-	// auth : spotify Authenticator
-	auth *spotifyauth.Authenticator
-	// ch : spotify client
-	ch = make(chan *spotify.Client)
-	// state : spotify auth state
-	state = generateRandomString(16)
+	// authenticator is Spotify authenticator
+	authenticator *spotifyauth.Authenticator
+	// channel is Spotify client
+	channel = make(chan *spotify.Client)
+	// state is Spotify auth state
+	state = app.GenerateRandomString(16)
 )
 
-// GetClient : returns spotify client
+// GetClient returns a Spotify client
 func GetClient() (*spotify.Client, error) {
 	// get client info
 	if err := setAuthInfo(); err != nil {
 		return nil, err
 	} else {
-		// authenticate and get spotify client
+		// authenticate and get a spotify client
 		if client, err := authenticate(); err != nil {
 			return nil, err
 		} else {
@@ -46,7 +45,7 @@ func GetClient() (*spotify.Client, error) {
 	}
 }
 
-// setAuthInfo : set spotify authenticate info to each env
+// setAuthInfo sets Spotify authentication info to each environment variable
 func setAuthInfo() error {
 	// SPOTIFY_CLIENT_ID
 	if id := os.Getenv("SPOTIFY_ID"); id == "" {
@@ -91,8 +90,8 @@ func setAuthInfo() error {
 		}
 	}
 
-	// set auhenticator
-	auth = spotifyauth.New(
+	// set authenticator
+	authenticator = spotifyauth.New(
 		spotifyauth.WithRedirectURL(os.Getenv("SPOTIFY_REDIRECT_URI")),
 		spotifyauth.WithScopes(spotifyauth.ScopeUserFollowModify, spotifyauth.ScopeUserLibraryModify),
 	)
@@ -100,7 +99,7 @@ func setAuthInfo() error {
 	// SPOTIFY_REFRESH_TOKEN
 	if refresh := os.Getenv("SPOTIFY_REFRESH_TOKEN"); refresh == "" {
 		prompt := promptui.Prompt{
-			Label: "Input your Spotify Refresh Token if you heve (if you don't have, leave it empty and press enter.)",
+			Label: "Input your Spotify Refresh Token if you have one (if you don't have one, leave it empty and press enter.)",
 		}
 
 		input, err := prompt.Run()
@@ -114,15 +113,15 @@ func setAuthInfo() error {
 	return nil
 }
 
-// authenticate : authenticates info and returns spotify client with context
+// authenticate authenticates the auth info and returns a Spotify client
 func authenticate() (*spotify.Client, error) {
 	var client *spotify.Client
 
-	// check refresh token
+	// check the refresh token
 	refreshToken := os.Getenv("SPOTIFY_REFRESH_TOKEN")
 	if refreshToken == "" {
-		// get portString from redirect uri
-		if portString, err := getPortString(os.Getenv("SPOTIFY_REDIRECT_URI")); err != nil {
+		// get port from the redirect URI
+		if portString, err := app.GetPortString(os.Getenv("SPOTIFY_REDIRECT_URI")); err != nil {
 			return nil, err
 		} else {
 			// start an HTTP server
@@ -136,12 +135,12 @@ func authenticate() (*spotify.Client, error) {
 				return err
 			}()
 
-			// generate spotify authenticate url and show it
-			url := auth.AuthURL(state)
+			// generate the Spotify authentication URI and print it
+			url := authenticator.AuthURL(state)
 			fmt.Printf("Log in to Spotify by visiting the page below in your browser.\n%s\n\n", url)
 
-			// wait for auth to complete
-			client = <-ch
+			// wait for authentication to complete and get a new Spotify client
+			client = <-channel
 		}
 	} else {
 		// refresh token
@@ -150,16 +149,16 @@ func authenticate() (*spotify.Client, error) {
 			RefreshToken: refreshToken,
 		}
 
-		// get new client
-		client = spotify.New(auth.Client(context.Background(), tok))
+		// get a new Spotify client
+		client = spotify.New(authenticator.Client(context.Background(), tok))
 	}
 
 	return client, nil
 }
 
-// completeAuthenticate : complete authenticate
+// completeAuthenticate completes the authentication process
 func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
-	tok, err := auth.Token(r.Context(), state, r)
+	tok, err := authenticator.Token(r.Context(), state, r)
 	if err != nil {
 		http.Error(w, "Couldn't get token", http.StatusForbidden)
 	}
@@ -167,33 +166,11 @@ func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	}
 
-	// use the token to get an authenticated client
-	client := spotify.New(auth.Client(r.Context(), tok))
+	// get a new Spotify client
+	client := spotify.New(authenticator.Client(r.Context(), tok))
+
+	// print the refresh token and the suggestion message to set it to env
 	fmt.Printf("Your Refresh Token :\t%s\n", tok.RefreshToken)
-	fmt.Printf("Set this token to the env 'SPOTIFY_REFRESH_TOKEN'.\n\n")
-	ch <- client
-}
-
-// getPortString : returns port string like ':xxxx'
-func getPortString(uri string) (string, error) {
-	pattern := `:(\d+)`
-
-	re := regexp.MustCompile(pattern)
-	match := re.FindStringSubmatch(uri)
-
-	if len(match) > 1 {
-		return match[0], nil
-	} else {
-		return "", errors.New("invalid redirect uri")
-	}
-}
-
-// generateRandomString : generate random string
-func generateRandomString(length int) string {
-	bytes := make([]byte, length)
-	_, err := rand.Read(bytes)
-	if err != nil {
-		return ""
-	}
-	return base64.URLEncoding.EncodeToString(bytes)
+	fmt.Printf("Set this token to the environment variable 'SPOTIFY_REFRESH_TOKEN'.\n\n")
+	channel <- client
 }

@@ -1,16 +1,18 @@
 /*
-Copyright © 2023 yanosea <myanoshi0626@gmail.com>
+Package main is the entry point of the spotlike application and handles command execution and program exit codes.
 */
 package main
 
 import (
 	"github.com/yanosea/spotlike/cmd"
-	"github.com/yanosea/spotlike/log"
+	"github.com/yanosea/spotlike/exit"
 )
 
-// main : entry point of spotlike
+// main is the entry point of spotlike
 func main() {
 	if err := cmd.Execute(); err != nil {
-		log.ErrorExit(log.ErrCmd)
+		exit.ErrorExit(exit.CodeErrCmd)
+	} else {
+		exit.Exit()
 	}
 }

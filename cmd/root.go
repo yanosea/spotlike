@@ -1,5 +1,5 @@
 /*
-Copyright © 2023 yanosea <myanoshi0626@gmail.com>
+Package cmd defines and configures the sub commands for the spotlike CLI application using Cobra.
 */
 package cmd
 
@@ -8,10 +8,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// version : version of spotlike
+// version of spotlike
 var version = ""
 
-// rootCmd : cobra root command
+// rootCmd is the Cobra root command of spotlike
 var rootCmd = &cobra.Command{
 	Use:     "spotlike",
 	Version: version,
@@ -22,7 +22,7 @@ You can get the ID of some contents in Spotify.
 You can LIKE the contents in Spotify by ID.`,
 }
 
-// Execute : entry point of root command
+// Execute is entry point of the root command
 func Execute() error {
 	if err := rootCmd.Execute(); err != nil {
 		return err
@@ -30,6 +30,6 @@ func Execute() error {
 	return nil
 }
 
-// init : executed before func Execute executed
+// init is executed before func Execute is executed
 func init() {
 }
