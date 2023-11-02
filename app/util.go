@@ -23,7 +23,7 @@ func GetPortString(uri string) (string, error) {
 	if len(match) > 1 {
 		return match[0], nil
 	} else {
-		return "", errors.New("invalid uri")
+		return "", errors.New("Invalid URI")
 	}
 }
 
@@ -46,6 +46,5 @@ func CombineArtistNames(artists []spotify.SimpleArtist) string {
 			artistNames += ", "
 		}
 	}
-
 	return artistNames
 }

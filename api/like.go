@@ -74,7 +74,6 @@ func LikeArtistById(client *spotify.Client, id string) []*LikeResult {
 			ErrorMessage: fmt.Sprintf("Search the artist by ID failed...\t:\t[%s]", id),
 		})
 	}
-
 	return likeResults
 }
 
@@ -127,7 +126,6 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string) []*Lik
 			ErrorMessage: fmt.Sprintf("Search the artist by ID failed...\t:\t[%s]", id),
 		})
 	}
-
 	return likeResults
 }
 
@@ -204,7 +202,6 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string) []*Lik
 			ErrorMessage: fmt.Sprintf("Search the artist by ID failed...\t:\t[%s]", id),
 		})
 	}
-
 	return likeResults
 }
 
@@ -241,7 +238,6 @@ func LikeAlbumById(client *spotify.Client, id string) []*LikeResult {
 			ErrorMessage: fmt.Sprintf("Search the album by ID failed...\t:\t[%s]", id),
 		})
 	}
-
 	return likeResults
 }
 
@@ -292,7 +288,6 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string) []*LikeResult {
 			ErrorMessage: fmt.Sprintf("Search the album by ID failed...\t:\t[%s]", id),
 		})
 	}
-
 	return likeResults
 }
 
@@ -331,6 +326,5 @@ func LikeTrackById(client *spotify.Client, id string) []*LikeResult {
 			ErrorMessage: fmt.Sprintf("Search the track by ID failed...\t:\t[%s]", id),
 		})
 	}
-
 	return likeResults
 }

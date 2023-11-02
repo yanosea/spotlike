@@ -109,7 +109,6 @@ func setAuthInfo() error {
 			os.Setenv("SPOTIFY_REFRESH_TOKEN", input)
 		}
 	}
-
 	return nil
 }
 
@@ -152,7 +151,6 @@ func authenticate() (*spotify.Client, error) {
 		// get a new Spotify client
 		client = spotify.New(authenticator.Client(context.Background(), tok))
 	}
-
 	return client, nil
 }
 

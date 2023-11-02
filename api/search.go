@@ -82,7 +82,6 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 			}
 		}
 	}
-
 	return searchResult
 }
 
@@ -123,6 +122,5 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 			Error:  errors.New(fmt.Sprintf("The content [%s] was not found", id)),
 		}
 	}
-
 	return searchResult
 }

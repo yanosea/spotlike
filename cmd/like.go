@@ -134,7 +134,6 @@ You can like content(s) using the level option below:
 				}
 			}
 		}
-
 		return nil
 	},
 }
