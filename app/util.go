@@ -20,7 +20,7 @@ func GetPortString(uri string) (string, error) {
 	if len(match) > 1 {
 		return match[0], nil
 	} else {
-		return "", errors.New("Invalid URI")
+		return "", errors.New("\n  Invalid URI")
 	}
 }
 

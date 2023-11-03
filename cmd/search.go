@@ -36,7 +36,7 @@ You can search for content using the type option below:
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// validate search type
 		if strings.ToLower(searchType) != "artist" && strings.ToLower(searchType) != "album" && strings.ToLower(searchType) != "track" {
-			return errors.New("The option 'type' must be 'artist', 'album', or 'track'")
+			return errors.New("\n  The option 'type' must be 'artist', 'album', or 'track'")
 		}
 
 		// get the Spotify client
@@ -75,8 +75,8 @@ You can search for content using the type option below:
 			}
 		} else {
 			fmt.Printf("Search for %s failed...\n", searchResult.Type)
-			fmt.Printf("query\t:\t%s\n", query)
-			fmt.Printf("Error\t:\t%s\n", searchResult.Error)
+			fmt.Printf("Query:\n  %s\n", query)
+			fmt.Printf("Error:\n  %s\n", searchResult.Error)
 		}
 		return nil
 	},

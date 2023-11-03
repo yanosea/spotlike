@@ -73,7 +73,7 @@ You can like content(s) using the level option below:
 				likeResults = api.LikeAllTracksReleasedByArtistById(spt, searchResult.ID)
 			} else {
 				// wrong level passed
-				return errors.New("You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist.")
+				return errors.New("\n  You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist.")
 			}
 
 		// the type of the content is album
@@ -87,7 +87,7 @@ You can like content(s) using the level option below:
 				likeResults = api.LikeAllTracksInAlbumById(spt, searchResult.ID)
 			} else {
 				// wrong level passed
-				return errors.New("You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album.")
+				return errors.New("\n  You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album.")
 			}
 
 		// the type of the content is track
@@ -98,11 +98,11 @@ You can like content(s) using the level option below:
 				likeResults = api.LikeTrackById(spt, searchResult.ID)
 			} else {
 				// wrong level passed
-				return errors.New("You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track.")
+				return errors.New("\n  You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track.")
 			}
 
 		default:
-			return errors.New("Search result is wrong.")
+			return errors.New("\n  Search result is wrong.")
 		}
 
 		// print like result
@@ -124,10 +124,10 @@ You can like content(s) using the level option below:
 					} else if result.Type == "Track" {
 						fmt.Printf("Like %s in %s by %s failed...\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
 					}
-					fmt.Printf("Error :\t%s\n", result.Error)
+					fmt.Printf("Error:\n  %s\n", result.Error)
 				} else {
-					fmt.Printf("%s\n", result.ErrorMessage)
-					fmt.Printf("Error :\t%s\n", result.Error)
+					fmt.Printf("\n  %s\n", result.ErrorMessage)
+					fmt.Printf("Error:\n  %s\n", result.Error)
 				}
 			}
 		}
