@@ -75,7 +75,7 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 			// search failed
 			searchResult = &SearchResult{
 				Result: false,
-				Error:  errors.New("\n  Search result is wrong."),
+				Error:  errors.New("\n  Search result is wrong.\n"),
 			}
 		}
 	}
@@ -116,7 +116,7 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 		// content not found
 		searchResult = &SearchResult{
 			Result: false,
-			Error:  errors.New(fmt.Sprintf("\n  The content [%s] was not found", id)),
+			Error:  errors.New(fmt.Sprintf("\n  The content [%s] was not found.\n", id)),
 		}
 	}
 	return searchResult

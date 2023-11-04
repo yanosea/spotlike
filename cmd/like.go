@@ -73,7 +73,7 @@ You can like content(s) using the level option below:
 				likeResults = api.LikeAllTracksReleasedByArtistById(spt, searchResult.ID)
 			} else {
 				// wrong level passed
-				return errors.New("\n  You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist.")
+				return errors.New("\n  You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist.\n")
 			}
 
 		// the type of the content is album
@@ -87,7 +87,7 @@ You can like content(s) using the level option below:
 				likeResults = api.LikeAllTracksInAlbumById(spt, searchResult.ID)
 			} else {
 				// wrong level passed
-				return errors.New("\n  You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album.")
+				return errors.New("\n  You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album.\n")
 			}
 
 		// the type of the content is track
@@ -98,11 +98,11 @@ You can like content(s) using the level option below:
 				likeResults = api.LikeTrackById(spt, searchResult.ID)
 			} else {
 				// wrong level passed
-				return errors.New("\n  You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track.")
+				return errors.New("\n  You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track.\n")
 			}
 
 		default:
-			return errors.New("\n  Search result is wrong.")
+			return errors.New("\n  Search result is wrong.\n")
 		}
 
 		// print like result
