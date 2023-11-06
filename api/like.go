@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/yanosea/spotlike/app"
+
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
 )
@@ -21,8 +23,10 @@ type LikeResult struct {
 	AlbumName string
 	// TrackName is the track name
 	TrackName string
-	// Result is the like result (true: succeeded, false: failed)
+	// Result is the like result (true : succeeded, false : failed)
 	Result bool
+	// Skip is whether execute like was skipped or not (true : skipped, false : not skipped)
+	Skip bool
 	// Error is the error returned from the Spotify API
 	Error error
 	// ErrorMessage is the Error message for the like result
@@ -41,26 +45,47 @@ type TrackWithAlbumName struct {
 var likeResults []*LikeResult
 
 // LikeArtistById returns the like result for an artist with the given ID.
-func LikeArtistById(client *spotify.Client, id string) []*LikeResult {
+func LikeArtistById(client *spotify.Client, id string, force bool) []*LikeResult {
 	// execute search
 	if sr := SearchById(client, id); sr.Result && sr.Type == "Artist" {
-		// execute like
-		if err := client.FollowArtist(context.Background(), spotify.ID(sr.ID)); err != nil {
-			// like failed
-			likeResults = append(likeResults, &LikeResult{
-				ID:          sr.ID,
-				Type:        "Artist",
-				ArtistNames: sr.ArtistNames,
-				Result:      false,
-				Error:       err,
-			})
+		// check the artist has been already liked
+		if alreadyLiked, err := client.CurrentUserFollows(context.Background(), "artist", spotify.ID(sr.ID)); err == nil {
+			if !force && alreadyLiked[0] {
+				// like skipped
+				likeResults = append(likeResults, &LikeResult{
+					ID:          sr.ID,
+					Type:        "Artist",
+					ArtistNames: sr.ArtistNames,
+					Result:      true,
+					Skip:        true,
+				})
+			} else if err := client.FollowArtist(context.Background(), spotify.ID(sr.ID)); err != nil {
+				// like failed
+				likeResults = append(likeResults, &LikeResult{
+					ID:          sr.ID,
+					Type:        "Artist",
+					ArtistNames: sr.ArtistNames,
+					Result:      false,
+					Error:       err,
+				})
+			} else {
+				// like succeeded
+				likeResults = append(likeResults, &LikeResult{
+					ID:          sr.ID,
+					Type:        "Artist",
+					ArtistNames: sr.ArtistNames,
+					Result:      true,
+				})
+			}
 		} else {
-			// like succeeded
+			// check failed
 			likeResults = append(likeResults, &LikeResult{
-				ID:          sr.ID,
-				Type:        "Artist",
-				ArtistNames: sr.ArtistNames,
-				Result:      true,
+				ID:           sr.ID,
+				Type:         "Artist",
+				ArtistNames:  sr.ArtistNames,
+				Result:       false,
+				Error:        err,
+				ErrorMessage: fmt.Sprintf("Check whether the artist has been already liked failed...\t:\t[%s]", sr.ID),
 			})
 		}
 	} else {
@@ -75,7 +100,7 @@ func LikeArtistById(client *spotify.Client, id string) []*LikeResult {
 }
 
 // LikeAllAlbumsReleasedByArtistById returns the like results for all albums released by an artist with the given ID.
-func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string) []*LikeResult {
+func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force bool) []*LikeResult {
 	// execute search
 	if sr := SearchById(client, id); sr.Result && sr.Type == "Artist" {
 		// get all albums released by the artist
@@ -91,26 +116,50 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string) []*Lik
 			sort.Slice(allAlbums.Albums, func(i, j int) bool {
 				return allAlbums.Albums[i].ReleaseDateTime().Before(allAlbums.Albums[j].ReleaseDateTime())
 			})
-			// execute like
+
 			for _, album := range allAlbums.Albums {
-				if err := client.AddAlbumsToLibrary(context.Background(), album.ID); err != nil {
-					likeResults = append(likeResults, &LikeResult{
-						// like failed
-						ID:          album.ID.String(),
-						Type:        "Album",
-						ArtistNames: sr.ArtistNames,
-						AlbumName:   album.Name,
-						Result:      false,
-						Error:       err,
-					})
+				// check the album has been already liked
+				if alreadyLiked, err := client.UserHasAlbums(context.Background(), album.ID); err == nil {
+					if !force && alreadyLiked[0] {
+						// like skipped
+						likeResults = append(likeResults, &LikeResult{
+							ID:          album.ID.String(),
+							Type:        "Album",
+							ArtistNames: app.CombineArtistNames(album.Artists),
+							AlbumName:   album.Name,
+							Result:      true,
+							Skip:        true,
+						})
+					} else if err := client.AddAlbumsToLibrary(context.Background(), album.ID); err != nil {
+						likeResults = append(likeResults, &LikeResult{
+							// like failed
+							ID:          album.ID.String(),
+							Type:        "Album",
+							ArtistNames: app.CombineArtistNames(album.Artists),
+							AlbumName:   album.Name,
+							Result:      false,
+							Error:       err,
+						})
+					} else {
+						// like succeeded
+						likeResults = append(likeResults, &LikeResult{
+							ID:          album.ID.String(),
+							Type:        "Album",
+							ArtistNames: app.CombineArtistNames(album.Artists),
+							AlbumName:   album.Name,
+							Result:      true,
+						})
+					}
 				} else {
-					// like succeeded
+					// check failed
 					likeResults = append(likeResults, &LikeResult{
-						ID:          album.ID.String(),
-						Type:        "Album",
-						ArtistNames: sr.ArtistNames,
-						AlbumName:   album.Name,
-						Result:      true,
+						ID:           album.ID.String(),
+						Type:         "Artist",
+						ArtistNames:  app.CombineArtistNames(album.Artists),
+						AlbumName:    album.Name,
+						Result:       false,
+						Error:        err,
+						ErrorMessage: fmt.Sprintf("Check whether the album has been already liked failed...\t:\t[%s]", album.ID.String()),
 					})
 				}
 			}
@@ -127,7 +176,7 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string) []*Lik
 }
 
 // LikeAllTracksReleasedByArtistById returns the like results for all tracks released by an artist with the given ID.
-func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string) []*LikeResult {
+func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force bool) []*LikeResult {
 	// execute search
 	if sr := SearchById(client, id); sr.Result && sr.Type == "Artist" {
 		// get all albums released by the artist
@@ -165,28 +214,53 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string) []*Lik
 				}
 			}
 
-			// execute like
 			for _, track := range allTracks {
-				if err := client.AddTracksToLibrary(context.Background(), track.Track.ID); err != nil {
-					// like failed
-					likeResults = append(likeResults, &LikeResult{
-						ID:          track.Track.ID.String(),
-						Type:        "Track",
-						ArtistNames: sr.ArtistNames,
-						AlbumName:   track.AlbumName,
-						TrackName:   track.Track.Name,
-						Result:      false,
-						Error:       err,
-					})
+				// check the track has been already liked
+				if alreadyLiked, err := client.UserHasTracks(context.Background(), track.Track.ID); err == nil {
+					if !force && alreadyLiked[0] {
+						// like skipped
+						likeResults = append(likeResults, &LikeResult{
+							ID:          track.Track.ID.String(),
+							Type:        "Track",
+							ArtistNames: app.CombineArtistNames(track.Track.Artists),
+							AlbumName:   track.AlbumName,
+							TrackName:   track.Track.Name,
+							Result:      true,
+							Skip:        true,
+						})
+					} else if err := client.AddTracksToLibrary(context.Background(), track.Track.ID); err != nil {
+						// like failed
+						likeResults = append(likeResults, &LikeResult{
+							ID:          track.Track.ID.String(),
+							Type:        "Track",
+							ArtistNames: app.CombineArtistNames(track.Track.Artists),
+							AlbumName:   track.AlbumName,
+							TrackName:   track.Track.Name,
+							Result:      false,
+							Error:       err,
+						})
+					} else {
+						// like succeeded
+						likeResults = append(likeResults, &LikeResult{
+							ID:          track.Track.ID.String(),
+							Type:        "Track",
+							ArtistNames: app.CombineArtistNames(track.Track.Artists),
+							AlbumName:   track.AlbumName,
+							TrackName:   track.Track.Name,
+							Result:      true,
+						})
+					}
 				} else {
-					// like succeeded
+					// check failed
 					likeResults = append(likeResults, &LikeResult{
-						ID:          track.Track.ID.String(),
-						Type:        "Track",
-						ArtistNames: sr.ArtistNames,
-						AlbumName:   track.AlbumName,
-						TrackName:   track.Track.Name,
-						Result:      true,
+						ID:           track.Track.ID.String(),
+						Type:         "Track",
+						ArtistNames:  app.CombineArtistNames(track.Track.Artists),
+						AlbumName:    track.AlbumName,
+						TrackName:    track.Track.Name,
+						Result:       false,
+						Error:        err,
+						ErrorMessage: fmt.Sprintf("Check whether the track has been already liked failed...\t:\t[%s]", track.Track.ID.String()),
 					})
 				}
 			}
@@ -203,28 +277,51 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string) []*Lik
 }
 
 // LikeAlbumById returns an error if liking an album with the given ID is failed.
-func LikeAlbumById(client *spotify.Client, id string) []*LikeResult {
+func LikeAlbumById(client *spotify.Client, id string, force bool) []*LikeResult {
 	// execute search
 	if sr := SearchById(client, id); sr.Result && sr.Type == "Album" {
-		// execute like
-		if err := client.AddAlbumsToLibrary(context.Background(), spotify.ID(id)); err != nil {
-			// like failed
-			likeResults = append(likeResults, &LikeResult{
-				ID:          id,
-				Type:        "Album",
-				ArtistNames: sr.ArtistNames,
-				AlbumName:   sr.AlbumName,
-				Result:      false,
-				Error:       err,
-			})
+		// check the album has been already liked
+		if alreadyLiked, err := client.UserHasAlbums(context.Background(), spotify.ID(sr.ID)); err == nil {
+			if !force && alreadyLiked[0] {
+				// like skipped
+				likeResults = append(likeResults, &LikeResult{
+					ID:          sr.ID,
+					Type:        "Album",
+					ArtistNames: sr.ArtistNames,
+					AlbumName:   sr.AlbumName,
+					Result:      true,
+					Skip:        true,
+				})
+			} else if err := client.AddAlbumsToLibrary(context.Background(), spotify.ID(sr.ID)); err != nil {
+				// like failed
+				likeResults = append(likeResults, &LikeResult{
+					ID:          id,
+					Type:        "Album",
+					ArtistNames: sr.ArtistNames,
+					AlbumName:   sr.AlbumName,
+					Result:      false,
+					Error:       err,
+				})
+			} else {
+				// like failed
+				likeResults = append(likeResults, &LikeResult{
+					ID:          id,
+					Type:        "Album",
+					ArtistNames: sr.ArtistNames,
+					AlbumName:   sr.AlbumName,
+					Result:      true,
+				})
+			}
 		} else {
-			// like failed
+			// check failed
 			likeResults = append(likeResults, &LikeResult{
-				ID:          id,
-				Type:        "Album",
-				ArtistNames: sr.ArtistNames,
-				AlbumName:   sr.AlbumName,
-				Result:      true,
+				ID:           sr.ID,
+				Type:         "Album",
+				ArtistNames:  sr.ArtistNames,
+				AlbumName:    sr.AlbumName,
+				Result:       false,
+				Error:        err,
+				ErrorMessage: fmt.Sprintf("Check whether the album has been already liked failed...\t:\t[%s]", sr.ID),
 			})
 		}
 	} else {
@@ -239,11 +336,11 @@ func LikeAlbumById(client *spotify.Client, id string) []*LikeResult {
 }
 
 // LikeAllTracksInAlbumById returns an error if liking all tracks in an album with the given ID is failed.
-func LikeAllTracksInAlbumById(client *spotify.Client, id string) []*LikeResult {
+func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*LikeResult {
 	// execute search
 	if sr := SearchById(client, id); sr.Result && sr.Type == "Album" {
 		// get all tracks in the album
-		if allTracks, err := client.GetAlbumTracks(context.Background(), spotify.ID(id)); err != nil {
+		if allTracks, err := client.GetAlbumTracks(context.Background(), spotify.ID(sr.ID)); err != nil {
 			// getting all tracks in the album searched by ID failed
 			likeResults = append(likeResults, &LikeResult{
 				Result:       false,
@@ -252,27 +349,52 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string) []*LikeResult {
 			})
 		} else {
 			for _, track := range allTracks.Tracks {
-				// execute like
-				if err := client.AddTracksToLibrary(context.Background(), track.ID); err != nil {
-					// like failed
-					likeResults = append(likeResults, &LikeResult{
-						ID:          track.ID.String(),
-						Type:        "Track",
-						ArtistNames: sr.ArtistNames,
-						AlbumName:   sr.AlbumName,
-						TrackName:   track.Name,
-						Result:      false,
-						Error:       err,
-					})
+				// check the track has been already liked
+				if alreadyLiked, err := client.UserHasTracks(context.Background(), track.ID); err == nil {
+					if !force && alreadyLiked[0] {
+						// like skipped
+						likeResults = append(likeResults, &LikeResult{
+							ID:          track.ID.String(),
+							Type:        "Track",
+							ArtistNames: app.CombineArtistNames(track.Artists),
+							AlbumName:   track.Album.Name,
+							TrackName:   track.Name,
+							Result:      true,
+							Skip:        true,
+						})
+					} else if err := client.AddTracksToLibrary(context.Background(), track.ID); err != nil {
+						// like failed
+						likeResults = append(likeResults, &LikeResult{
+							ID:          track.ID.String(),
+							Type:        "Track",
+							ArtistNames: app.CombineArtistNames(track.Artists),
+							AlbumName:   track.Album.Name,
+							TrackName:   track.Name,
+							Result:      false,
+							Error:       err,
+						})
+					} else {
+						// like succeeded
+						likeResults = append(likeResults, &LikeResult{
+							ID:          track.ID.String(),
+							Type:        "Track",
+							ArtistNames: app.CombineArtistNames(track.Artists),
+							AlbumName:   track.Album.Name,
+							TrackName:   track.Name,
+							Result:      true,
+						})
+					}
 				} else {
-					// like succeeded
+					// check failed
 					likeResults = append(likeResults, &LikeResult{
-						ID:          track.ID.String(),
-						Type:        "Track",
-						ArtistNames: sr.ArtistNames,
-						AlbumName:   sr.AlbumName,
-						TrackName:   track.Name,
-						Result:      true,
+						ID:           track.ID.String(),
+						Type:         "Track",
+						ArtistNames:  app.CombineArtistNames(track.Artists),
+						AlbumName:    track.Album.Name,
+						TrackName:    track.Name,
+						Result:       false,
+						Error:        err,
+						ErrorMessage: fmt.Sprintf("Check whether the track has been already liked failed...\t:\t[%s]", track.ID.String()),
 					})
 				}
 			}
@@ -289,30 +411,55 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string) []*LikeResult {
 }
 
 // LikeTrackById returns an error if liking a track with the given ID is failed.
-func LikeTrackById(client *spotify.Client, id string) []*LikeResult {
+func LikeTrackById(client *spotify.Client, id string, force bool) []*LikeResult {
 	// execute search
 	if sr := SearchById(client, id); sr.Result && sr.Type == "Track" {
-		// execute like
-		if err := client.AddTracksToLibrary(context.Background(), spotify.ID(id)); err != nil {
-			likeResults = append(likeResults, &LikeResult{
-				// like failed
-				ID:          sr.ID,
-				Type:        "Track",
-				ArtistNames: sr.ArtistNames,
-				AlbumName:   sr.AlbumName,
-				TrackName:   sr.TrackName,
-				Result:      false,
-				Error:       err,
-			})
+		// check the track has been already liked
+		if alreadyLiked, err := client.UserHasTracks(context.Background(), spotify.ID(sr.ID)); err == nil {
+			if !force && alreadyLiked[0] {
+				// like skipped
+				likeResults = append(likeResults, &LikeResult{
+					ID:          sr.ID,
+					Type:        "Track",
+					ArtistNames: sr.ArtistNames,
+					AlbumName:   sr.AlbumName,
+					TrackName:   sr.TrackName,
+					Result:      true,
+					Skip:        true,
+				})
+			} else if err := client.AddTracksToLibrary(context.Background(), spotify.ID(sr.ID)); err != nil {
+				likeResults = append(likeResults, &LikeResult{
+					// like failed
+					ID:          sr.ID,
+					Type:        "Track",
+					ArtistNames: sr.ArtistNames,
+					AlbumName:   sr.AlbumName,
+					TrackName:   sr.TrackName,
+					Result:      false,
+					Error:       err,
+				})
+			} else {
+				// like succeeded
+				likeResults = append(likeResults, &LikeResult{
+					ID:          sr.ID,
+					Type:        "Track",
+					ArtistNames: sr.ArtistNames,
+					AlbumName:   sr.AlbumName,
+					TrackName:   sr.TrackName,
+					Result:      true,
+				})
+			}
 		} else {
-			// like succeeded
+			// check failed
 			likeResults = append(likeResults, &LikeResult{
-				ID:          sr.ID,
-				Type:        "Track",
-				ArtistNames: sr.ArtistNames,
-				AlbumName:   sr.AlbumName,
-				TrackName:   sr.TrackName,
-				Result:      true,
+				ID:           sr.ID,
+				Type:         "Track",
+				ArtistNames:  sr.ArtistNames,
+				AlbumName:    sr.AlbumName,
+				TrackName:    sr.TrackName,
+				Result:       false,
+				Error:        err,
+				ErrorMessage: fmt.Sprintf("Check whether the track has been already liked failed...\t:\t[%s]", sr.ID),
 			})
 		}
 	} else {

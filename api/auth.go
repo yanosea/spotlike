@@ -90,7 +90,15 @@ func setAuthInfo() error {
 	// set authenticator
 	authenticator = spotifyauth.New(
 		spotifyauth.WithRedirectURL(os.Getenv("SPOTIFY_REDIRECT_URI")),
-		spotifyauth.WithScopes(spotifyauth.ScopeUserFollowModify, spotifyauth.ScopeUserLibraryModify),
+		spotifyauth.WithScopes(
+			// to check the user has been already liked the artist
+			spotifyauth.ScopeUserFollowRead,
+			// to check the user has been already liked the album and the track
+			spotifyauth.ScopeUserLibraryRead,
+			// to like the artist
+			spotifyauth.ScopeUserFollowModify,
+			// to like the album and the track
+			spotifyauth.ScopeUserLibraryModify),
 	)
 
 	// SPOTIFY_REFRESH_TOKEN
@@ -133,7 +141,7 @@ func authenticate() (*spotify.Client, error) {
 
 			// generate the Spotify authentication URI and print it
 			url := authenticator.AuthURL(state)
-			fmt.Printf("Log in to Spotify by visiting the page below in your browser.\n%s\n\n", url)
+			fmt.Printf("\nLog in to Spotify by visiting the page below in your browser.\n%s\n\n", url)
 
 			// wait for authentication to complete and get a new Spotify client
 			client = <-channel
@@ -165,7 +173,11 @@ func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
 	client := spotify.New(authenticator.Client(r.Context(), tok))
 
 	// print the refresh token and the suggestion message to set it to env
-	fmt.Printf("Your Refresh Token :\t%s\n", tok.RefreshToken)
-	fmt.Printf("Set this token to the environment variable 'SPOTIFY_REFRESH_TOKEN'.\n\n")
+	fmt.Printf("Authentication succeeded!\n")
+	fmt.Printf("If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those.\n")
+	fmt.Printf("  export SPOTIFY_ID=%s\n", os.Getenv("SPOTIFY_ID"))
+	fmt.Printf("  export SPOTIFY_SECRET=%s\n", os.Getenv("SPOTIFY_SECRET"))
+	fmt.Printf("  export SPOTIFY_REDIRECT_URI=%s\n", os.Getenv("SPOTIFY_REDIRECT_URI"))
+	fmt.Printf("  export SPOTIFY_REFRESH_TOKEN=%s\n\n", tok.RefreshToken)
 	channel <- client
 }

@@ -17,8 +17,10 @@ import (
 var (
 	// id is the ID of content
 	id string
-	// level is levelfor like
+	// level is level for like
 	level string
+	// foece is the option whether to like even if the content heve already been liked
+	force bool
 )
 
 // likeCmd is the Cobra like sub command of spotlike
@@ -64,13 +66,13 @@ You can like content(s) using the level option below:
 			// validate level
 			if strings.ToLower(level) == "artist" || level == "" {
 				// like artist
-				likeResults = api.LikeArtistById(spt, searchResult.ID)
+				likeResults = api.LikeArtistById(spt, searchResult.ID, force)
 			} else if strings.ToLower(level) == "album" {
 				// like all albums released by the artist
-				likeResults = api.LikeAllAlbumsReleasedByArtistById(spt, searchResult.ID)
+				likeResults = api.LikeAllAlbumsReleasedByArtistById(spt, searchResult.ID, force)
 			} else if strings.ToLower(level) == "track" {
 				// like all tracks released by the artist
-				likeResults = api.LikeAllTracksReleasedByArtistById(spt, searchResult.ID)
+				likeResults = api.LikeAllTracksReleasedByArtistById(spt, searchResult.ID, force)
 			} else {
 				// wrong level passed
 				return errors.New("\n  You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist.\n")
@@ -81,10 +83,10 @@ You can like content(s) using the level option below:
 			// validate level
 			if strings.ToLower(level) == "album" || level == "" {
 				// like album
-				likeResults = api.LikeAlbumById(spt, searchResult.ID)
+				likeResults = api.LikeAlbumById(spt, searchResult.ID, force)
 			} else if strings.ToLower(level) == "track" {
 				// like all tracks on the album
-				likeResults = api.LikeAllTracksInAlbumById(spt, searchResult.ID)
+				likeResults = api.LikeAllTracksInAlbumById(spt, searchResult.ID, force)
 			} else {
 				// wrong level passed
 				return errors.New("\n  You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album.\n")
@@ -95,7 +97,7 @@ You can like content(s) using the level option below:
 			// validate level
 			if strings.ToLower(level) == "track" || level == "" {
 				// like track
-				likeResults = api.LikeTrackById(spt, searchResult.ID)
+				likeResults = api.LikeTrackById(spt, searchResult.ID, force)
 			} else {
 				// wrong level passed
 				return errors.New("\n  You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track.\n")
@@ -109,11 +111,23 @@ You can like content(s) using the level option below:
 		for _, result := range likeResults {
 			if result.Result {
 				if result.Type == "Artist" {
-					fmt.Printf("Like %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames)
+					if result.Skip {
+						fmt.Printf("Like %s skipped!\t:\t[%s]\n", result.Type, result.ArtistNames)
+					} else {
+						fmt.Printf("Like %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames)
+					}
 				} else if result.Type == "Album" {
-					fmt.Printf("Like %s by %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
+					if result.Skip {
+						fmt.Printf("Like %s by %s skipped!\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
+					} else {
+						fmt.Printf("Like %s by %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
+					}
 				} else if result.Type == "Track" {
-					fmt.Printf("Like %s in %s by %s succeeded!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
+					if result.Skip {
+						fmt.Printf("Like %s in %s by %s skipped!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
+					} else {
+						fmt.Printf("Like %s in %s by %s succeeded!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
+					}
 				}
 			} else {
 				if result.ErrorMessage == "" {
@@ -124,9 +138,9 @@ You can like content(s) using the level option below:
 					} else if result.Type == "Track" {
 						fmt.Printf("Like %s in %s by %s failed...\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
 					}
-					fmt.Printf("Error:\n  %s\n", result.Error)
+					fmt.Printf("Error:\n  %s\n\n", result.Error)
 				} else {
-					fmt.Printf("\n  %s\n", result.ErrorMessage)
+					fmt.Printf("%s\n\n", result.ErrorMessage)
 					fmt.Printf("Error:\n  %s\n", result.Error)
 				}
 			}
@@ -147,4 +161,7 @@ func init() {
 
 	// validate flag 'level'
 	likeCmd.Flags().StringVarP(&level, "level", "l", "", "Level for like")
+
+	// validate flag 'force'
+	likeCmd.Flags().BoolVarP(&force, "force", "f", false, "whether to like even if the content heve already been liked")
 }
