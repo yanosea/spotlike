@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/yanosea/spotlike/app"
+	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
@@ -55,7 +55,7 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 			searchResult = &SearchResult{
 				ID:          result.Albums.Albums[0].ID.String(),
 				Type:        "Album",
-				ArtistNames: app.CombineArtistNames(result.Albums.Albums[0].Artists),
+				ArtistNames: util.CombineArtistNames(result.Albums.Albums[0].Artists),
 				AlbumName:   result.Albums.Albums[0].Name,
 				Result:      true,
 			}
@@ -65,7 +65,7 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 			searchResult = &SearchResult{
 				ID:          result.Tracks.Tracks[0].ID.String(),
 				Type:        "Track",
-				ArtistNames: app.CombineArtistNames(result.Tracks.Tracks[0].Artists),
+				ArtistNames: util.CombineArtistNames(result.Tracks.Tracks[0].Artists),
 				AlbumName:   result.Tracks.Tracks[0].Album.Name,
 				TrackName:   result.Tracks.Tracks[0].Name,
 				Result:      true,
@@ -98,7 +98,7 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 		searchResult = &SearchResult{
 			ID:          result.ID.String(),
 			Type:        "Album",
-			ArtistNames: app.CombineArtistNames(result.Artists),
+			ArtistNames: util.CombineArtistNames(result.Artists),
 			AlbumName:   result.Name,
 			Result:      true,
 		}
@@ -107,7 +107,7 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 		searchResult = &SearchResult{
 			ID:          result.ID.String(),
 			Type:        "Track",
-			ArtistNames: app.CombineArtistNames(result.Artists),
+			ArtistNames: util.CombineArtistNames(result.Artists),
 			AlbumName:   result.Album.Name,
 			TrackName:   result.Name,
 			Result:      true,

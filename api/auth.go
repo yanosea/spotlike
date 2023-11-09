@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/yanosea/spotlike/app"
+	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/manifoldco/promptui
 	"github.com/manifoldco/promptui"
@@ -24,7 +24,7 @@ var (
 	// channel is Spotify client
 	channel = make(chan *spotify.Client)
 	// state is Spotify auth state
-	state = app.GenerateRandomString(16)
+	state = util.GenerateRandomString(16)
 )
 
 // GetClient returns a Spotify client
@@ -125,7 +125,7 @@ func authenticate() (*spotify.Client, error) {
 	refreshToken := os.Getenv("SPOTIFY_REFRESH_TOKEN")
 	if refreshToken == "" {
 		// get port from the redirect URI
-		if portString, err := app.GetPortString(os.Getenv("SPOTIFY_REDIRECT_URI")); err != nil {
+		if portString, err := util.GetPortString(os.Getenv("SPOTIFY_REDIRECT_URI")); err != nil {
 			return nil, err
 		} else {
 			// start an HTTP server

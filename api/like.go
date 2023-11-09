@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/yanosea/spotlike/app"
+	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
@@ -125,7 +125,7 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force 
 						likeResults = append(likeResults, &LikeResult{
 							ID:          album.ID.String(),
 							Type:        "Album",
-							ArtistNames: app.CombineArtistNames(album.Artists),
+							ArtistNames: util.CombineArtistNames(album.Artists),
 							AlbumName:   album.Name,
 							Result:      true,
 							Skip:        true,
@@ -135,7 +135,7 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force 
 							// like failed
 							ID:          album.ID.String(),
 							Type:        "Album",
-							ArtistNames: app.CombineArtistNames(album.Artists),
+							ArtistNames: util.CombineArtistNames(album.Artists),
 							AlbumName:   album.Name,
 							Result:      false,
 							Error:       err,
@@ -145,7 +145,7 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force 
 						likeResults = append(likeResults, &LikeResult{
 							ID:          album.ID.String(),
 							Type:        "Album",
-							ArtistNames: app.CombineArtistNames(album.Artists),
+							ArtistNames: util.CombineArtistNames(album.Artists),
 							AlbumName:   album.Name,
 							Result:      true,
 						})
@@ -155,7 +155,7 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force 
 					likeResults = append(likeResults, &LikeResult{
 						ID:           album.ID.String(),
 						Type:         "Artist",
-						ArtistNames:  app.CombineArtistNames(album.Artists),
+						ArtistNames:  util.CombineArtistNames(album.Artists),
 						AlbumName:    album.Name,
 						Result:       false,
 						Error:        err,
@@ -222,7 +222,7 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
 						likeResults = append(likeResults, &LikeResult{
 							ID:          track.Track.ID.String(),
 							Type:        "Track",
-							ArtistNames: app.CombineArtistNames(track.Track.Artists),
+							ArtistNames: util.CombineArtistNames(track.Track.Artists),
 							AlbumName:   track.AlbumName,
 							TrackName:   track.Track.Name,
 							Result:      true,
@@ -233,7 +233,7 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
 						likeResults = append(likeResults, &LikeResult{
 							ID:          track.Track.ID.String(),
 							Type:        "Track",
-							ArtistNames: app.CombineArtistNames(track.Track.Artists),
+							ArtistNames: util.CombineArtistNames(track.Track.Artists),
 							AlbumName:   track.AlbumName,
 							TrackName:   track.Track.Name,
 							Result:      false,
@@ -244,7 +244,7 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
 						likeResults = append(likeResults, &LikeResult{
 							ID:          track.Track.ID.String(),
 							Type:        "Track",
-							ArtistNames: app.CombineArtistNames(track.Track.Artists),
+							ArtistNames: util.CombineArtistNames(track.Track.Artists),
 							AlbumName:   track.AlbumName,
 							TrackName:   track.Track.Name,
 							Result:      true,
@@ -255,7 +255,7 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
 					likeResults = append(likeResults, &LikeResult{
 						ID:           track.Track.ID.String(),
 						Type:         "Track",
-						ArtistNames:  app.CombineArtistNames(track.Track.Artists),
+						ArtistNames:  util.CombineArtistNames(track.Track.Artists),
 						AlbumName:    track.AlbumName,
 						TrackName:    track.Track.Name,
 						Result:       false,
@@ -356,7 +356,7 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*
 						likeResults = append(likeResults, &LikeResult{
 							ID:          track.ID.String(),
 							Type:        "Track",
-							ArtistNames: app.CombineArtistNames(track.Artists),
+							ArtistNames: util.CombineArtistNames(track.Artists),
 							AlbumName:   track.Album.Name,
 							TrackName:   track.Name,
 							Result:      true,
@@ -367,7 +367,7 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*
 						likeResults = append(likeResults, &LikeResult{
 							ID:          track.ID.String(),
 							Type:        "Track",
-							ArtistNames: app.CombineArtistNames(track.Artists),
+							ArtistNames: util.CombineArtistNames(track.Artists),
 							AlbumName:   track.Album.Name,
 							TrackName:   track.Name,
 							Result:      false,
@@ -378,7 +378,7 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*
 						likeResults = append(likeResults, &LikeResult{
 							ID:          track.ID.String(),
 							Type:        "Track",
-							ArtistNames: app.CombineArtistNames(track.Artists),
+							ArtistNames: util.CombineArtistNames(track.Artists),
 							AlbumName:   track.Album.Name,
 							TrackName:   track.Name,
 							Result:      true,
@@ -389,7 +389,7 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*
 					likeResults = append(likeResults, &LikeResult{
 						ID:           track.ID.String(),
 						Type:         "Track",
-						ArtistNames:  app.CombineArtistNames(track.Artists),
+						ArtistNames:  util.CombineArtistNames(track.Artists),
 						AlbumName:    track.Album.Name,
 						TrackName:    track.Name,
 						Result:       false,
