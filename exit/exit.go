@@ -1,7 +1,6 @@
 package exit
 
 import (
-	"fmt"
 	"os"
 )
 
@@ -28,19 +27,7 @@ func Exit() {
 	os.Exit(CodeOk.GetNumber())
 }
 
-// ExitWithMessage prints a message and exits the spotlike application with the OK exit code.
-func ExitWithMessage(message string) {
-	fmt.Println(message)
-	os.Exit(CodeOk.GetNumber())
-}
-
 // ErrorExit exits the spotlike application with the specified exit code.
 func ErrorExit(exitCode ExitCode) {
-	os.Exit(exitCode.GetNumber())
-}
-
-// ErrorExitWithMessage prints an error message, specifies the exit code, and then exits the spotlike application.
-func ErrorExitWithMessage(message string, exitCode ExitCode) {
-	fmt.Fprintf(os.Stderr, "Error :\t%s\n", message)
 	os.Exit(exitCode.GetNumber())
 }
