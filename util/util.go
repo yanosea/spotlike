@@ -39,11 +39,7 @@ func GenerateRandomString(length int) (string, error) {
 }
 
 // CombineArtistNames concatenates the names of multiple Spotify artists into a single string.
-func CombineArtistNames(artists []spotify.SimpleArtist) (string, error) {
-	if len(artists) == 0 || artists == nil {
-		return "", errors.New("\n  Invalid artists\n")
-	}
-
+func CombineArtistNames(artists []spotify.SimpleArtist) string {
 	var artistNames string
 	for index, artist := range artists {
 		artistNames += artist.Name
@@ -51,5 +47,5 @@ func CombineArtistNames(artists []spotify.SimpleArtist) (string, error) {
 			artistNames += ", "
 		}
 	}
-	return artistNames, nil
+	return artistNames
 }

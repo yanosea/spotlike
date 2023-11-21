@@ -111,49 +111,42 @@ func TestCombineArtistNames(t *testing.T) {
 		artists []spotify.SimpleArtist
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    string
-		wantErr bool
+		name string
+		args args
+		want string
 	}{
 		{
 			name: "positive testing",
 			args: args{
 				artists: []spotify.SimpleArtist{{Name: "TestArtist1"}, {Name: "TestArtist2"}},
 			},
-			want:    "TestArtist1, TestArtist2",
-			wantErr: false,
+			want: "TestArtist1, TestArtist2",
 		},
 		{
 			name: "positive testing (solo)",
 			args: args{
 				artists: []spotify.SimpleArtist{{Name: "TestArtist1"}},
 			},
-			want:    "TestArtist1",
-			wantErr: false,
+			want: "TestArtist1",
 		},
 		{
 			name: "positive testing (blank)",
 			args: args{
 				artists: []spotify.SimpleArtist{},
 			},
-			wantErr: true,
+			want: "",
 		},
 		{
 			name: "negative testing (nil)",
 			args: args{
 				artists: nil,
 			},
-			wantErr: true,
+			want: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := CombineArtistNames(tt.args.artists)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("CombineArtistNames() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
+			got := CombineArtistNames(tt.args.artists)
 			if got != tt.want {
 				t.Errorf("CombineArtistNames() = %v, want %v", got, tt.want)
 			}
