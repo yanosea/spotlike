@@ -1,4 +1,4 @@
-package util
+package api
 
 import (
 	"crypto/rand"
@@ -10,8 +10,8 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-// GetPortStringFromUri  returns port string like ':xxxx' from a URI.
-func GetPortStringFromUri(uri string) (string, error) {
+// getPortStringFromUri  returns port string like ':xxxx' from a URI.
+func getPortStringFromUri(uri string) (string, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return "", errors.New("\n  Invalid URI\n")
@@ -24,8 +24,8 @@ func GetPortStringFromUri(uri string) (string, error) {
 	}
 }
 
-// GenerateRandomString generates a random string of the specified length.
-func GenerateRandomString(length int) (string, error) {
+// generateRandomString generates a random string of the specified length.
+func generateRandomString(length int) (string, error) {
 	if length < 0 {
 		return "", errors.New("\n  Invalid length\n")
 	}
@@ -38,8 +38,8 @@ func GenerateRandomString(length int) (string, error) {
 	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
 }
 
-// CombineArtistNames concatenates the names of multiple Spotify artists into a single string.
-func CombineArtistNames(artists []spotify.SimpleArtist) string {
+// combineArtistNames concatenates the names of multiple Spotify artists into a single string.
+func combineArtistNames(artists []spotify.SimpleArtist) string {
 	var artistNames string
 	for index, artist := range artists {
 		artistNames += artist.Name

@@ -1,4 +1,4 @@
-package util
+package api
 
 import (
 	"testing"
@@ -49,7 +49,7 @@ func TestGetPortString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GetPortStringFromUri(tt.args.uri)
+			got, err := getPortStringFromUri(tt.args.uri)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetPortString() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -94,7 +94,7 @@ func TestGenerateRandomString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateRandomString(tt.args.length)
+			got, err := generateRandomString(tt.args.length)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateRandomString() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -146,7 +146,7 @@ func TestCombineArtistNames(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := CombineArtistNames(tt.args.artists)
+			got := combineArtistNames(tt.args.artists)
 			if got != tt.want {
 				t.Errorf("CombineArtistNames() = %v, want %v", got, tt.want)
 			}

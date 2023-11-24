@@ -5,15 +5,13 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/yanosea/spotlike/util"
-
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
 )
 
 // SearchResult represents the search result from the Spotify API.
 type SearchResult struct {
-	// ID is content's id
+	// ID is the content's id
 	ID string
 	// Type is the content type
 	Type string
@@ -55,7 +53,7 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 			searchResult = &SearchResult{
 				ID:          result.Albums.Albums[0].ID.String(),
 				Type:        "Album",
-				ArtistNames: util.CombineArtistNames(result.Albums.Albums[0].Artists),
+				ArtistNames: combineArtistNames(result.Albums.Albums[0].Artists),
 				AlbumName:   result.Albums.Albums[0].Name,
 				Result:      true,
 			}
@@ -65,7 +63,7 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 			searchResult = &SearchResult{
 				ID:          result.Tracks.Tracks[0].ID.String(),
 				Type:        "Track",
-				ArtistNames: util.CombineArtistNames(result.Tracks.Tracks[0].Artists),
+				ArtistNames: combineArtistNames(result.Tracks.Tracks[0].Artists),
 				AlbumName:   result.Tracks.Tracks[0].Album.Name,
 				TrackName:   result.Tracks.Tracks[0].Name,
 				Result:      true,
@@ -98,7 +96,7 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 		searchResult = &SearchResult{
 			ID:          result.ID.String(),
 			Type:        "Album",
-			ArtistNames: util.CombineArtistNames(result.Artists),
+			ArtistNames: combineArtistNames(result.Artists),
 			AlbumName:   result.Name,
 			Result:      true,
 		}
@@ -107,7 +105,7 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 		searchResult = &SearchResult{
 			ID:          result.ID.String(),
 			Type:        "Track",
-			ArtistNames: util.CombineArtistNames(result.Artists),
+			ArtistNames: combineArtistNames(result.Artists),
 			AlbumName:   result.Album.Name,
 			TrackName:   result.Name,
 			Result:      true,

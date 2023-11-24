@@ -10,9 +10,13 @@ import (
 
 // main is the entry point of spotlike
 func main() {
+	if err := cmd.Init(); err != nil {
+		exit.ErrorExit(exit.CodeErrInit)
+	}
+
 	if err := cmd.Execute(); err != nil {
 		exit.ErrorExit(exit.CodeErrCmd)
-	} else {
-		exit.Exit()
 	}
+
+	exit.Exit()
 }
