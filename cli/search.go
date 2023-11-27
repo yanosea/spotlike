@@ -7,8 +7,6 @@ import (
 
 	"github.com/yanosea/spotlike/api"
 
-	// https://github.com/spf13/cobra
-	"github.com/spf13/cobra"
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
 )
@@ -17,6 +15,11 @@ import (
 var st spotify.SearchType
 
 func Search(searchType string, query string) error {
+	// degine search type
+	if err := defineSearchType(searchType); err != nil {
+		return err
+	}
+
 	// execute search by query
 	searchResult := api.SearchByQuery(Client, st, query)
 
@@ -26,27 +29,17 @@ func Search(searchType string, query string) error {
 	return nil
 }
 
-func ValidateFlags(searchCmd *cobra.Command, searchType string, query string) error {
-	// validate the flag 'type'
-	if err := searchCmd.MarkFlagRequired("type"); err != nil {
-		return err
-	}
-	if strings.ToLower(searchType) != "artist" && strings.ToLower(searchType) != "album" && strings.ToLower(searchType) != "track" {
-		return errors.New("The option 'type' must be 'artist', 'album', or 'track'")
-	} else {
-		// define search type
-		if strings.ToLower(searchType) == "artist" {
-			st = spotify.SearchTypeArtist
-		} else if strings.ToLower(searchType) == "album" {
-			st = spotify.SearchTypeAlbum
-		} else if strings.ToLower(searchType) == "track" {
-			st = spotify.SearchTypeTrack
-		}
-	}
-
-	// validate the flag 'query'
-	if err := searchCmd.MarkFlagRequired("query"); err != nil {
-		return err
+func defineSearchType(searchType string) error {
+	// define search type
+	switch strings.ToLower(searchType) {
+	case "artist":
+		st = spotify.SearchTypeArtist
+	case "album":
+		st = spotify.SearchTypeAlbum
+	case "track":
+		st = spotify.SearchTypeTrack
+	default:
+		return errors.New(`the argument of the flag "type" must be "artist", "album", or "track"`)
 	}
 
 	return nil

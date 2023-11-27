@@ -39,16 +39,18 @@ You can search for content using the type option below:
 
 // init is executed before the search command is executed
 func init() {
+	// cobra init
 	rootCmd.AddCommand(searchCmd)
 
-	// set the flag 'type'
-	searchCmd.Flags().StringVarP(&searchType, "type", "t", "", "Type of the content for search")
+	// validate the flag 'type'
+	searchCmd.Flags().StringVarP(&searchType, "type", "t", "", "type of the content for search")
+	if err := searchCmd.MarkFlagRequired("type"); err != nil {
+		return
+	}
 
-	// set the flag 'query'
-	searchCmd.Flags().StringVarP(&query, "query", "q", "", "Query for search")
-
-	// validate flags
-	if err := cli.ValidateFlags(searchCmd, searchType, query); err != nil {
+	// validate the flag 'query'
+	searchCmd.Flags().StringVarP(&query, "query", "q", "", "query for search")
+	if err := searchCmd.MarkFlagRequired("query"); err != nil {
 		return
 	}
 }
