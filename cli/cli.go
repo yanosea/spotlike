@@ -9,20 +9,19 @@ import (
 
 // variables
 var (
-	// version is version of spotlike
-	Version = ""
-	// Client is client of Spotify
+	// Client holds client of Spotify
 	Client *spotify.Client
 )
 
-// SetClient sets the Spotify client to the global variable
-func SetClient() error {
+// Init sets the Spotify client to the global variable
+func Init() error {
 	// get the Spotify client
-	if client, err := api.GetClient(); err != nil {
+	client, err := api.GetClient()
+	if err != nil {
 		return err
-	} else {
-		// set the client
-		Client = client
 	}
+
+	// set the client
+	Client = client
 	return nil
 }

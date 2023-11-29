@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/yanosea/spotlike/constants"
+
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
 )
@@ -27,57 +29,53 @@ type SearchResult struct {
 	Error error
 }
 
-// searchResult holds the current search result.
-var searchResult *SearchResult
-
 // SearchByQuery returns the search result by query.
 func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query string) *SearchResult {
 	// execute search
-	if result, err := client.Search(context.Background(), query, searchType, spotify.Limit(1)); err != nil {
+	result, err := client.Search(context.Background(), query, searchType, spotify.Limit(1))
+	if err != nil {
 		// search failed
-		searchResult = &SearchResult{
+		return &SearchResult{
 			Result: false,
 			Error:  err,
 		}
-	} else {
-		if result.Artists != nil {
-			// the type of the content is artist
-			searchResult = &SearchResult{
-				ID:          result.Artists.Artists[0].ID.String(),
-				Type:        "Artist",
-				ArtistNames: result.Artists.Artists[0].Name,
-				Result:      true,
-			}
-		} else if result.Albums != nil {
-			// the type of the content is album
-			searchResult = &SearchResult{
-				ID:          result.Albums.Albums[0].ID.String(),
-				Type:        "Album",
-				ArtistNames: combineArtistNames(result.Albums.Albums[0].Artists),
-				AlbumName:   result.Albums.Albums[0].Name,
-				Result:      true,
-			}
-		} else if result.Tracks != nil {
+	}
 
-			// the type of the content is track
-			searchResult = &SearchResult{
-				ID:          result.Tracks.Tracks[0].ID.String(),
-				Type:        "Track",
-				ArtistNames: combineArtistNames(result.Tracks.Tracks[0].Artists),
-				AlbumName:   result.Tracks.Tracks[0].Album.Name,
-				TrackName:   result.Tracks.Tracks[0].Name,
-				Result:      true,
-				Error:       nil,
-			}
-		} else {
-			// search failed
-			searchResult = &SearchResult{
-				Result: false,
-				Error:  errors.New("\n  Search result is wrong.\n"),
-			}
+	if result.Artists != nil {
+		// the type of the content is artist
+		return &SearchResult{
+			ID:          result.Artists.Artists[0].ID.String(),
+			Type:        constants.Artist,
+			ArtistNames: result.Artists.Artists[0].Name,
+			Result:      true,
+		}
+	} else if result.Albums != nil {
+		// the type of the content is album
+		return &SearchResult{
+			ID:          result.Albums.Albums[0].ID.String(),
+			Type:        constants.Album,
+			ArtistNames: combineArtistNames(result.Albums.Albums[0].Artists),
+			AlbumName:   result.Albums.Albums[0].Name,
+			Result:      true,
+		}
+	} else if result.Tracks != nil {
+		// the type of the content is track
+		return &SearchResult{
+			ID:          result.Tracks.Tracks[0].ID.String(),
+			Type:        constants.Track,
+			ArtistNames: combineArtistNames(result.Tracks.Tracks[0].Artists),
+			AlbumName:   result.Tracks.Tracks[0].Album.Name,
+			TrackName:   result.Tracks.Tracks[0].Name,
+			Result:      true,
+			Error:       nil,
+		}
+	} else {
+		// search failed
+		return &SearchResult{
+			Result: false,
+			Error:  errors.New(constants.SearchFailedErrorMessage),
 		}
 	}
-	return searchResult
 }
 
 // SearchById returns the search result by ID.
@@ -85,26 +83,26 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 	// execute the search
 	if result, err := client.GetArtist(context.Background(), spotify.ID(id)); err == nil {
 		// the type of the content is artist
-		searchResult = &SearchResult{
+		return &SearchResult{
 			ID:          result.ID.String(),
-			Type:        "Artist",
+			Type:        constants.Artist,
 			ArtistNames: result.Name,
 			Result:      true,
 		}
 	} else if result, err := client.GetAlbum(context.Background(), spotify.ID(id)); err == nil {
 		// the type of the content is album
-		searchResult = &SearchResult{
+		return &SearchResult{
 			ID:          result.ID.String(),
-			Type:        "Album",
+			Type:        constants.Album,
 			ArtistNames: combineArtistNames(result.Artists),
 			AlbumName:   result.Name,
 			Result:      true,
 		}
 	} else if result, err := client.GetTrack(context.Background(), spotify.ID(id)); err == nil {
 		// the type of the content is track
-		searchResult = &SearchResult{
+		return &SearchResult{
 			ID:          result.ID.String(),
-			Type:        "Track",
+			Type:        constants.Track,
 			ArtistNames: combineArtistNames(result.Artists),
 			AlbumName:   result.Album.Name,
 			TrackName:   result.Name,
@@ -112,10 +110,9 @@ func SearchById(client *spotify.Client, id string) *SearchResult {
 		}
 	} else {
 		// content not found
-		searchResult = &SearchResult{
+		return &SearchResult{
 			Result: false,
-			Error:  errors.New(fmt.Sprintf("\n  The content [%s] was not found.\n", id)),
+			Error:  errors.New(fmt.Sprintf(constants.SearchFailedNotFoundErrorMessageFormat, id)),
 		}
 	}
-	return searchResult
 }

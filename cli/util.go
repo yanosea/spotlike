@@ -11,5 +11,5 @@ func formatResult(topic string, detail string) string {
 
 // formatErrorResult returns the formatted error result
 func formatErrorResult(error error) string {
-	return fmt.Sprintf("Error:\n\t%s", error)
+	return fmt.Sprintf("Error:\n  %s", error)
 }

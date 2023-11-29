@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/yanosea/spotlike/constants"
+
 	// https://github.com/manifoldco/promptui
 	"github.com/manifoldco/promptui"
 	// https://github.com/zmb3/spotify/v2
@@ -25,69 +27,70 @@ var (
 	state, _ = generateRandomString(16)
 )
 
-// GetClient returns a Spotify client
+// GetClient returns the Spotify client
 func GetClient() (*spotify.Client, error) {
 	// get client info
 	if err := setAuthInfo(); err != nil {
 		return nil, err
-	} else {
-		// authenticate and get a spotify client
-		if client, err := authenticate(); err != nil {
-			return nil, err
-		} else {
-			return client, nil
-		}
 	}
+
+	// authenticate and get a spotify client
+	client, err := authenticate()
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 // setAuthInfo sets Spotify authentication info to each environment variable
 func setAuthInfo() error {
 	// SPOTIFY_CLIENT_ID
-	if id := os.Getenv("SPOTIFY_ID"); id == "" {
+	if id := os.Getenv(constants.EnvSpotifyID); id == "" {
 		prompt := promptui.Prompt{
-			Label: "Input your Spotify Client ID",
+			Label: constants.EnvSpotifyIDInputLabel,
 		}
 
 		input, err := prompt.Run()
 		if err != nil {
 			return err
-		} else {
-			os.Setenv("SPOTIFY_ID", input)
 		}
+
+		os.Setenv(constants.EnvSpotifyID, input)
 	}
 
 	// SPOTIFY_CLIENT_SECRET
-	if secret := os.Getenv("SPOTIFY_SECRET"); secret == "" {
+	if secret := os.Getenv(constants.EnvSpotifySecret); secret == "" {
 		prompt := promptui.Prompt{
-			Label: "Input your Spotify Client Secret",
-			Mask:  '*',
+			Label: constants.EnvSpotifySecretInputLabel,
+			Mask:  constants.EnvSpotifySecretMaskCharacter,
 		}
 
 		input, err := prompt.Run()
 		if err != nil {
 			return err
-		} else {
-			os.Setenv("SPOTIFY_SECRET", input)
 		}
+
+		os.Setenv(constants.EnvSpotifySecret, input)
 	}
 
 	// SPOTIFY_REDIRECT_URI
-	if uri := os.Getenv("SPOTIFY_REDIRECT_URI"); uri == "" {
+	if uri := os.Getenv(constants.EnvSpotifyRedirectUri); uri == "" {
 		prompt := promptui.Prompt{
-			Label: "Input your Spotify Redirect URI",
+			Label: constants.EnvSpotifyRedirectUriInputLabel,
 		}
 
 		input, err := prompt.Run()
 		if err != nil {
 			return err
-		} else {
-			os.Setenv("SPOTIFY_REDIRECT_URI", input)
 		}
+
+		os.Setenv(constants.EnvSpotifyRedirectUri, input)
 	}
 
 	// set authenticator
 	authenticator = spotifyauth.New(
-		spotifyauth.WithRedirectURL(os.Getenv("SPOTIFY_REDIRECT_URI")),
+		spotifyauth.WithRedirectURL(os.Getenv(constants.EnvSpotifyRedirectUri)),
 		spotifyauth.WithScopes(
 			// to check the user has been already liked the artist
 			spotifyauth.ScopeUserFollowRead,
@@ -100,18 +103,19 @@ func setAuthInfo() error {
 	)
 
 	// SPOTIFY_REFRESH_TOKEN
-	if refresh := os.Getenv("SPOTIFY_REFRESH_TOKEN"); refresh == "" {
+	if refresh := os.Getenv(constants.EnvSpotifyRefreshToken); refresh == "" {
 		prompt := promptui.Prompt{
-			Label: "Input your Spotify Refresh Token if you have one (if you don't have one, leave it empty and press enter.)",
+			Label: constants.EnvSpotifyRefreshTokenInputLabel,
 		}
 
 		input, err := prompt.Run()
 		if err != nil {
 			return err
-		} else {
-			os.Setenv("SPOTIFY_REFRESH_TOKEN", input)
 		}
+
+		os.Setenv(constants.EnvSpotifyRefreshToken, input)
 	}
+
 	return nil
 }
 
@@ -120,10 +124,10 @@ func authenticate() (*spotify.Client, error) {
 	var client *spotify.Client
 
 	// check the refresh token
-	refreshToken := os.Getenv("SPOTIFY_REFRESH_TOKEN")
+	refreshToken := os.Getenv(constants.EnvSpotifyRefreshToken)
 	if refreshToken == "" {
 		// get port from the redirect URI
-		if portString, err := getPortStringFromUri(os.Getenv("SPOTIFY_REDIRECT_URI")); err != nil {
+		if portString, err := getPortStringFromUri(os.Getenv(constants.EnvSpotifyRedirectUri)); err != nil {
 			return nil, err
 		} else {
 			// start an HTTP server
