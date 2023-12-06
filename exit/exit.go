@@ -17,6 +17,12 @@ const (
 	CodeErrCmd
 )
 
+// variables
+var (
+	// osExit is the variable for monkey patching
+	osExit = os.Exit
+)
+
 // GetNumber returns the numeric value of an ExitCode.
 func (exitCode ExitCode) GetNumber() int {
 	return int(exitCode)
@@ -24,10 +30,10 @@ func (exitCode ExitCode) GetNumber() int {
 
 // Exit exits the spotlike application with the OK exit code.
 func Exit() {
-	os.Exit(CodeOk.GetNumber())
+	osExit(CodeOk.GetNumber())
 }
 
 // ErrorExit exits the spotlike application with the specified exit code.
 func ErrorExit(exitCode ExitCode) {
-	os.Exit(exitCode.GetNumber())
+	osExit(exitCode.GetNumber())
 }
