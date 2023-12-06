@@ -166,41 +166,64 @@ func like(id string, level string, force bool) error {
 
 // printLikeResult prints the like result to the console.
 func printLikeResult(likeResults []*api.LikeResult) {
+	// for each result
 	for _, result := range likeResults {
-		if result.Result {
-			if result.Type == "Artist" {
-				if result.Skip {
-					fmt.Printf("Like %s skipped!\t:\t[%s]\n", result.Type, result.ArtistNames)
-				} else {
-					fmt.Printf("Like %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames)
-				}
-			} else if result.Type == "Album" {
-				if result.Skip {
-					fmt.Printf("Like %s by %s skipped!\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
-				} else {
-					fmt.Printf("Like %s by %s succeeded!\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
-				}
-			} else if result.Type == "Track" {
-				if result.Skip {
-					fmt.Printf("Like %s in %s by %s skipped!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
-				} else {
-					fmt.Printf("Like %s in %s by %s succeeded!\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
-				}
-			}
-		} else {
-			if result.ErrorMessage == "" {
-				if result.Type == "Artist" {
-					fmt.Printf("Like %s failed...\t:\t[%s]\n", result.Type, result.ArtistNames)
-				} else if result.Type == "Album" {
-					fmt.Printf("Like %s by %s failed...\t:\t[%s]\n", result.Type, result.ArtistNames, result.AlbumName)
-				} else if result.Type == "Track" {
-					fmt.Printf("Like %s in %s by %s failed...\t:\t[%s]\n", result.Type, result.AlbumName, result.ArtistNames, result.TrackName)
-				}
-				fmt.Printf("Error:\n  %s\n\n", result.Error)
-			} else {
-				fmt.Printf("%s\n\n", result.ErrorMessage)
-				fmt.Printf("Error:\n  %s\n", result.Error)
-			}
+		// like failed
+		if result.Error != nil {
+			fmt.Println(formatLikeResultError(result.Error))
+		}
+
+		if result.Type == spotify.SearchTypeArtist {
+			// like artist
+			fmt.Println(formatLikeArtistResult(result.ArtistNames, result.Skip))
+		}
+
+		if result.Type == spotify.SearchTypeAlbum {
+			// like album
+			fmt.Println(formatLikeAlbumResult(result.ArtistNames, result.AlbumName, result.Skip))
+		}
+
+		if result.Type == spotify.SearchTypeTrack {
+			// like track
+			fmt.Println(formatLikeTrackResult(result.ArtistNames, result.AlbumName, result.TrackName, result.Skip))
 		}
 	}
+}
+
+// formatLikeArtistResult returns the formatted like artist result
+func formatLikeArtistResult(artistNames string, skip bool) string {
+	if skip {
+		// skipped
+		return fmt.Sprintf("Like %s skipped!\t:\t[%s]", util.STRING_ARTIST, artistNames)
+	} else {
+		// liked
+		return fmt.Sprintf("Like %s succeeded!\t:\t[%s]", util.STRING_ARTIST, artistNames)
+	}
+}
+
+// formatLikeAlbumResult returns the formatted like album result
+func formatLikeAlbumResult(artistNames string, albumName string, skip bool) string {
+	if skip {
+		// skipped
+		return fmt.Sprintf("Like %s by %s skipped!\t:\t[%s]", util.STRING_ALBUM, artistNames, albumName)
+	} else {
+		// liked
+		return fmt.Sprintf("Like %s by %s succeeded!\t:\t[%s]", util.STRING_ALBUM, artistNames, albumName)
+	}
+}
+
+// formatLikeTrackResult returns the formatted like track result
+func formatLikeTrackResult(artistNames string, albumName string, trackName string, skip bool) string {
+	if skip {
+		// skipped
+		return fmt.Sprintf("Like %s in %s by %s skipped!\t:\t[%s]", util.STRING_TRACK, artistNames, albumName, trackName)
+	} else {
+		// liked
+		return fmt.Sprintf("Like %s in %s by %s succeeded!\t:\t[%s]", util.STRING_TRACK, artistNames, albumName, trackName)
+	}
+}
+
+// formatLikeResultError returns the formatted like error result
+func formatLikeResultError(error error) string {
+	return fmt.Sprintf("Error:\n  %s", error)
 }

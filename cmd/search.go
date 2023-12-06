@@ -113,30 +113,36 @@ func defineSearchType(searchType string) (spotify.SearchType, error) {
 
 // printSearchResult prints the search result to the console.
 func printSearchResult(searchResult *api.SearchResult, err error) {
-	if err == nil {
-		// search succeeded
-		fmt.Println(formatSearchResult(util.STRING_ID, searchResult.Id))
-		fmt.Println(formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
-		fmt.Println(formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
-		if searchResult.Type == spotify.SearchTypeAlbum {
-			fmt.Println(formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
-		}
-		if searchResult.Type == spotify.SearchTypeTrack {
-			fmt.Println(formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
-			fmt.Println(formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
-		}
-	} else {
+	if err != nil {
 		// search failed
 		fmt.Println(formatSearchResultError(err))
+
+		return
+	}
+
+	// search succeeded
+	fmt.Println(formatSearchResult(util.STRING_ID, searchResult.Id))
+	fmt.Println(formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
+	fmt.Println(formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
+
+	if searchResult.Type == spotify.SearchTypeAlbum {
+		// search album
+		fmt.Println(formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
+	}
+
+	if searchResult.Type == spotify.SearchTypeTrack {
+		// search track
+		fmt.Println(formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
+		fmt.Println(formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
 	}
 }
 
-// formatSearchResult returns the formatted result
+// formatSearchResult returns the formatted search result
 func formatSearchResult(topic string, detail string) string {
 	return fmt.Sprintf("%s\t:\t%s", topic, detail)
 }
 
-// formatSearchResultError returns the formatted error result
+// formatSearchResultError returns the formatted search error result
 func formatSearchResultError(error error) string {
 	return fmt.Sprintf("Error:\n  %s", error)
 }
