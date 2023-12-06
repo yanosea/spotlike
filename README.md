@@ -16,9 +16,9 @@
 
 ## 📃 License
 
-## 🖊️ Author
+## 🖊️  Author
 
-[🏹yanosea](https://github.com/yanosea)
+[🏹 yanosea](https://github.com/yanosea)
 
 ## 🤝 Contributing
 
