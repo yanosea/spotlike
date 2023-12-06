@@ -74,7 +74,7 @@ var likeCmd = &cobra.Command{
 	// RunE is the function to like
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// execute like
-		if err := like(); err != nil {
+		if err := like(id, level, force); err != nil {
 			return err
 		}
 
@@ -101,7 +101,7 @@ func init() {
 }
 
 // like performs a Spotify like based on the specified id and level.
-func like() error {
+func like(id string, level string, force bool) error {
 	// first, execute search by ID
 	searchResult, err := api.SearchById(Client, id)
 	if err != nil {
@@ -155,10 +155,17 @@ func like() error {
 		}
 
 	default:
-		return errors.New("\n  \n")
+		return errors.New(like_error_message_something_wrong_with_searching)
 	}
 
 	// print like result
+	printLikeResult(likeResults)
+
+	return nil
+}
+
+// printLikeResult prints the like result to the console.
+func printLikeResult(likeResults []*api.LikeResult) {
 	for _, result := range likeResults {
 		if result.Result {
 			if result.Type == "Artist" {
@@ -196,6 +203,4 @@ func like() error {
 			}
 		}
 	}
-
-	return nil
 }

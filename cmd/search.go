@@ -60,7 +60,7 @@ var searchCmd = &cobra.Command{
 	// RunE is the function to search.
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// execute search
-		if err := search(); err != nil {
+		if err := search(searchType, query); err != nil {
 			return err
 		}
 
@@ -87,18 +87,15 @@ func init() {
 }
 
 // search performs a Spotify search based on the specified search type and query.
-func search() error {
+func search(searchType string, query string) error {
 	// define search type
 	st, err := defineSearchType(searchType)
 	if err != nil {
 		return err
 	}
 
-	// execute search by query
-	searchResult, err := api.SearchByQuery(Client, st, query)
-
-	// print search result
-	printSearchResult(searchResult, err)
+	// execute search by query and print search result
+	printSearchResult(api.SearchByQuery(Client, st, query))
 
 	return nil
 }
@@ -130,7 +127,7 @@ func printSearchResult(searchResult *api.SearchResult, err error) {
 		}
 	} else {
 		// search failed
-		fmt.Println(formatSearchErrorResult(err))
+		fmt.Println(formatSearchResultError(err))
 	}
 }
 
@@ -139,7 +136,7 @@ func formatSearchResult(topic string, detail string) string {
 	return fmt.Sprintf("%s\t:\t%s", topic, detail)
 }
 
-// formatSearchErrorResult returns the formatted error result
-func formatSearchErrorResult(error error) string {
+// formatSearchResultError returns the formatted error result
+func formatSearchResultError(error error) string {
 	return fmt.Sprintf("Error:\n  %s", error)
 }

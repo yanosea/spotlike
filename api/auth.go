@@ -43,6 +43,8 @@ const (
 	message_auth_success = "Authentication succeeded!"
 	// message_suggest_set_env is the message for suggesting to set env variables
 	message_suggest_set_env = "If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those."
+	// template_set_env_command is the template for suggesting to set env variables
+	template_set_env_command = "export %s="
 )
 
 // variables
@@ -209,10 +211,10 @@ func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
 	// print the the suggestion message to set env variables
 	fmt.Println(message_auth_success)
 	util.PrintlnWithBlankLineBelow(message_suggest_set_env)
-	fmt.Println(util.FormatIndent(fmt.Sprintf("export %s=", spotify_id) + os.Getenv(spotify_id)))
-	fmt.Println(util.FormatIndent(fmt.Sprintf("export %s=", spotify_secret) + os.Getenv(spotify_secret)))
-	fmt.Println(util.FormatIndent(fmt.Sprintf("export %s=", spotify_redirect_uri) + os.Getenv(spotify_redirect_uri)))
-	util.PrintlnWithBlankLineBelow(util.FormatIndent(fmt.Sprintf("export %s=", spotify_refresh_token) + tok.RefreshToken))
+	fmt.Println(util.FormatIndent(fmt.Sprintf(template_set_env_command, spotify_id) + os.Getenv(spotify_id)))
+	fmt.Println(util.FormatIndent(fmt.Sprintf(template_set_env_command, spotify_secret) + os.Getenv(spotify_secret)))
+	fmt.Println(util.FormatIndent(fmt.Sprintf(template_set_env_command, spotify_redirect_uri) + os.Getenv(spotify_redirect_uri)))
+	util.PrintlnWithBlankLineBelow(util.FormatIndent(fmt.Sprintf(template_set_env_command, spotify_refresh_token) + tok.RefreshToken))
 
 	channel <- client
 }
