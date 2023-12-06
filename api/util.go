@@ -11,6 +11,8 @@ import (
 
 // constants
 const (
+	// error_message_invalid_uri  is the message for failure getting port from uri
+	error_message_invalid_uri = "Invalid URI..."
 	// error_message_invalid_length_for_random_string  is the message for failure generating random string
 	error_message_invalid_length_for_random_string = "Invalid length..."
 )
@@ -22,11 +24,11 @@ func getPortStringFromUri(uri string) (string, error) {
 		return "", err
 	}
 
-	if u.Port() != "" {
-		return ":" + u.Port(), nil
-	} else {
-		return "", err
+	if u.Port() == "" {
+		return "", errors.New(error_message_invalid_uri)
 	}
+
+	return ":" + u.Port(), nil
 }
 
 // generateRandomString generates a random string of the specified length.
