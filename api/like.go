@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"sort"
+	"strings"
 
 	"github.com/yanosea/spotlike/util"
 
@@ -51,7 +52,7 @@ func LikeArtistById(client *spotify.Client, id string, force bool) []*LikeResult
 	}
 
 	// check the artist has been already liked
-	alreadyLiked, err := client.CurrentUserFollows(context.Background(), util.STRING_ARTIST, spotify.ID(searchResult.Id))
+	alreadyLiked, err := client.CurrentUserFollows(context.Background(), strings.ToLower(util.STRING_ARTIST), spotify.ID(searchResult.Id))
 	if err != nil {
 		// check failed
 		likeResults = append(likeResults, &LikeResult{

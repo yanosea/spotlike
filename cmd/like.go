@@ -121,7 +121,7 @@ func like(id string, level string, force bool) error {
 		} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeAlbum] {
 			// like all albums released by the artist
 			likeResults = api.LikeAllAlbumsReleasedByArtistById(Client, searchResult.Id, force)
-		} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeAlbum] {
+		} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeTrack] {
 			// like all tracks released by the artist
 			likeResults = api.LikeAllTracksReleasedByArtistById(Client, searchResult.Id, force)
 		} else {
@@ -216,10 +216,10 @@ func formatLikeAlbumResult(artistNames string, albumName string, skip bool) stri
 func formatLikeTrackResult(artistNames string, albumName string, trackName string, skip bool) string {
 	if skip {
 		// skipped
-		return fmt.Sprintf("Like %s in %s by %s skipped!\t:\t[%s]", util.STRING_TRACK, artistNames, albumName, trackName)
+		return fmt.Sprintf("Like %s in %s by %s skipped!\t:\t[%s]", util.STRING_TRACK, albumName, artistNames, trackName)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s in %s by %s succeeded!\t:\t[%s]", util.STRING_TRACK, artistNames, albumName, trackName)
+		return fmt.Sprintf("Like %s in %s by %s succeeded!\t:\t[%s]", util.STRING_TRACK, albumName, artistNames, trackName)
 	}
 }
 
