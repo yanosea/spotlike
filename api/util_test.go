@@ -35,7 +35,7 @@ func TestGetPortString(t *testing.T) {
 		{
 			name: "negative testing (invalid uri)",
 			args: args{
-				uri: "test:8080",
+				uri: "http://localhost:8080/invalid%2",
 			},
 			wantErr: true,
 		},
