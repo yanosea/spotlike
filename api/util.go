@@ -17,8 +17,8 @@ const (
 	error_message_invalid_length_for_random_string = "Invalid length..."
 )
 
-// getPortStringFromUri  returns port string like ':xxxx' from a URI.
-func getPortStringFromUri(uri string) (string, error) {
+// getPortFromUri returns port from a URI.
+func getPortFromUri(uri string) (string, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return "", err
@@ -28,7 +28,7 @@ func getPortStringFromUri(uri string) (string, error) {
 		return "", errors.New(error_message_invalid_uri)
 	}
 
-	return ":" + u.Port(), nil
+	return u.Port(), nil
 }
 
 // generateRandomString generates a random string of the specified length.

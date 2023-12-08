@@ -237,7 +237,7 @@ func authenticate() (*spotify.Client, error) <span class="cov0" title="0">{
         refreshToken := os.Getenv(spotify_refresh_token)
         if refreshToken == "" </span><span class="cov0" title="0">{
                 // get port from the redirect URI
-                portString, err := getPortStringFromUri(os.Getenv(spotify_redirect_uri))
+                port, err := getPortFromUri(os.Getenv(spotify_redirect_uri))
                 if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
@@ -246,7 +246,7 @@ func authenticate() (*spotify.Client, error) <span class="cov0" title="0">{
                 <span class="cov0" title="0">http.HandleFunc("/callback", completeAuthenticate)
                 http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) </span>{<span class="cov0" title="0">}</span>)
                 <span class="cov0" title="0">go func() error </span><span class="cov0" title="0">{
-                        err := http.ListenAndServe(portString, nil)
+                        err := http.ListenAndServe(port, nil)
                         if err != nil </span><span class="cov0" title="0">{
                                 return err
                         }</span>
@@ -884,8 +884,8 @@ const (
         error_message_invalid_length_for_random_string = "Invalid length..."
 )
 
-// getPortStringFromUri  returns port string like ':xxxx' from a URI.
-func getPortStringFromUri(uri string) (string, error) <span class="cov8" title="1">{
+// getPortFromUri returns port from a URI.
+func getPortFromUri(uri string) (string, error) <span class="cov8" title="1">{
         u, err := url.Parse(uri)
         if err != nil </span><span class="cov8" title="1">{
                 return "", err
@@ -895,7 +895,7 @@ func getPortStringFromUri(uri string) (string, error) <span class="cov8" title="
                 return "", errors.New(error_message_invalid_uri)
         }</span>
 
-        <span class="cov8" title="1">return ":" + u.Port(), nil</span>
+        <span class="cov8" title="1">return u.Port(), nil</span>
 }
 
 // generateRandomString generates a random string of the specified length.

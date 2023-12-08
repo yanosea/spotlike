@@ -132,11 +132,11 @@ github.com/yanosea/spotlike/api/search.go:83.93,91.3 1 0
 github.com/yanosea/spotlike/api/search.go:91.8,91.93 1 0
 github.com/yanosea/spotlike/api/search.go:91.93,100.3 1 0
 github.com/yanosea/spotlike/api/search.go:100.8,103.3 1 0
-github.com/yanosea/spotlike/api/util.go:21.55,23.16 2 1
+github.com/yanosea/spotlike/api/util.go:21.49,23.16 2 1
 github.com/yanosea/spotlike/api/util.go:23.16,25.3 1 1
 github.com/yanosea/spotlike/api/util.go:27.2,27.20 1 1
 github.com/yanosea/spotlike/api/util.go:27.20,29.3 1 1
-github.com/yanosea/spotlike/api/util.go:31.2,31.28 1 1
+github.com/yanosea/spotlike/api/util.go:31.2,31.22 1 1
 github.com/yanosea/spotlike/api/util.go:35.55,36.16 1 1
 github.com/yanosea/spotlike/api/util.go:36.16,38.3 1 1
 github.com/yanosea/spotlike/api/util.go:40.2,41.63 2 1

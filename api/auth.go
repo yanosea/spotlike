@@ -158,7 +158,7 @@ func authenticate() (*spotify.Client, error) {
 	refreshToken := os.Getenv(spotify_refresh_token)
 	if refreshToken == "" {
 		// get port from the redirect URI
-		portString, err := getPortStringFromUri(os.Getenv(spotify_redirect_uri))
+		port, err := getPortFromUri(os.Getenv(spotify_redirect_uri))
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +167,7 @@ func authenticate() (*spotify.Client, error) {
 		http.HandleFunc("/callback", completeAuthenticate)
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
 		go func() error {
-			err := http.ListenAndServe(portString, nil)
+			err := http.ListenAndServe(port, nil)
 			if err != nil {
 				return err
 			}

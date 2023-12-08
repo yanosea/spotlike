@@ -7,7 +7,7 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-func TestGetPortString(t *testing.T) {
+func TestGetPort(t *testing.T) {
 	type args struct {
 		uri string
 	}
@@ -22,7 +22,7 @@ func TestGetPortString(t *testing.T) {
 			args: args{
 				uri: "http://localhost:8080/callback",
 			},
-			want:    ":8080",
+			want:    "8080",
 			wantErr: false,
 		},
 		{
@@ -49,13 +49,13 @@ func TestGetPortString(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := getPortStringFromUri(tt.args.uri)
+			got, err := getPortFromUri(tt.args.uri)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPortString() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("GetPortFromUri() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if got != tt.want {
-				t.Errorf("GetPortString() = %v, want %v", got, tt.want)
+				t.Errorf("GetPortFromUri() = %v, want %v", got, tt.want)
 			}
 		})
 	}
