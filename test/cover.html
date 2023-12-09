@@ -61,7 +61,7 @@
 				
 				<option value="file2">github.com/yanosea/spotlike/api/search.go (0.0%)</option>
 				
-				<option value="file3">github.com/yanosea/spotlike/api/util.go (100.0%)</option>
+				<option value="file3">github.com/yanosea/spotlike/api/util.go (94.4%)</option>
 				
 				<option value="file4">github.com/yanosea/spotlike/exit/exit.go (100.0%)</option>
 				
@@ -868,6 +868,7 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) <span 
 		<pre class="file" id="file3" style="display: none">package api
 
 import (
+        "crypto/rand"
         "encoding/base64"
         "errors"
         "net/url"
@@ -905,7 +906,11 @@ func generateRandomString(length int) (string, error) <span class="cov8" title="
         }</span>
 
         <span class="cov8" title="1">bytes := make([]byte, length)
-        return base64.URLEncoding.EncodeToString(bytes)[:length], nil</span>
+        if _, err := rand.Read(bytes); err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">return base64.RawURLEncoding.EncodeToString(bytes)[:length], nil</span>
 }
 
 // combineArtistNames concatenates the names of multiple Spotify artists into a single string.

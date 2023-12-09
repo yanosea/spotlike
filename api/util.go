@@ -1,6 +1,7 @@
 package api
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"errors"
 	"net/url"
@@ -38,7 +39,11 @@ func generateRandomString(length int) (string, error) {
 	}
 
 	bytes := make([]byte, length)
-	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
+	if _, err := rand.Read(bytes); err != nil {
+		return "", err
+	}
+
+	return base64.RawURLEncoding.EncodeToString(bytes)[:length], nil
 }
 
 // combineArtistNames concatenates the names of multiple Spotify artists into a single string.
