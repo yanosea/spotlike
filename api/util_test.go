@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/rand"
 	"errors"
+	"strings"
 	"testing"
 
 	// https://github.com/zmb3/spotify/v2
@@ -18,6 +19,7 @@ func TestGetPort(t *testing.T) {
 		args    args
 		want    string
 		wantErr bool
+		wantMsg string
 	}{
 		{
 			name: "positive testing",
@@ -33,13 +35,15 @@ func TestGetPort(t *testing.T) {
 				uri: "http://localhost/callback",
 			},
 			wantErr: true,
+			wantMsg: error_message_invalid_uri,
 		},
 		{
-			name: "negative testing (invalid uri)",
+			name: "negative testing (space)",
 			args: args{
-				uri: "http://localhost:8080/invalid%2",
+				uri: " ",
 			},
 			wantErr: true,
+			wantMsg: error_message_invalid_uri,
 		},
 		{
 			name: "negative testing (blank)",
@@ -47,17 +51,34 @@ func TestGetPort(t *testing.T) {
 				uri: "",
 			},
 			wantErr: true,
+			wantMsg: error_message_invalid_uri,
+		},
+		{
+			name: "negative testing (invalid uri)",
+			args: args{
+				uri: "http://localhost:8080/invalid%2",
+			},
+			wantErr: true,
+			wantMsg: "invalid URL escape",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := getPortFromUri(tt.args.uri)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetPortFromUri() error = %v, wantErr %v", err, tt.wantErr)
+			if err != nil && !tt.wantErr && got != tt.want {
+				t.Errorf("GetPortFromUri() = %v, want %v", got, tt.want)
 				return
 			}
-			if got != tt.want {
-				t.Errorf("GetPortFromUri() = %v, want %v", got, tt.want)
+			if err != nil && tt.wantErr {
+				msg := err.Error()
+				if !strings.Contains(msg, tt.wantMsg) {
+					t.Errorf("GetPortFromUri() unexpected error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+			}
+			if err != nil && !tt.wantErr {
+				t.Errorf("GetPortFromUri() unexpected error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}
@@ -73,6 +94,7 @@ func TestGenerateRandomString(t *testing.T) {
 		args        args
 		wantErr     bool
 		wantReadErr bool
+		wantMsg     string
 	}{
 		{
 			name: "positive testing",
@@ -97,6 +119,7 @@ func TestGenerateRandomString(t *testing.T) {
 			},
 			wantErr:     true,
 			wantReadErr: false,
+			wantMsg:     error_message_invalid_length_for_random_string,
 		},
 		{
 			name: "negative testing (failed to generate a random number)",
@@ -105,6 +128,7 @@ func TestGenerateRandomString(t *testing.T) {
 			},
 			wantErr:     true,
 			wantReadErr: true,
+			wantMsg:     "fake Read error",
 		},
 	}
 	for _, tt := range tests {
@@ -115,16 +139,20 @@ func TestGenerateRandomString(t *testing.T) {
 		}
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := generateRandomString(tt.args.length)
-			if (err != nil) != tt.wantErr && tt.wantReadErr {
-				t.Errorf("GenerateRandomString() error = %v, wantReadErr %v", err, tt.wantReadErr)
-				return
-			}
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GenerateRandomString() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if tt.args.length > 0 && len(got) != tt.args.length {
+			if err != nil && !tt.wantErr && tt.args.length > 0 && len(got) != tt.args.length {
 				t.Errorf("GenerateRandomString() = length %v, want length %v", len(got), tt.args.length)
+				return
+			}
+			if err != nil && tt.wantErr {
+				msg := err.Error()
+				if !strings.Contains(msg, tt.wantMsg) {
+					t.Errorf("GenerateRandomString() unexpected error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+			}
+			if err != nil && !tt.wantErr {
+				t.Errorf("GenerateRandomString() unexpected error = %v, wantErr %v", err, tt.wantErr)
+				return
 			}
 		})
 	}

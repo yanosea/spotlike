@@ -1,4 +1,7 @@
 mode: set
+github.com/yanosea/spotlike/exit/exit.go:27.42,29.2 1 1
+github.com/yanosea/spotlike/exit/exit.go:32.13,34.2 1 1
+github.com/yanosea/spotlike/exit/exit.go:37.35,39.2 1 1
 github.com/yanosea/spotlike/api/auth.go:61.43,63.38 1 0
 github.com/yanosea/spotlike/api/auth.go:63.38,65.3 1 0
 github.com/yanosea/spotlike/api/auth.go:68.2,69.16 2 0
@@ -137,12 +140,9 @@ github.com/yanosea/spotlike/api/util.go:32.2,32.22 1 1
 github.com/yanosea/spotlike/api/util.go:36.55,37.16 1 1
 github.com/yanosea/spotlike/api/util.go:37.16,39.3 1 1
 github.com/yanosea/spotlike/api/util.go:41.2,42.44 2 1
-github.com/yanosea/spotlike/api/util.go:42.44,44.3 1 0
+github.com/yanosea/spotlike/api/util.go:42.44,44.3 1 1
 github.com/yanosea/spotlike/api/util.go:46.2,46.66 1 1
 github.com/yanosea/spotlike/api/util.go:50.64,52.37 2 1
 github.com/yanosea/spotlike/api/util.go:52.37,54.30 2 1
 github.com/yanosea/spotlike/api/util.go:54.30,56.4 1 1
 github.com/yanosea/spotlike/api/util.go:58.2,58.20 1 1
-github.com/yanosea/spotlike/exit/exit.go:27.42,29.2 1 1
-github.com/yanosea/spotlike/exit/exit.go:32.13,34.2 1 1
-github.com/yanosea/spotlike/exit/exit.go:37.35,39.2 1 1
