@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/yanosea/spotlike/api/auth.go (0.0%)</option>
+				<option value="file0">github.com/yanosea/spotlike/api/auth.go (24.6%)</option>
 				
 				<option value="file1">github.com/yanosea/spotlike/api/like.go (0.0%)</option>
 				
@@ -139,23 +139,23 @@ var (
 )
 
 // GetClient returns the Spotify client.
-func GetClient() (*spotify.Client, error) <span class="cov0" title="0">{
+func GetClient() (*spotify.Client, error) <span class="cov8" title="1">{
         // get client info
         if err := setAuthInfo(); err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
         // authenticate and get a spotify client
-        <span class="cov0" title="0">client, err := authenticate()
+        <span class="cov8" title="1">client, err := authenticate()
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
 
-        <span class="cov0" title="0">return client, nil</span>
+        <span class="cov8" title="1">return client, nil</span>
 }
 
 // setAuthInfo sets Spotify authentication info to each environment variable.
-func setAuthInfo() error <span class="cov0" title="0">{
+func setAuthInfo() error <span class="cov8" title="1">{
         // SPOTIFY_CLIENT_ID
         if id := os.Getenv(spotify_id); id == "" </span><span class="cov0" title="0">{
                 prompt := promptui.Prompt{
@@ -171,7 +171,7 @@ func setAuthInfo() error <span class="cov0" title="0">{
         }
 
         // SPOTIFY_CLIENT_SECRET
-        <span class="cov0" title="0">if secret := os.Getenv(spotify_secret); secret == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if secret := os.Getenv(spotify_secret); secret == "" </span><span class="cov0" title="0">{
                 prompt := promptui.Prompt{
                         Label: input_label_spotify_secret,
                         Mask:  '*',
@@ -186,7 +186,7 @@ func setAuthInfo() error <span class="cov0" title="0">{
         }
 
         // SPOTIFY_REDIRECT_URI
-        <span class="cov0" title="0">if uri := os.Getenv(spotify_redirect_uri); uri == "" </span><span class="cov0" title="0">{
+        <span class="cov8" title="1">if uri := os.Getenv(spotify_redirect_uri); uri == "" </span><span class="cov0" title="0">{
                 prompt := promptui.Prompt{
                         Label: input_label_spotify_redirect_uri,
                 }
@@ -200,7 +200,7 @@ func setAuthInfo() error <span class="cov0" title="0">{
         }
 
         // set authenticator
-        <span class="cov0" title="0">authenticator = spotifyauth.New(
+        <span class="cov8" title="1">authenticator = spotifyauth.New(
                 spotifyauth.WithRedirectURL(os.Getenv(spotify_redirect_uri)),
                 spotifyauth.WithScopes(
                         // to check the user has been already liked the artist
@@ -228,11 +228,11 @@ func setAuthInfo() error <span class="cov0" title="0">{
                 <span class="cov0" title="0">os.Setenv(spotify_refresh_token, input)</span>
         }
 
-        <span class="cov0" title="0">return nil</span>
+        <span class="cov8" title="1">return nil</span>
 }
 
 // authenticate authenticates the auth info and returns a Spotify client.
-func authenticate() (*spotify.Client, error) <span class="cov0" title="0">{
+func authenticate() (*spotify.Client, error) <span class="cov8" title="1">{
         var client *spotify.Client
 
         // check the refresh token
@@ -262,7 +262,7 @@ func authenticate() (*spotify.Client, error) <span class="cov0" title="0">{
 
                 // wait for authentication to complete and get a new Spotify client
                 client = &lt;-channel</span>
-        } else<span class="cov0" title="0"> {
+        } else<span class="cov8" title="1"> {
                 // refresh token
                 tok := &amp;oauth2.Token{
                         TokenType:    "bearer",
@@ -273,7 +273,7 @@ func authenticate() (*spotify.Client, error) <span class="cov0" title="0">{
                 client = spotify.New(authenticator.Client(context.Background(), tok))
         }</span>
 
-        <span class="cov0" title="0">return client, nil</span>
+        <span class="cov8" title="1">return client, nil</span>
 }
 
 // completeAuthenticate completes the authentication process.
