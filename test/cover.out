@@ -146,3 +146,7 @@ github.com/yanosea/spotlike/api/util.go:50.64,52.37 2 1
 github.com/yanosea/spotlike/api/util.go:52.37,54.30 2 1
 github.com/yanosea/spotlike/api/util.go:54.30,56.4 1 1
 github.com/yanosea/spotlike/api/util.go:58.2,58.20 1 1
+github.com/yanosea/spotlike/util/util.go:7.42,9.2 1 1
+github.com/yanosea/spotlike/util/util.go:11.48,13.2 1 1
+github.com/yanosea/spotlike/util/util.go:14.48,16.2 1 1
+github.com/yanosea/spotlike/util/util.go:18.44,20.2 1 1

@@ -65,6 +65,8 @@
 				
 				<option value="file4">github.com/yanosea/spotlike/exit/exit.go (100.0%)</option>
 				
+				<option value="file5">github.com/yanosea/spotlike/util/util.go (100.0%)</option>
+				
 				</select>
 			</div>
 			<div id="legend">
@@ -964,6 +966,28 @@ func Exit() <span class="cov8" title="1">{
 // ErrorExit exits the spotlike application with the specified exit code.
 func ErrorExit(exitCode ExitCode) <span class="cov8" title="1">{
         osExit(exitCode.GetNumber())
+}</span>
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package util
+
+import (
+        "fmt"
+)
+
+func FormatIndent(message string) string <span class="cov8" title="1">{
+        return "  " + message
+}</span>
+
+func PrintlnWithBlankLineBelow(message string) <span class="cov8" title="1">{
+        fmt.Println(fmt.Sprintf("%s\n", message))
+}</span>
+func PrintlnWithBlankLineAbove(message string) <span class="cov8" title="1">{
+        fmt.Println(fmt.Sprintf("\n%s", message))
+}</span>
+
+func PrintBetweenBlankLine(message string) <span class="cov8" title="1">{
+        fmt.Println(fmt.Sprintf("\n%s\n", message))
 }</span>
 </pre>
 		
