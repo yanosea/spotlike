@@ -75,7 +75,7 @@ func GetClient() (*spotify.Client, error) {
 
 // setAuthInfo sets Spotify authentication info to each environment variable.
 func setAuthInfo() error {
-	// SPOTIFY_CLIENT_ID
+	// SPOTIFY_ID
 	if id := os.Getenv(spotify_id); id == "" {
 		prompt := promptui.Prompt{
 			Label: input_label_spotify_id,
@@ -89,7 +89,7 @@ func setAuthInfo() error {
 		os.Setenv(spotify_id, input)
 	}
 
-	// SPOTIFY_CLIENT_SECRET
+	// SPOTIFY_SECRET
 	if secret := os.Getenv(spotify_secret); secret == "" {
 		prompt := promptui.Prompt{
 			Label: input_label_spotify_secret,
