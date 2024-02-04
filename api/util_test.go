@@ -189,7 +189,7 @@ func TestCombineArtistNames(t *testing.T) {
 			want: "",
 		},
 		{
-			name: "negative testing (nil)",
+			name: "positive testing (nil)",
 			args: args{
 				artists: nil,
 			},

@@ -20,7 +20,10 @@ const (
 	like_short = "Like content in Spotify by ID."
 	like_long  = `Like content in Spotify by ID.
 
-You can like content(s) using the level option below:
+You must set the args or the flag "id" to content(s) for like.
+If you set both args and flag "id", both contents will be liked.
+
+You can like content(s) using the flag "level" below :
   * artist (If you pass the artist ID, spotlike will like the artist.)
   * album  (If you pass the artist ID, spotlike will like all albums released by the artist.)
            (If you pass the album ID, spotlike will like the album.)
@@ -44,7 +47,9 @@ You can like content(s) using the level option below:
 	// like_shorthand_force is the string of the force shorthand flag of the like command.
 	like_shorthand_force = "f"
 	// search_flag_description_force is the description of the force flag of the like command.
-	like_flag_description_force = "whether to like even if the content heve already been liked"
+	like_flag_description_force = "like without confirming"
+	// search_error_message_args_or_query_required is the error message for the invalid arguments or the query.
+	like_error_message_args_or_flag_id_required = `The arguments or the flag "id" is required...`
 	// like_error_message_flag_level_invalid_artist is the error message for the invalid level with artist id.
 	like_error_message_flag_level_invalid_artist = "You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist."
 	// like_error_message_flag_level_invalid_album is the error message for the invalid level with album id.
@@ -57,11 +62,11 @@ You can like content(s) using the level option below:
 
 // variables
 var (
-	// id is the ID of content
+	// id holds flag 'id'
 	id string
-	// level is level for like
+	// level holds flag 'level'
 	level string
-	// foece is the option whether to like even if the content heve already been liked
+	// force holds flag 'force'
 	force bool
 )
 
@@ -74,7 +79,7 @@ var likeCmd = &cobra.Command{
 	// RunE is the function to like
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// execute like
-		if err := like(id, level, force); err != nil {
+		if err := like(args, id, level, force); err != nil {
 			return err
 		}
 
@@ -86,80 +91,92 @@ var likeCmd = &cobra.Command{
 func init() {
 	// cobra init
 	rootCmd.AddCommand(likeCmd)
-
-	// validate flag 'id'
+	// validate the flag 'id'
 	likeCmd.Flags().StringVarP(&id, like_flag_id, like_shorthand_id, "", like_flag_description_id)
-	if err := likeCmd.MarkFlagRequired(like_flag_id); err != nil {
-		return
-	}
-
-	// validate flag 'level'
+	// validate the flag 'level'
 	likeCmd.Flags().StringVarP(&level, like_flag_level, like_shorthand_level, "", like_flag_description_level)
-
-	// validate flag 'force'
+	// validate the flag 'force'
 	likeCmd.Flags().BoolVarP(&force, like_flag_force, like_shorthand_force, false, like_flag_description_force)
 }
 
 // like performs a Spotify like based on the specified id and level.
-func like(id string, level string, force bool) error {
-	// first, execute search by ID
-	searchResult, err := api.SearchById(Client, id)
-	if err != nil {
-		// the content was not found
-		return err
+func like(args []string, id string, level string, force bool) error {
+	// separete all the args and the flag "id" then check it
+	var ids []string
+	for _, arg := range args {
+		a := strings.Fields(arg)
+		for _, b := range a {
+			ids = append(ids, b)
+		}
+	}
+	a := strings.Fields(id)
+	for _, b := range a {
+		ids = append(ids, b)
+	}
+	if len(ids) == 0 {
+		return errors.New(like_error_message_args_or_flag_id_required)
 	}
 
-	// execute like
-	var likeResults []*api.LikeResult
-	switch searchResult.Type {
-	// the type of the content is artist
-	case spotify.SearchTypeArtist:
-		// validate level
-		if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeArtist] || level == "" {
-			// like artist
-			likeResults = api.LikeArtistById(Client, searchResult.Id, force)
-		} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeAlbum] {
-			// like all albums released by the artist
-			likeResults = api.LikeAllAlbumsReleasedByArtistById(Client, searchResult.Id, force)
-		} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeTrack] {
-			// like all tracks released by the artist
-			likeResults = api.LikeAllTracksReleasedByArtistById(Client, searchResult.Id, force)
-		} else {
-			// wrong level passed
-			return errors.New(like_error_message_flag_level_invalid_artist)
+	for _, id := range ids {
+		// first, execute search by ID
+		searchResult, err := api.SearchById(Client, id)
+		if err != nil {
+			// the content was not found
+			return err
 		}
 
-	// the type of the content is album
-	case spotify.SearchTypeAlbum:
-		// validate level
-		if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeAlbum] || level == "" {
-			// like album
-			likeResults = api.LikeAlbumById(Client, searchResult.Id, force)
-		} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeTrack] {
-			// like all tracks on the album
-			likeResults = api.LikeAllTracksInAlbumById(Client, searchResult.Id, force)
-		} else {
-			// wrong level passed
-			return errors.New(like_error_message_flag_level_invalid_album)
+		// execute like
+		var likeResults []*api.LikeResult
+		switch searchResult.Type {
+		// the type of the content is artist
+		case spotify.SearchTypeArtist:
+			// validate level
+			if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeArtist] || level == "" {
+				// like artist
+				likeResults = api.LikeArtistById(Client, searchResult.Id, force)
+			} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeAlbum] {
+				// like all albums released by the artist
+				likeResults = api.LikeAllAlbumsReleasedByArtistById(Client, searchResult.Id, force)
+			} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeTrack] {
+				// like all tracks released by the artist
+				likeResults = api.LikeAllTracksReleasedByArtistById(Client, searchResult.Id, force)
+			} else {
+				// wrong level passed
+				return errors.New(like_error_message_flag_level_invalid_artist)
+			}
+
+		// the type of the content is album
+		case spotify.SearchTypeAlbum:
+			// validate level
+			if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeAlbum] || level == "" {
+				// like album
+				likeResults = api.LikeAlbumById(Client, searchResult.Id, force)
+			} else if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeTrack] {
+				// like all tracks on the album
+				likeResults = api.LikeAllTracksInAlbumById(Client, searchResult.Id, force)
+			} else {
+				// wrong level passed
+				return errors.New(like_error_message_flag_level_invalid_album)
+			}
+
+		// the type of the content is track
+		case spotify.SearchTypeTrack:
+			// validate level
+			if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeTrack] || level == "" {
+				// like track
+				likeResults = api.LikeTrackById(Client, searchResult.Id, force)
+			} else {
+				// wrong level passed
+				return errors.New(like_error_message_flag_level_invalid_track)
+			}
+
+		default:
+			return errors.New(like_error_message_something_wrong_with_searching)
 		}
 
-	// the type of the content is track
-	case spotify.SearchTypeTrack:
-		// validate level
-		if strings.ToLower(level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeTrack] || level == "" {
-			// like track
-			likeResults = api.LikeTrackById(Client, searchResult.Id, force)
-		} else {
-			// wrong level passed
-			return errors.New(like_error_message_flag_level_invalid_track)
-		}
-
-	default:
-		return errors.New(like_error_message_something_wrong_with_searching)
+		// print like result
+		printLikeResult(likeResults)
 	}
-
-	// print like result
-	printLikeResult(likeResults)
 
 	return nil
 }
@@ -175,51 +192,60 @@ func printLikeResult(likeResults []*api.LikeResult) {
 
 		if result.Type == spotify.SearchTypeArtist {
 			// like artist
-			fmt.Println(formatLikeArtistResult(result.ArtistNames, result.Skip))
+			fmt.Println(formatLikeArtistResult(result))
 		}
 
 		if result.Type == spotify.SearchTypeAlbum {
 			// like album
-			fmt.Println(formatLikeAlbumResult(result.ArtistNames, result.AlbumName, result.Skip))
+			fmt.Println(formatLikeAlbumResult(result))
 		}
 
 		if result.Type == spotify.SearchTypeTrack {
 			// like track
-			fmt.Println(formatLikeTrackResult(result.ArtistNames, result.AlbumName, result.TrackName, result.Skip))
+			fmt.Println(formatLikeTrackResult(result))
 		}
 	}
 }
 
 // formatLikeArtistResult returns the formatted like artist result
-func formatLikeArtistResult(artistNames string, skip bool) string {
-	if skip {
-		// skipped
-		return fmt.Sprintf("Like %s skipped!\t:\t[%s]", util.STRING_ARTIST, artistNames)
+func formatLikeArtistResult(result *api.LikeResult) string {
+	if result.AlreadyLiked {
+		// already liked
+		return fmt.Sprintf("%s already liked!\t:\t[%s]", util.STRING_ARTIST, result.ArtistNames)
+	} else if result.Refused {
+		// refused
+		return fmt.Sprintf("Like %s refused!\t:\t[%s]", util.STRING_ARTIST, result.ArtistNames)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s succeeded!\t:\t[%s]", util.STRING_ARTIST, artistNames)
+		return fmt.Sprintf("Like %s succeeded!\t:\t[%s]", util.STRING_ARTIST, result.ArtistNames)
 	}
 }
 
 // formatLikeAlbumResult returns the formatted like album result
-func formatLikeAlbumResult(artistNames string, albumName string, skip bool) string {
-	if skip {
-		// skipped
-		return fmt.Sprintf("Like %s by %s skipped!\t:\t[%s]", util.STRING_ALBUM, artistNames, albumName)
+func formatLikeAlbumResult(result *api.LikeResult) string {
+	if result.AlreadyLiked {
+		// already liked
+		return fmt.Sprintf("%s by %s already liked!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
+	} else if result.Refused {
+		// refused
+		return fmt.Sprintf("Like %s by %s refused!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s by %s succeeded!\t:\t[%s]", util.STRING_ALBUM, artistNames, albumName)
+		return fmt.Sprintf("Like %s by %s succeeded!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	}
 }
 
 // formatLikeTrackResult returns the formatted like track result
-func formatLikeTrackResult(artistNames string, albumName string, trackName string, skip bool) string {
-	if skip {
-		// skipped
-		return fmt.Sprintf("Like %s in %s by %s skipped!\t:\t[%s]", util.STRING_TRACK, albumName, artistNames, trackName)
+func formatLikeTrackResult(result *api.LikeResult) string {
+	if result.AlreadyLiked {
+		// already liked
+		return fmt.Sprintf("%s in %s by %s already liked!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
+	} else if result.Refused {
+		// refused
+		return fmt.Sprintf("Like %s in %s by %s refused!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s in %s by %s succeeded!\t:\t[%s]", util.STRING_TRACK, albumName, artistNames, trackName)
+		return fmt.Sprintf("Like %s in %s by %s succeeded!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	}
 }
 

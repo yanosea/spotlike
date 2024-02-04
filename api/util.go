@@ -55,5 +55,6 @@ func combineArtistNames(artists []spotify.SimpleArtist) string {
 			artistNames += ", "
 		}
 	}
+
 	return artistNames
 }

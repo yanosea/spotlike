@@ -23,32 +23,39 @@ const (
 	// search_long is the long description of search command.
 	search_long = `Search for the ID of content in Spotify.
 
-You can search for content using the type option below:
+You can set the args or the flag "query" to specify the search query.
+If you set both args and flag "query", they will be combined.
+
+You can set the flag "type" to search type of the content.
+If you don't set the flag "type", searching without specifying the content type will be executed.
+You must specify the the flag "type" below :
   * artist
   * album
   * track`
-	// search_flag_type is the string of the type flag of the search command.
-	search_flag_type = "type"
-	// search_shorthand_type  is the string of the type shorthand flag of the search command.
-	search_shorthand_type = "t"
-	// search_flag_description_type  is the description of the type flag of the search command.
-	search_flag_description_type = "type of the content for search"
 	// search_flag_query is the string of the query flag of the search command.
 	search_flag_query = "query"
 	// search_shorhand_query is the string of the query shorthand flag of the search command.
 	search_shorhand_query = "q"
 	// search_flag_description_query the description of the query flag of the search command.
 	search_flag_description_query = "query for search"
+	// search_flag_type is the string of the type flag of the search command.
+	search_flag_type = "type"
+	// search_shorthand_type  is the string of the type shorthand flag of the search command.
+	search_shorthand_type = "t"
+	// search_flag_description_type  is the description of the type flag of the search command.
+	search_flag_description_type = "type of the content for search"
+	// search_error_message_args_or_query_required is the error message for the invalid arguments or the query.
+	search_error_message_args_or_flag_query_required = `The arguments or the flag "query" is required...`
 	// search_error_message_flag_type_invalid is the error message for the invalid type.
-	search_error_message_flag_type_invalid = `The argument of the flag "type" must be "artist", "album", or "track..."`
+	search_error_message_flag_type_invalid = `The argument of the flag "type" must be "artist", "album", or "track"...`
 )
 
 // variables
 var (
-	// searchType holds flag 'type'
-	searchType string
 	// query holds flag 'query'
 	query string
+	// searchType holds flag 'type'
+	searchType string
 )
 
 // searchCmd is the Cobra search sub command of spotlike.
@@ -60,7 +67,7 @@ var searchCmd = &cobra.Command{
 	// RunE is the function to search.
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// execute search
-		if err := search(searchType, query); err != nil {
+		if err := search(args, query, searchType); err != nil {
 			return err
 		}
 
@@ -72,39 +79,57 @@ var searchCmd = &cobra.Command{
 func init() {
 	// cobra init
 	rootCmd.AddCommand(searchCmd)
-
-	// validate the flag 'type'
+	// set the flag 'type'
 	searchCmd.Flags().StringVarP(&searchType, search_flag_type, search_shorthand_type, "", search_flag_description_type)
-	if err := searchCmd.MarkFlagRequired(search_flag_type); err != nil {
-		return
-	}
-
-	// validate the flag 'query'
+	// set the flag 'query'
 	searchCmd.Flags().StringVarP(&query, search_flag_query, search_shorhand_query, "", search_flag_description_query)
-	if err := searchCmd.MarkFlagRequired(search_flag_query); err != nil {
-		return
-	}
 }
 
 // search performs a Spotify search based on the specified search type and query.
-func search(searchType string, query string) error {
-	// define search type
+func search(args []string, query string, searchType string) error {
+	// combine all the args and flag "query" then check it
+	q := strings.TrimSpace(combineAllArgs(args) + query)
+	if q == "" {
+		return errors.New(search_error_message_args_or_flag_query_required)
+	}
+
+	// define the search type and check it
 	st, err := defineSearchType(searchType)
 	if err != nil {
 		return err
 	}
+	if st == 0 {
+		// search without specifying type
+		st = spotify.SearchTypeArtist | spotify.SearchTypeArtist | spotify.SearchTypeTrack
+	}
 
-	// execute search by query and print search result
-	printSearchResult(api.SearchByQuery(Client, st, query))
+	// execute search by the query and print the search result
+	printSearchResult(api.SearchByQuery(Client, st, q))
 
 	return nil
+}
+
+// combineAllArgs combines all the the args and returns it as string
+func combineAllArgs(args []string) string {
+	var allArgs string
+	for index, arg := range args {
+		allArgs += arg
+		if index+1 != len(args) {
+			allArgs += " "
+		}
+	}
+
+	return allArgs
 }
 
 // defineSearchType converts the search type string to the corresponding spotify.SearchType.
 func defineSearchType(searchType string) (spotify.SearchType, error) {
 	// define search type
-	searchType = strings.ToLower(searchType)
-	if st, ok := util.SEARCH_TYPE_MAP[searchType]; ok {
+	if searchType == "" {
+		return 0, nil
+
+	}
+	if st, ok := util.SEARCH_TYPE_MAP[strings.ToLower(searchType)]; ok {
 		return st, nil
 	}
 

@@ -2,11 +2,14 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/yanosea/spotlike/util"
 
+	// https://github.com/manifoldco/promptui
+	"github.com/manifoldco/promptui"
 	// https://github.com/zmb3/spotify/v2
 	"github.com/zmb3/spotify/v2"
 )
@@ -23,8 +26,10 @@ type LikeResult struct {
 	AlbumName string
 	// TrackName is the track name
 	TrackName string
-	// Skip is whether execute like was skipped or not (true : skipped, false : not skipped)
-	Skip bool
+	// AlreadyLiked is whether already liked or not (true : already liked, false : not already liked)
+	AlreadyLiked bool
+	// Refused is whether answer "y" or not (true : refused, false : not refused)
+	Refused bool
 	// Error is the error returned from the Spotify API
 	Error error
 }
@@ -36,6 +41,15 @@ type TrackWithAlbumName struct {
 	// AlbumName is the Name of the album the track is included in
 	AlbumName string
 }
+
+const (
+	// input_label_confirm_like_artist is the label of the messager confirming like the artist.
+	input_label_confirm_like_artist = `Do you execute like artist "%s"`
+	// input_label_confirm_like_artist is the label of the messager confirming like the album.
+	input_label_confirm_like_album = `Do you execute like album "%s" by "%s"`
+	// input_label_confirm_like_artist is the label of the messager confirming like the track.
+	input_label_confirm_like_track = `Do you execute like track "%s" in "%s" by "%s"`
+)
 
 // LikeArtistById returns the like result for an artist with the given ID.
 func LikeArtistById(client *spotify.Client, id string, force bool) []*LikeResult {
@@ -62,13 +76,43 @@ func LikeArtistById(client *spotify.Client, id string, force bool) []*LikeResult
 		return likeResults
 	}
 
-	// skip like
-	if !force && alreadyLiked[0] {
+	// skip like if already liked
+	if alreadyLiked[0] {
 		likeResults = append(likeResults, &LikeResult{
-			ID:          searchResult.Id,
-			Type:        searchResult.Type,
-			ArtistNames: searchResult.ArtistNames,
-			Skip:        true,
+			ID:           searchResult.Id,
+			Type:         searchResult.Type,
+			ArtistNames:  searchResult.ArtistNames,
+			AlreadyLiked: true,
+			Refused:      false,
+		})
+
+		return likeResults
+	}
+
+	// confirm like
+	answer := "y"
+	if !force {
+		prompt := promptui.Prompt{
+			Label:     fmt.Sprintf(input_label_confirm_like_artist, searchResult.ArtistNames),
+			IsConfirm: true,
+		}
+
+		input, err := prompt.Run()
+		if err != nil {
+			answer = "n"
+		}
+
+		answer = input
+	}
+
+	// skip like if refused
+	if answer == "n" {
+		likeResults = append(likeResults, &LikeResult{
+			ID:           searchResult.Id,
+			Type:         searchResult.Type,
+			ArtistNames:  searchResult.ArtistNames,
+			AlreadyLiked: false,
+			Refused:      true,
 		})
 
 		return likeResults
@@ -136,14 +180,45 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force 
 			continue
 		}
 
-		// skip like
-		if !force && alreadyLiked[0] {
+		// skip like if already liked
+		if alreadyLiked[0] {
 			likeResults = append(likeResults, &LikeResult{
-				ID:          album.ID.String(),
-				Type:        spotify.SearchTypeAlbum,
-				ArtistNames: combineArtistNames(album.Artists),
-				AlbumName:   album.Name,
-				Skip:        true,
+				ID:           album.ID.String(),
+				Type:         spotify.SearchTypeAlbum,
+				ArtistNames:  combineArtistNames(album.Artists),
+				AlbumName:    album.Name,
+				AlreadyLiked: true,
+				Refused:      false,
+			})
+
+			continue
+		}
+
+		// confirm like
+		answer := "y"
+		if !force {
+			prompt := promptui.Prompt{
+				Label:     fmt.Sprintf(input_label_confirm_like_album, album.Name, combineArtistNames(album.Artists)),
+				IsConfirm: true,
+			}
+
+			input, err := prompt.Run()
+			if err != nil {
+				answer = "n"
+			}
+
+			answer = input
+		}
+
+		// skip like if refused
+		if answer == "n" {
+			likeResults = append(likeResults, &LikeResult{
+				ID:           album.ID.String(),
+				Type:         spotify.SearchTypeAlbum,
+				ArtistNames:  combineArtistNames(album.Artists),
+				AlbumName:    album.Name,
+				AlreadyLiked: false,
+				Refused:      true,
 			})
 
 			continue
@@ -233,15 +308,47 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
 			continue
 		}
 
-		// skip like
-		if !force && alreadyLiked[0] {
+		// skip like if already liked
+		if alreadyLiked[0] {
 			likeResults = append(likeResults, &LikeResult{
-				ID:          track.Track.ID.String(),
-				Type:        spotify.SearchTypeTrack,
-				ArtistNames: combineArtistNames(track.Track.Artists),
-				AlbumName:   track.AlbumName,
-				TrackName:   track.Track.Name,
-				Skip:        true,
+				ID:           track.Track.ID.String(),
+				Type:         spotify.SearchTypeTrack,
+				ArtistNames:  combineArtistNames(track.Track.Artists),
+				AlbumName:    track.AlbumName,
+				TrackName:    track.Track.Name,
+				AlreadyLiked: true,
+				Refused:      false,
+			})
+
+			continue
+		}
+
+		// confirm like
+		answer := "y"
+		if !force {
+			prompt := promptui.Prompt{
+				Label:     fmt.Sprintf(input_label_confirm_like_track, track.Track.Name, track.AlbumName, combineArtistNames(track.Track.Artists)),
+				IsConfirm: true,
+			}
+
+			input, err := prompt.Run()
+			if err != nil {
+				answer = "n"
+			}
+
+			answer = input
+		}
+
+		// skip like if refused
+		if answer == "n" {
+			likeResults = append(likeResults, &LikeResult{
+				ID:           track.Track.ID.String(),
+				Type:         spotify.SearchTypeTrack,
+				ArtistNames:  combineArtistNames(track.Track.Artists),
+				AlbumName:    track.AlbumName,
+				TrackName:    track.Track.Name,
+				AlreadyLiked: false,
+				Refused:      true,
 			})
 
 			continue
@@ -274,7 +381,7 @@ func LikeAlbumById(client *spotify.Client, id string, force bool) []*LikeResult 
 	var likeResults []*LikeResult
 	// execute search
 	searchResult, err := SearchById(client, id)
-	if err != nil || searchResult.Type != spotify.SearchTypeArtist {
+	if err != nil || searchResult.Type != spotify.SearchTypeAlbum {
 		// search failed
 		likeResults = append(likeResults, &LikeResult{
 			Error: err,
@@ -293,14 +400,45 @@ func LikeAlbumById(client *spotify.Client, id string, force bool) []*LikeResult 
 		return likeResults
 	}
 
-	// skip like
-	if !force && alreadyLiked[0] {
+	// skip like if already liked
+	if alreadyLiked[0] {
 		likeResults = append(likeResults, &LikeResult{
-			ID:          searchResult.Id,
-			Type:        searchResult.Type,
-			ArtistNames: searchResult.ArtistNames,
-			AlbumName:   searchResult.AlbumName,
-			Skip:        true,
+			ID:           searchResult.Id,
+			Type:         searchResult.Type,
+			ArtistNames:  searchResult.ArtistNames,
+			AlbumName:    searchResult.AlbumName,
+			AlreadyLiked: true,
+			Refused:      false,
+		})
+
+		return likeResults
+	}
+
+	// confirm like
+	answer := "y"
+	if !force {
+		prompt := promptui.Prompt{
+			Label:     fmt.Sprintf(input_label_confirm_like_album, searchResult.AlbumName, searchResult.ArtistNames),
+			IsConfirm: true,
+		}
+
+		input, err := prompt.Run()
+		if err != nil {
+			answer = "n"
+		}
+
+		answer = input
+	}
+
+	// skip like if refused
+	if answer == "n" {
+		likeResults = append(likeResults, &LikeResult{
+			ID:           searchResult.Id,
+			Type:         searchResult.Type,
+			ArtistNames:  searchResult.ArtistNames,
+			AlbumName:    searchResult.AlbumName,
+			AlreadyLiked: false,
+			Refused:      true,
 		})
 
 		return likeResults
@@ -330,7 +468,7 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*
 	var likeResults []*LikeResult
 	// execute search
 	searchResult, err := SearchById(client, id)
-	if err != nil || searchResult.Type != spotify.SearchTypeArtist {
+	if err != nil || searchResult.Type != spotify.SearchTypeAlbum {
 		// search failed
 		likeResults = append(likeResults, &LikeResult{
 			Error: err,
@@ -360,15 +498,47 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*
 			continue
 		}
 
-		// skip like
-		if !force && alreadyLiked[0] {
+		// skip like if already liked
+		if alreadyLiked[0] {
 			likeResults = append(likeResults, &LikeResult{
-				ID:          track.ID.String(),
-				Type:        spotify.SearchTypeTrack,
-				ArtistNames: combineArtistNames(track.Artists),
-				AlbumName:   track.Album.Name,
-				TrackName:   track.Name,
-				Skip:        true,
+				ID:           track.ID.String(),
+				Type:         spotify.SearchTypeTrack,
+				ArtistNames:  combineArtistNames(track.Artists),
+				AlbumName:    track.Album.Name,
+				TrackName:    track.Name,
+				AlreadyLiked: true,
+				Refused:      false,
+			})
+
+			continue
+		}
+
+		// confirm like
+		answer := "y"
+		if !force {
+			prompt := promptui.Prompt{
+				Label:     fmt.Sprintf(input_label_confirm_like_track, track.Name, track.Album.Name, combineArtistNames(track.Artists)),
+				IsConfirm: true,
+			}
+
+			input, err := prompt.Run()
+			if err != nil {
+				answer = "n"
+			}
+
+			answer = input
+		}
+
+		// skip like if refused
+		if answer == "n" {
+			likeResults = append(likeResults, &LikeResult{
+				ID:           track.ID.String(),
+				Type:         spotify.SearchTypeTrack,
+				ArtistNames:  combineArtistNames(track.Artists),
+				AlbumName:    track.Album.Name,
+				TrackName:    track.Name,
+				AlreadyLiked: false,
+				Refused:      true,
 			})
 
 			continue
@@ -401,7 +571,7 @@ func LikeTrackById(client *spotify.Client, id string, force bool) []*LikeResult 
 	var likeResults []*LikeResult
 	// execute search
 	searchResult, err := SearchById(client, id)
-	if err != nil || searchResult.Type != spotify.SearchTypeArtist {
+	if err != nil || searchResult.Type != spotify.SearchTypeTrack {
 		// search failed
 		likeResults = append(likeResults, &LikeResult{
 			Error: err,
@@ -421,15 +591,47 @@ func LikeTrackById(client *spotify.Client, id string, force bool) []*LikeResult 
 		return likeResults
 	}
 
-	// skip like
-	if !force && alreadyLiked[0] {
+	// skip like if already liked
+	if alreadyLiked[0] {
 		likeResults = append(likeResults, &LikeResult{
-			ID:          searchResult.Id,
-			Type:        searchResult.Type,
-			ArtistNames: searchResult.ArtistNames,
-			AlbumName:   searchResult.AlbumName,
-			TrackName:   searchResult.TrackName,
-			Skip:        true,
+			ID:           searchResult.Id,
+			Type:         searchResult.Type,
+			ArtistNames:  searchResult.ArtistNames,
+			AlbumName:    searchResult.AlbumName,
+			TrackName:    searchResult.TrackName,
+			AlreadyLiked: true,
+			Refused:      false,
+		})
+
+		return likeResults
+	}
+
+	// confirm like
+	answer := "y"
+	if !force {
+		prompt := promptui.Prompt{
+			Label:     fmt.Sprintf(input_label_confirm_like_track, searchResult.TrackName, searchResult.AlbumName, searchResult.ArtistNames),
+			IsConfirm: true,
+		}
+
+		input, err := prompt.Run()
+		if err != nil {
+			answer = "n"
+		}
+
+		answer = input
+	}
+
+	// skip like if refused
+	if answer == "n" {
+		likeResults = append(likeResults, &LikeResult{
+			ID:           searchResult.Id,
+			Type:         searchResult.Type,
+			ArtistNames:  searchResult.ArtistNames,
+			AlbumName:    searchResult.AlbumName,
+			TrackName:    searchResult.TrackName,
+			AlreadyLiked: false,
+			Refused:      true,
 		})
 
 		return likeResults
