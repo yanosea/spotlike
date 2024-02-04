@@ -26,7 +26,7 @@ const (
 	// spotify_secret is env string of the Spotify client secret.
 	spotify_secret = "SPOTIFY_SECRET"
 	// input_label_spotify_secret is the label of the Spotify client secret.
-	input_label_spotify_secret = "Input your Spotify Client ID"
+	input_label_spotify_secret = "Input your Spotify Client Secret"
 	// spotify_redirect_uri is env string of the Spotify redirect URI.
 	spotify_redirect_uri = "SPOTIFY_REDIRECT_URI"
 	// input_label_spotify_redirect_uri  is the label of the Spotify redirect URI.
