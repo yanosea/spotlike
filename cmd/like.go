@@ -225,13 +225,13 @@ func formatLikeArtistResult(result *api.LikeResult) string {
 func formatLikeAlbumResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
 		// already liked
-		return fmt.Sprintf("%s by %s already liked!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
+		return fmt.Sprintf("%s by [%s] already liked!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	} else if result.Refused {
 		// refused
-		return fmt.Sprintf("Like %s by %s refused!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
+		return fmt.Sprintf("Like %s by [%s] refused!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s by %s succeeded!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
+		return fmt.Sprintf("Like %s by [%s] succeeded!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	}
 }
 
@@ -239,13 +239,13 @@ func formatLikeAlbumResult(result *api.LikeResult) string {
 func formatLikeTrackResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
 		// already liked
-		return fmt.Sprintf("%s in %s by %s already liked!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
+		return fmt.Sprintf("%s in [%s] by [%s] already liked!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	} else if result.Refused {
 		// refused
-		return fmt.Sprintf("Like %s in %s by %s refused!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
+		return fmt.Sprintf("Like %s in [%s] by [%s] refused!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s in %s by %s succeeded!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
+		return fmt.Sprintf("Like %s in [%s] by []%s] succeeded!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	}
 }
 
