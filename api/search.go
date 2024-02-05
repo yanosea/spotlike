@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -72,6 +73,7 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 
 // SearchById returns the search result by ID.
 func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
+	var unmarshalTypeErr *json.UnmarshalTypeError
 	// execute the search
 	if result, err := client.GetArtist(context.Background(), spotify.ID(id)); err == nil {
 		// the type of the content is artist
@@ -80,7 +82,24 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 			Type:        spotify.SearchTypeArtist,
 			ArtistNames: result.Name,
 		}, nil
-	} else if result, err := client.GetAlbum(context.Background(), spotify.ID(id)); err == nil {
+	} else if errors.As(err, &unmarshalTypeErr) {
+		// if search failed with UnmarshalTypeError, search artist albums again
+		if result, err := client.GetArtistAlbums(context.Background(), spotify.ID(id), nil); err == nil {
+			// search for an album with a single artist from the retrieved albums
+			for _, album := range result.Albums {
+				if len(album.Artists) == 1 {
+					// the type of the content is artist
+					return &SearchResult{
+						Id:          album.Artists[0].ID.String(),
+						Type:        spotify.SearchTypeArtist,
+						ArtistNames: album.Artists[0].Name,
+					}, nil
+				}
+			}
+		}
+	}
+
+	if result, err := client.GetAlbum(context.Background(), spotify.ID(id)); err == nil {
 		// the type of the content is album
 		return &SearchResult{
 			Id:          result.ID.String(),
