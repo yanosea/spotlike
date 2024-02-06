@@ -164,7 +164,7 @@ func printSearchResult(searchResult *api.SearchResult, err error) {
 
 // formatSearchResult returns the formatted search result
 func formatSearchResult(topic string, detail string) string {
-	return fmt.Sprintf("%s\t:\t%s", topic, detail)
+	return fmt.Sprintf("%s\t:\t[%s]", topic, detail)
 }
 
 // formatSearchResultError returns the formatted search error result

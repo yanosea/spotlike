@@ -58,6 +58,24 @@ You can like content(s) using the flag "level" below :
 	like_error_message_flag_level_invalid_track = "You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track."
 	// like_error_message_something_wrong is the error message for something wrong searching before liking.
 	like_error_message_something_wrong_with_searching = "Search result is wrong..."
+	// message_like_artist_already_liked is the message the artist already liked
+	message_like_artist_already_liked = "%s already liked!\t:\t[%s]"
+	// message_like_artist_refused is the message like the artist refused
+	message_like_artist_refused = "Like %s refused!\t:\t[%s]"
+	// message_like_artist_succeeded is message like the artist succeeded
+	message_like_artist_succeeded = "Like %s succeeded!\t:\t[%s]"
+	// message_like_album_already_liked is the message the album already liked
+	message_like_album_already_liked = "%s by [%s] already liked!\t:\t[%s]"
+	// message_like_album_refused is the message like the album refused
+	message_like_album_refused = "Like %s by [%s] refused!\t:\t[%s]"
+	// message_like_album_succeeded is message like the album succeeded
+	message_like_album_succeeded = "Like %s by [%s] succeeded!\t:\t[%s]"
+	// message_like_track_already_liked is the message the track already liked
+	message_like_track_already_liked = "%s in [%s] by [%s] already liked!\t:\t[%s]"
+	// message_like_track_refused is the message like the track refused
+	message_like_track_refused = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
+	// message_like_track_succeeded is message like the track succeeded
+	message_like_track_succeeded = "Like %s in [%s] by []%s] succeeded!\t:\t[%s]"
 )
 
 // variables
@@ -211,13 +229,13 @@ func printLikeResult(likeResults []*api.LikeResult) {
 func formatLikeArtistResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
 		// already liked
-		return fmt.Sprintf("%s already liked!\t:\t[%s]", util.STRING_ARTIST, result.ArtistNames)
+		return fmt.Sprintf(message_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames)
 	} else if result.Refused {
 		// refused
-		return fmt.Sprintf("Like %s refused!\t:\t[%s]", util.STRING_ARTIST, result.ArtistNames)
+		return fmt.Sprintf(message_like_artist_refused, util.STRING_ARTIST, result.ArtistNames)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s succeeded!\t:\t[%s]", util.STRING_ARTIST, result.ArtistNames)
+		return fmt.Sprintf(message_like_artist_succeeded, util.STRING_ARTIST, result.ArtistNames)
 	}
 }
 
@@ -225,13 +243,13 @@ func formatLikeArtistResult(result *api.LikeResult) string {
 func formatLikeAlbumResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
 		// already liked
-		return fmt.Sprintf("%s by [%s] already liked!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
+		return fmt.Sprintf(message_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	} else if result.Refused {
 		// refused
-		return fmt.Sprintf("Like %s by [%s] refused!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
+		return fmt.Sprintf(message_like_album_refused, util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s by [%s] succeeded!\t:\t[%s]", util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
+		return fmt.Sprintf(message_like_album_succeeded, util.STRING_ALBUM, result.ArtistNames, result.AlbumName)
 	}
 }
 
@@ -239,13 +257,13 @@ func formatLikeAlbumResult(result *api.LikeResult) string {
 func formatLikeTrackResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
 		// already liked
-		return fmt.Sprintf("%s in [%s] by [%s] already liked!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
+		return fmt.Sprintf(message_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	} else if result.Refused {
 		// refused
-		return fmt.Sprintf("Like %s in [%s] by [%s] refused!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
+		return fmt.Sprintf(message_like_track_refused, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	} else {
 		// liked
-		return fmt.Sprintf("Like %s in [%s] by []%s] succeeded!\t:\t[%s]", util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
+		return fmt.Sprintf(message_like_track_succeeded, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName)
 	}
 }
 
