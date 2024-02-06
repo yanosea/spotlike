@@ -38,15 +38,6 @@ var rootCmd = &cobra.Command{
 	Long:    root_long,
 }
 
-// Execute is entry point of the root command
-func Execute() error {
-	if err := rootCmd.Execute(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Init is executed before func Execute is executed.
 func Init() error {
 	// get the Spotify client
@@ -57,6 +48,15 @@ func Init() error {
 
 	// set the client
 	Client = client
+
+	return nil
+}
+
+// Execute is the entry point of the root command
+func Execute() error {
+	if err := rootCmd.Execute(); err != nil {
+		return err
+	}
 
 	return nil
 }

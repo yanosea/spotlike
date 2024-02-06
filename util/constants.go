@@ -21,7 +21,7 @@ const (
 
 // valiables
 var (
-	// SEARCH_TYPE_MAP maps strings to spotify.SearchType values.
+	// SEARCH_TYPE_MAP maps string values to spotify.SearchType values.
 	SEARCH_TYPE_MAP = map[string]spotify.SearchType{
 		"artist": spotify.SearchTypeArtist,
 		"album":  spotify.SearchTypeAlbum,

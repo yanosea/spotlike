@@ -93,7 +93,6 @@ var likeCmd = &cobra.Command{
 	Use:   like_use,
 	Short: like_short,
 	Long:  like_long,
-
 	// RunE is the function to like
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// execute like
@@ -122,16 +121,15 @@ func like(args []string, id string, level string, force bool) error {
 	// separete all the args and the flag "id" then check it
 	var ids []string
 	for _, arg := range args {
-		a := strings.Fields(arg)
-		for _, b := range a {
-			ids = append(ids, b)
+		for _, a := range strings.Fields(arg) {
+			ids = append(ids, a)
 		}
 	}
-	a := strings.Fields(id)
-	for _, b := range a {
-		ids = append(ids, b)
+	for _, a := range strings.Fields(id) {
+		ids = append(ids, a)
 	}
 	if len(ids) == 0 {
+		// there are no id in args or the flag "id"
 		return errors.New(like_error_message_args_or_flag_id_required)
 	}
 
@@ -142,7 +140,6 @@ func like(args []string, id string, level string, force bool) error {
 			// the content was not found
 			return err
 		}
-
 		// execute like
 		var likeResults []*api.LikeResult
 		switch searchResult.Type {
@@ -162,7 +159,6 @@ func like(args []string, id string, level string, force bool) error {
 				// wrong level passed
 				return errors.New(like_error_message_flag_level_invalid_artist)
 			}
-
 		// the type of the content is album
 		case spotify.SearchTypeAlbum:
 			// validate level
@@ -176,7 +172,6 @@ func like(args []string, id string, level string, force bool) error {
 				// wrong level passed
 				return errors.New(like_error_message_flag_level_invalid_album)
 			}
-
 		// the type of the content is track
 		case spotify.SearchTypeTrack:
 			// validate level
@@ -187,11 +182,10 @@ func like(args []string, id string, level string, force bool) error {
 				// wrong level passed
 				return errors.New(like_error_message_flag_level_invalid_track)
 			}
-
+		// something wrong with searching
 		default:
 			return errors.New(like_error_message_something_wrong_with_searching)
 		}
-
 		// print like result
 		printLikeResult(likeResults)
 	}
@@ -207,19 +201,16 @@ func printLikeResult(likeResults []*api.LikeResult) {
 		if result.Error != nil {
 			fmt.Println(formatLikeResultError(result.Error))
 		}
-
+		// if the result is the artist, show liking the artist result
 		if result.Type == spotify.SearchTypeArtist {
-			// like artist
 			fmt.Println(formatLikeArtistResult(result))
 		}
-
+		// if the result is the album, show liking the album result
 		if result.Type == spotify.SearchTypeAlbum {
-			// like album
 			fmt.Println(formatLikeAlbumResult(result))
 		}
-
+		// if the result is the track, show liking the track result
 		if result.Type == spotify.SearchTypeTrack {
-			// like track
 			fmt.Println(formatLikeTrackResult(result))
 		}
 	}

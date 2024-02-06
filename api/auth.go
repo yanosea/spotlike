@@ -63,7 +63,6 @@ func GetClient() (*spotify.Client, error) {
 	if err := setAuthInfo(); err != nil {
 		return nil, err
 	}
-
 	// authenticate and get a spotify client
 	client, err := authenticate()
 	if err != nil {
@@ -152,8 +151,8 @@ func setAuthInfo() error {
 
 // authenticate authenticates the auth info and returns a Spotify client.
 func authenticate() (*spotify.Client, error) {
+	// declare var to get client
 	var client *spotify.Client
-
 	// check the refresh token
 	refreshToken := os.Getenv(spotify_refresh_token)
 	if refreshToken == "" {
@@ -162,23 +161,20 @@ func authenticate() (*spotify.Client, error) {
 		if err != nil {
 			return nil, err
 		}
-
 		// start an HTTP server
 		http.HandleFunc("/callback", completeAuthenticate)
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
 		go func() error {
-			err := http.ListenAndServe(port, nil)
+			err := http.ListenAndServe(":"+port, nil)
 			if err != nil {
 				return err
 			}
 			return err
 		}()
-
 		// generate the Spotify authentication URI and print it
 		url := authenticator.AuthURL(state)
 		util.PrintBetweenBlankLine(message_login_spotify)
 		util.PrintlnWithBlankLineBelow(util.FormatIndent(url))
-
 		// wait for authentication to complete and get a new Spotify client
 		client = <-channel
 	} else {
@@ -187,7 +183,6 @@ func authenticate() (*spotify.Client, error) {
 			TokenType:    "bearer",
 			RefreshToken: refreshToken,
 		}
-
 		// get a new Spotify client
 		client = spotify.New(authenticator.Client(context.Background(), tok))
 	}
@@ -197,6 +192,7 @@ func authenticate() (*spotify.Client, error) {
 
 // completeAuthenticate completes the authentication process.
 func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
+	// get a token
 	tok, err := authenticator.Token(r.Context(), state, r)
 	if err != nil {
 		http.Error(w, error_message_auth_failure, http.StatusForbidden)
@@ -204,10 +200,8 @@ func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
 	if st := r.FormValue("state"); st != state {
 		http.NotFound(w, r)
 	}
-
 	// get a new Spotify client
 	client := spotify.New(authenticator.Client(r.Context(), tok))
-
 	// print the the suggestion message to set env variables
 	fmt.Println(message_auth_success)
 	util.PrintlnWithBlankLineBelow(message_suggest_set_env)

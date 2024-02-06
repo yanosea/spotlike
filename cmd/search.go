@@ -63,7 +63,6 @@ var searchCmd = &cobra.Command{
 	Use:   search_use,
 	Short: search_short,
 	Long:  search_long,
-
 	// RunE is the function to search.
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// execute search
@@ -92,7 +91,6 @@ func search(args []string, query string, searchType string) error {
 	if q == "" {
 		return errors.New(search_error_message_args_or_flag_query_required)
 	}
-
 	// define the search type and check it
 	st, err := defineSearchType(searchType)
 	if err != nil {
@@ -102,7 +100,6 @@ func search(args []string, query string, searchType string) error {
 		// search without specifying type
 		st = spotify.SearchTypeArtist | spotify.SearchTypeArtist | spotify.SearchTypeTrack
 	}
-
 	// execute search by the query and print the search result
 	printSearchResult(api.SearchByQuery(Client, st, q))
 
@@ -129,6 +126,7 @@ func defineSearchType(searchType string) (spotify.SearchType, error) {
 		return 0, nil
 
 	}
+	// check the search type is correct
 	if st, ok := util.SEARCH_TYPE_MAP[strings.ToLower(searchType)]; ok {
 		return st, nil
 	}
@@ -144,19 +142,16 @@ func printSearchResult(searchResult *api.SearchResult, err error) {
 
 		return
 	}
-
 	// search succeeded
 	fmt.Println(formatSearchResult(util.STRING_ID, searchResult.Id))
 	fmt.Println(formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
 	fmt.Println(formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
-
+	// if the result is the album, show the album info
 	if searchResult.Type == spotify.SearchTypeAlbum {
-		// search album
 		fmt.Println(formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
 	}
-
+	// if the result is the track, show the track info
 	if searchResult.Type == spotify.SearchTypeTrack {
-		// search track
 		fmt.Println(formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
 		fmt.Println(formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
 	}
