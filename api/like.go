@@ -355,7 +355,7 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
 	return likeResults
 }
 
-// LikeAlbumById returns an error if liking an album with the given ID is failed.
+// LikeAlbumById returns the like result for an album with the given ID.
 func LikeAlbumById(client *spotify.Client, id string, force bool) []*LikeResult {
 	var likeResults []*LikeResult
 	// execute search
