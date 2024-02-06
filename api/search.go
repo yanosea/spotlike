@@ -73,6 +73,7 @@ func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query 
 
 // SearchById returns the search result by ID.
 func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
+	// declare var to check err
 	var unmarshalTypeErr *json.UnmarshalTypeError
 	// execute the search
 	if result, err := client.GetArtist(context.Background(), spotify.ID(id)); err == nil {
@@ -84,16 +85,20 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 		}, nil
 	} else if errors.As(err, &unmarshalTypeErr) {
 		// if search failed with UnmarshalTypeError, search artist albums again
+		// c.f. https://github.com/zmb3/spotify/issues/243
+		// c.f. https://community.spotify.com/t5/Spotify-for-Developers/Get-Artist-API-endpoint-responds-with-result-in-inconsistent/td-p/5806916
 		if result, err := client.GetArtistAlbums(context.Background(), spotify.ID(id), nil); err == nil {
-			// search for an album with a single artist from the retrieved albums
+			// find ID matches from all artists on all albums retrieved
 			for _, album := range result.Albums {
-				if len(album.Artists) == 1 {
-					// the type of the content is artist
-					return &SearchResult{
-						Id:          album.Artists[0].ID.String(),
-						Type:        spotify.SearchTypeArtist,
-						ArtistNames: album.Artists[0].Name,
-					}, nil
+				for _, artist := range album.Artists {
+					if artist.ID.String() == id {
+						// the type of the content is artist
+						return &SearchResult{
+							Id:          artist.ID.String(),
+							Type:        spotify.SearchTypeArtist,
+							ArtistNames: artist.Name,
+						}, nil
+					}
 				}
 			}
 		}
