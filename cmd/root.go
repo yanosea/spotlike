@@ -40,9 +40,7 @@ var rootCmd = &cobra.Command{
 
 // Init is executed before func Execute is executed.
 func Init() error {
-	// get the Spotify client
-	sa := api.NewSpotifyAuthenticator()
-	client, err := sa.GetClient()
+	client, err := api.GetClient()
 	if err != nil {
 		return err
 	}
