@@ -1,6 +1,6 @@
 module github.com/yanosea/spotlike
 
-go 1.21.3
+go 1.21.6
 
 require (
 	github.com/manifoldco/promptui v0.9.0
