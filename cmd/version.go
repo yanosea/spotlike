@@ -24,7 +24,6 @@ func newVersionCommand(globalOption *GlobalOption) *cobra.Command {
 	}
 
 	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
 
 	return cmd
 }
