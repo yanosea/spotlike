@@ -2,24 +2,23 @@ package util
 
 import (
 	"fmt"
+	"io"
 )
 
-// FormatIndent indents the provided message by adding two spaces at the beginning.
-func FormatIndent(message string) string {
-	return "  " + message
+func FormatIndent(m string) string {
+	return "  " + m
+}
+func PrintlnWithWriter(w io.Writer, a ...any) {
+	fmt.Fprint(w, fmt.Sprintf("%s", a[0]))
+}
+func PrintWithWriterWithBlankLineBelow(w io.Writer, a ...any) {
+	fmt.Fprint(w, fmt.Sprintf("%s\n", a[0]))
 }
 
-// PrintlnWithBlankLineBelow prints the provided message with a blank line below it.
-func PrintlnWithBlankLineBelow(message string) {
-	fmt.Println(fmt.Sprintf("%s\n", message))
+func PrintWithWriterWithBlankLineAbove(w io.Writer, a ...any) {
+	fmt.Fprint(w, fmt.Sprintf("\n%s", a[0]))
 }
 
-// PrintlnWithBlankLineAbove prints the provided message with a blank line above it.
-func PrintlnWithBlankLineAbove(message string) {
-	fmt.Println(fmt.Sprintf("\n%s", message))
-}
-
-// PrintBetweenBlankLine prints the provided message between two blank lines.
-func PrintBetweenBlankLine(message string) {
-	fmt.Println(fmt.Sprintf("\n%s\n", message))
+func PrintWithWriterBetweenBlankLine(w io.Writer, a ...any) {
+	fmt.Fprint(w, fmt.Sprintf("\n%s\n", a[0]))
 }

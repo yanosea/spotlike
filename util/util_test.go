@@ -47,7 +47,7 @@ func TestPrintlnWithBlankLineBelow(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			PrintlnWithBlankLineBelow(tt.args.message)
+			PrintWithWriterWithBlankLineBelow(tt.args.message)
 		})
 	}
 }
@@ -71,7 +71,7 @@ func TestPrintlnWithBlankLineAbove(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			PrintlnWithBlankLineAbove(tt.args.message)
+			PrintWithWriterWithBlankLineAbove(tt.args.message)
 		})
 	}
 }
@@ -95,7 +95,7 @@ func TestPrintBetweenBlankLine(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			PrintBetweenBlankLine(tt.args.message)
+			PrintWithWriterBetweenBlankLine(tt.args.message)
 		})
 	}
 }
