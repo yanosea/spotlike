@@ -40,15 +40,26 @@ const (
 )
 
 var (
-	authenticator *spotifyauth.Authenticator
-	channel       = make(chan *spotify.Client)
-	state, _      = generateRandomString(16)
+	spotifyAuthenticator *spotifyauth.Authenticator
+	channel              = make(chan *spotify.Client)
+	state, _             = generateRandomString(11)
 )
 
-func GetClient() (*spotify.Client, error) {
+type Authenticator interface {
+	GetClient()
 	setAuthInfo()
+	authenticate() (*spotify.Client, error)
+	completeAuthenticate(http.ResponseWriter, *http.Request)
+}
 
-	client, err := authenticate()
+type SpotlikeAuthenticator struct {
+	c Authenticator
+}
+
+func (sa *SpotlikeAuthenticator) GetClient() (*spotify.Client, error) {
+	sa.c.setAuthInfo()
+
+	client, err := sa.c.authenticate()
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +67,7 @@ func GetClient() (*spotify.Client, error) {
 	return client, nil
 }
 
-func setAuthInfo() {
+func (sa *SpotlikeAuthenticator) setAuthInfo() {
 	if id := os.Getenv(auth_env_spotify_id); id == "" {
 		prompt := promptui.Prompt{
 			Label: auth_input_label_spotify_id,
@@ -94,7 +105,7 @@ func setAuthInfo() {
 		os.Setenv(auth_env_spotify_refresh_token, input)
 	}
 
-	authenticator = spotifyauth.New(
+	spotifyAuthenticator = spotifyauth.New(
 		spotifyauth.WithRedirectURL(os.Getenv(auth_env_spotify_redirect_uri)),
 		spotifyauth.WithScopes(
 			spotifyauth.ScopeUserFollowRead,
@@ -105,7 +116,7 @@ func setAuthInfo() {
 	)
 }
 
-func authenticate() (*spotify.Client, error) {
+func (sa *SpotlikeAuthenticator) authenticate() (*spotify.Client, error) {
 	var client *spotify.Client
 
 	refreshToken := os.Getenv(auth_env_spotify_refresh_token)
@@ -115,7 +126,7 @@ func authenticate() (*spotify.Client, error) {
 			return nil, err
 		}
 
-		http.HandleFunc("/callback", completeAuthenticate)
+		http.HandleFunc("/callback", sa.c.completeAuthenticate)
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
 		go func() error {
 			err := http.ListenAndServe(":"+port, nil)
@@ -124,7 +135,7 @@ func authenticate() (*spotify.Client, error) {
 			}
 			return err
 		}()
-		url := authenticator.AuthURL(state)
+		url := spotifyAuthenticator.AuthURL(state)
 
 		o := os.Stdout
 		util.PrintWithWriterBetweenBlankLine(o, auth_message_login_spotify)
@@ -137,14 +148,14 @@ func authenticate() (*spotify.Client, error) {
 			RefreshToken: refreshToken,
 		}
 
-		client = spotify.New(authenticator.Client(context.Background(), tok))
+		client = spotify.New(spotifyAuthenticator.Client(context.Background(), tok))
 	}
 
 	return client, nil
 }
 
-func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
-	tok, err := authenticator.Token(r.Context(), state, r)
+func (sa *SpotlikeAuthenticator) completeAuthenticate(w http.ResponseWriter, r *http.Request) {
+	tok, err := spotifyAuthenticator.Token(r.Context(), state, r)
 
 	if err != nil {
 		http.Error(w, auth_error_message_auth_failure, http.StatusForbidden)
@@ -154,7 +165,7 @@ func completeAuthenticate(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	}
 
-	client := spotify.New(authenticator.Client(r.Context(), tok))
+	client := spotify.New(spotifyAuthenticator.Client(r.Context(), tok))
 
 	o := os.Stdout
 	util.PrintlnWithWriter(o, auth_message_auth_success)
@@ -180,7 +191,6 @@ func getPortFromUri(uri string) (string, error) {
 	return u.Port(), nil
 }
 
-// generateRandomString generates a random string of the specified length.
 func generateRandomString(length int) (string, error) {
 	if length < 0 {
 		return "", errors.New(auth_error_message_invalid_length_for_random_string)

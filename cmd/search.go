@@ -53,6 +53,7 @@ type searchOption struct {
 
 func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 	o := &searchOption{}
+	sa := &auth.SpotlikeAuthenticator{}
 
 	cmd := &cobra.Command{
 		Use:   search_use,
@@ -61,7 +62,7 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Client = globalOption.Client
 			if o.Client == nil {
-				client, err := auth.GetClient()
+				client, err := sa.GetClient()
 				if err != nil {
 					return err
 				}
