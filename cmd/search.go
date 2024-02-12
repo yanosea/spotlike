@@ -10,8 +10,6 @@ import (
 	"github.com/yanosea/spotlike/auth"
 	"github.com/yanosea/spotlike/util"
 
-	// https://github.com/fatih/color
-	"github.com/fatih/color"
 	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
 	// https://github.com/zmb3/spotify/v2
@@ -84,19 +82,21 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 
 	return cmd
 }
+
 func (o *searchOption) search() error {
 	q := strings.TrimSpace(o.combineAllArgs() + o.Query)
 	if q == "" {
-		return errors.New(color.RedString(search_error_message_args_or_flag_query_required))
+		return errors.New(search_error_message_args_or_flag_query_required)
 	}
-	st, err := o.defineSearchType(o.SearchType)
+	st := o.defineSearchType(o.SearchType)
+	if st == 0 {
+		return errors.New(search_error_message_flag_type_invalid)
+	}
+	searchResult, err := api.SearchByQuery(o.Client, st, q)
 	if err != nil {
 		return err
 	}
-	if st == 0 {
-		st = spotify.SearchTypeArtist | spotify.SearchTypeArtist | spotify.SearchTypeTrack
-	}
-	o.printSearchResult(api.SearchByQuery(o.Client, st, q))
+	o.printSearchResult(searchResult)
 
 	return nil
 }
@@ -113,40 +113,30 @@ func (o *searchOption) combineAllArgs() string {
 	return allArgs
 }
 
-func (o *searchOption) defineSearchType(searchType string) (spotify.SearchType, error) {
+func (o *searchOption) defineSearchType(searchType string) spotify.SearchType {
 	if o.SearchType == "" {
-		return 0, nil
+		return spotify.SearchTypeArtist | spotify.SearchTypeArtist | spotify.SearchTypeTrack
 
 	}
 	if st, ok := util.SEARCH_TYPE_MAP[strings.ToLower(o.SearchType)]; ok {
-		return st, nil
+		return st
 	}
 
-	return 0, errors.New(color.RedString(search_error_message_flag_type_invalid))
+	return 0
 }
 
-func (o *searchOption) printSearchResult(searchResult *api.SearchResult, err error) {
-	if err != nil {
-		util.PrintlnWithWriter(o.ErrOut, formatSearchResultError(err))
-
-		return
-	}
+func (o *searchOption) printSearchResult(searchResult *api.SearchResult) {
 	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
 	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
 	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
-	if searchResult.Type == spotify.SearchTypeAlbum {
+	if searchResult.Type == spotify.SearchTypeAlbum || searchResult.Type == spotify.SearchTypeTrack {
 		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
 	}
 	if searchResult.Type == spotify.SearchTypeTrack {
-		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
 		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
 	}
 }
 
 func formatSearchResult(topic string, detail string) string {
 	return fmt.Sprintf("%s\t:\t[%s]", topic, detail)
-}
-
-func formatSearchResultError(error error) string {
-	return color.RedString(fmt.Sprintf("Error:\n  %s", error))
 }

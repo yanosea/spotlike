@@ -58,20 +58,19 @@ You can like content(s) using the flag "level" below :
 )
 
 type likeOption struct {
-	NoColor bool
-	Args    []string
-	Id      string
-	Level   string
-	Force   bool
-	Client  *spotify.Client
-	Out     io.Writer
-	ErrOut  io.Writer
+	Client *spotify.Client
+
+	Args  []string
+	Id    string
+	Level string
+	Force bool
+
+	Out    io.Writer
+	ErrOut io.Writer
 }
 
 func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 	o := &likeOption{}
-	o.Out = globalOption.Out
-	o.ErrOut = globalOption.ErrOut
 
 	cmd := &cobra.Command{
 		Use:   like_use,
@@ -86,16 +85,19 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 				}
 				o.Client = client
 			}
-
-			cmd.Flags().StringVarP(&o.Id, like_flag_id, like_shorthand_id, "", like_flag_description_id)
-			cmd.Flags().StringVarP(&o.Level, like_flag_level, like_shorthand_level, "", like_flag_description_level)
-			cmd.Flags().BoolVarP(&o.Force, like_flag_force, like_shorthand_force, false, like_flag_description_force)
-
 			o.Args = args
+			o.Out = globalOption.Out
+			o.ErrOut = globalOption.ErrOut
 
 			return o.like()
 		},
 	}
+
+	cmd.PersistentFlags().StringVarP(&o.Id, like_flag_id, like_shorthand_id, "", like_flag_description_id)
+	cmd.PersistentFlags().StringVarP(&o.Level, like_flag_level, like_shorthand_level, "", like_flag_description_level)
+	cmd.PersistentFlags().BoolVarP(&o.Force, like_flag_force, like_shorthand_force, false, like_flag_description_force)
+	cmd.SetOut(globalOption.Out)
+	cmd.SetErr(globalOption.ErrOut)
 
 	return cmd
 }
@@ -113,13 +115,12 @@ func (o *likeOption) like() error {
 	if len(ids) == 0 {
 		return errors.New(like_error_message_args_or_flag_id_required)
 	}
-
+	var likeResults []*api.LikeResult
 	for _, id := range ids {
 		searchResult, err := api.SearchById(o.Client, id)
 		if err != nil {
 			return err
 		}
-		var likeResults []*api.LikeResult
 		switch searchResult.Type {
 		case spotify.SearchTypeArtist:
 			if strings.ToLower(o.Level) == util.SEARCH_TYPE_MAP_REVERSED[spotify.SearchTypeArtist] || o.Level == "" {
@@ -148,8 +149,8 @@ func (o *likeOption) like() error {
 		default:
 			return errors.New(like_error_message_something_wrong_with_searching)
 		}
-		o.printLikeResult(likeResults)
 	}
+	o.printLikeResult(likeResults)
 
 	return nil
 }
@@ -173,7 +174,7 @@ func (o *likeOption) printLikeResult(likeResults []*api.LikeResult) {
 
 func formatLikeArtistResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
-		return color.YellowString(fmt.Sprintf(message_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames))
+		return color.BlueString(fmt.Sprintf(message_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames))
 	} else if result.Refused {
 		return color.YellowString(fmt.Sprintf(message_like_artist_refused, util.STRING_ARTIST, result.ArtistNames))
 	} else {
@@ -183,7 +184,7 @@ func formatLikeArtistResult(result *api.LikeResult) string {
 
 func formatLikeAlbumResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
-		return color.YellowString(fmt.Sprintf(message_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+		return color.BlueString(fmt.Sprintf(message_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	} else if result.Refused {
 		return color.YellowString(fmt.Sprintf(message_like_album_refused, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	} else {
@@ -193,7 +194,7 @@ func formatLikeAlbumResult(result *api.LikeResult) string {
 
 func formatLikeTrackResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
-		return color.YellowString(fmt.Sprintf(message_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+		return color.BlueString(fmt.Sprintf(message_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	} else if result.Refused {
 		return color.YellowString(fmt.Sprintf(message_like_track_refused, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	} else {

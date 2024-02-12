@@ -7,6 +7,8 @@ import (
 
 	"github.com/yanosea/spotlike/util"
 
+	// https://github.com/fatih/color
+	"github.com/fatih/color"
 	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
 	// https://github.com/zmb3/spotify/v2
@@ -14,16 +16,15 @@ import (
 )
 
 const (
-	version    = ""
 	root_use   = "spotlike"
 	root_short = "spotlike is the CLI tool to LIKE contents in Spotify."
 	root_long  = `'spotlike' is the CLI tool to LIKE contents in Spotify.
 
 You can get the ID of some contents in Spotify.
 You can LIKE the contents in Spotify by ID.`
-	root_error_message_no_sub_command = `Use subcommand below...
-  search
-	like`
+	root_error_message_no_sub_command = `Use sub command below...
+  * search
+  * like`
 )
 
 type GlobalOption struct {
@@ -33,18 +34,20 @@ type GlobalOption struct {
 	ErrOut io.Writer
 }
 
+var version = ""
+
 func Execute() int {
 	o := os.Stdout
 	e := os.Stderr
 
 	rootCmd, err := NewRootCommand(o, e)
 	if err != nil {
-		util.PrintWithWriterBetweenBlankLine(e, err)
+		util.PrintlnWithWriter(e, color.RedString(err.Error()))
 		return 1
 	}
 
 	if err = rootCmd.Execute(); err != nil {
-		util.PrintWithWriterBetweenBlankLine(e, err)
+		util.PrintlnWithWriter(e, color.RedString(err.Error()))
 		return 1
 	}
 

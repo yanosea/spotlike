@@ -1,6 +1,10 @@
 package util
 
-import "testing"
+import (
+	"io"
+	"os"
+	"testing"
+)
 
 func TestFormatIndent(t *testing.T) {
 	type args struct {
@@ -31,6 +35,7 @@ func TestFormatIndent(t *testing.T) {
 func TestPrintlnWithBlankLineBelow(t *testing.T) {
 	type args struct {
 		message string
+		writer  io.Writer
 	}
 	tests := []struct {
 		name string
@@ -40,14 +45,22 @@ func TestPrintlnWithBlankLineBelow(t *testing.T) {
 		{
 			name: "positive testing",
 			args: args{
-				message: "test message",
+				message: "test message stdout",
+				writer:  os.Stdout,
+			},
+			want: "test message\n",
+		}, {
+			name: "positive testing",
+			args: args{
+				message: "test message stderr",
+				writer:  os.Stderr,
 			},
 			want: "test message\n",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			PrintWithWriterWithBlankLineBelow(tt.args.message)
+			PrintWithWriterWithBlankLineBelow(tt.args.writer, tt.args.message)
 		})
 	}
 }
@@ -55,6 +68,7 @@ func TestPrintlnWithBlankLineBelow(t *testing.T) {
 func TestPrintlnWithBlankLineAbove(t *testing.T) {
 	type args struct {
 		message string
+		writer  io.Writer
 	}
 	tests := []struct {
 		name string
@@ -64,14 +78,22 @@ func TestPrintlnWithBlankLineAbove(t *testing.T) {
 		{
 			name: "positive testing",
 			args: args{
-				message: "test message",
+				message: "test message stdout",
+				writer:  os.Stdout,
+			},
+			want: "\ntest message",
+		}, {
+			name: "positive testing",
+			args: args{
+				message: "test message stderr",
+				writer:  os.Stderr,
 			},
 			want: "\ntest message",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			PrintWithWriterWithBlankLineAbove(tt.args.message)
+			PrintWithWriterWithBlankLineAbove(tt.args.writer, tt.args.message)
 		})
 	}
 }
@@ -79,6 +101,7 @@ func TestPrintlnWithBlankLineAbove(t *testing.T) {
 func TestPrintBetweenBlankLine(t *testing.T) {
 	type args struct {
 		message string
+		writer  io.Writer
 	}
 	tests := []struct {
 		name string
@@ -88,14 +111,22 @@ func TestPrintBetweenBlankLine(t *testing.T) {
 		{
 			name: "positive testing",
 			args: args{
-				message: "test message",
+				message: "test message stdout",
+				writer:  os.Stdout,
+			},
+			want: "\ntest message\n",
+		}, {
+			name: "positive testing",
+			args: args{
+				message: "test message stderr",
+				writer:  os.Stderr,
 			},
 			want: "\ntest message\n",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			PrintWithWriterBetweenBlankLine(tt.args.message)
+			PrintWithWriterBetweenBlankLine(tt.args.writer, tt.args.message)
 		})
 	}
 }
