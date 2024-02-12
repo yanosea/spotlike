@@ -34,7 +34,7 @@ type GlobalOption struct {
 	ErrOut io.Writer
 }
 
-var version = ""
+var version = "develop"
 
 func Execute() int {
 	o := os.Stdout
@@ -75,6 +75,7 @@ func NewRootCommand(outWriter, errWriter io.Writer) (*cobra.Command, error) {
 	cmd.SetErr(errWriter)
 
 	cmd.AddCommand(
+		newVersionCommand(o),
 		newSearchCommand(o),
 		newLikeCommand(o),
 	)

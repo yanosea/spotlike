@@ -84,18 +84,22 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 }
 
 func (o *searchOption) search() error {
+	// set the query
 	q := strings.TrimSpace(o.combineAllArgs() + o.Query)
 	if q == "" {
 		return errors.New(search_error_message_args_or_flag_query_required)
 	}
+	// set the search type
 	st := o.defineSearchType(o.SearchType)
 	if st == 0 {
 		return errors.New(search_error_message_flag_type_invalid)
 	}
+	// execute search
 	searchResult, err := api.SearchByQuery(o.Client, st, q)
 	if err != nil {
 		return err
 	}
+	// show the result
 	o.printSearchResult(searchResult)
 
 	return nil
@@ -106,6 +110,7 @@ func (o *searchOption) combineAllArgs() string {
 	for index, arg := range o.Args {
 		allArgs += arg
 		if index+1 != len(o.Args) {
+			// if the arg is not last, add space
 			allArgs += " "
 		}
 	}
@@ -115,10 +120,11 @@ func (o *searchOption) combineAllArgs() string {
 
 func (o *searchOption) defineSearchType(searchType string) spotify.SearchType {
 	if o.SearchType == "" {
+		// if the search type is not defined,  set all types
 		return spotify.SearchTypeArtist | spotify.SearchTypeArtist | spotify.SearchTypeTrack
-
 	}
 	if st, ok := util.SEARCH_TYPE_MAP[strings.ToLower(o.SearchType)]; ok {
+		// if the search type is defined and matched,  set the type
 		return st
 	}
 
@@ -130,9 +136,11 @@ func (o *searchOption) printSearchResult(searchResult *api.SearchResult) {
 	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
 	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
 	if searchResult.Type == spotify.SearchTypeAlbum || searchResult.Type == spotify.SearchTypeTrack {
+		// if the search type is album or track, print the album name
 		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
 	}
 	if searchResult.Type == spotify.SearchTypeTrack {
+		// if the search type is track, print the track name
 		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
 	}
 }

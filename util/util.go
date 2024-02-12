@@ -8,9 +8,11 @@ import (
 func FormatIndent(m string) string {
 	return "  " + m
 }
+
 func PrintlnWithWriter(w io.Writer, a ...any) {
 	fmt.Fprintln(w, fmt.Sprintf("%s", a[0]))
 }
+
 func PrintWithWriterWithBlankLineBelow(w io.Writer, a ...any) {
 	fmt.Fprintln(w, fmt.Sprintf("%s\n", a[0]))
 }
