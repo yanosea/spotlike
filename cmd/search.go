@@ -24,6 +24,9 @@ const (
 You can set the args or the flag "query" to specify the search query.
 If you set both args and flag "query", they will be combined.
 
+You can set the flag "number" to limiting the number of search results.
+Default is 1.
+
 You can set the flag "type" to search type of the content.
 If you don't set the flag "type", searching without specifying the content type will be executed.
 You must specify the the flag "type" below :
@@ -33,6 +36,9 @@ You must specify the the flag "type" below :
 	search_flag_query                                = "query"
 	search_flag_query_shorthand                      = "q"
 	search_flag_query_description                    = "query for search"
+	search_flag_number                               = "number"
+	search_flag_number_shorthand                     = "n"
+	search_flag_number_description                   = "number of search results"
 	search_flag_type                                 = "type"
 	search_flag_type_shorthand                       = "t"
 	search_flag_type_description                     = "type of the content for search"
@@ -45,6 +51,7 @@ type searchOption struct {
 
 	Args       []string
 	Query      string
+	Number     int
 	SearchType string
 
 	Out    io.Writer
@@ -53,7 +60,7 @@ type searchOption struct {
 
 func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 	o := &searchOption{}
-	sa := &auth.SpotlikeAuthenticator{}
+	authenticator := auth.New()
 
 	cmd := &cobra.Command{
 		Use:   search_use,
@@ -62,7 +69,7 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Client = globalOption.Client
 			if o.Client == nil {
-				client, err := sa.GetClient()
+				client, err := authenticator.Authenticate()
 				if err != nil {
 					return err
 				}
@@ -76,8 +83,9 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 		},
 	}
 
-	cmd.PersistentFlags().StringVarP(&o.SearchType, search_flag_type, search_flag_type_shorthand, "", search_flag_type_description)
 	cmd.PersistentFlags().StringVarP(&o.Query, search_flag_query, search_flag_query_shorthand, "", search_flag_query_description)
+	cmd.PersistentFlags().IntVarP(&o.Number, search_flag_number, search_flag_number_shorthand, 1, search_flag_number_description)
+	cmd.PersistentFlags().StringVarP(&o.SearchType, search_flag_type, search_flag_type_shorthand, "", search_flag_type_description)
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
 
@@ -96,7 +104,7 @@ func (o *searchOption) search() error {
 		return errors.New(search_error_message_flag_type_invalid)
 	}
 	// execute search
-	searchResult, err := api.SearchByQuery(o.Client, st, q)
+	searchResult, err := api.SearchByQuery(o.Client, q, o.Number, st)
 	if err != nil {
 		return err
 	}
@@ -132,17 +140,25 @@ func (o *searchOption) defineSearchType(searchType string) spotify.SearchType {
 	return 0
 }
 
-func (o *searchOption) printSearchResult(searchResult *api.SearchResult) {
-	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
-	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
-	util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
-	if searchResult.Type == spotify.SearchTypeAlbum || searchResult.Type == spotify.SearchTypeTrack {
-		// if the search type is album or track, print the album name
-		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
-	}
-	if searchResult.Type == spotify.SearchTypeTrack {
-		// if the search type is track, print the track name
-		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
+func (o *searchOption) printSearchResult(searchResultList []api.SearchResult) {
+	for index, searchResult := range searchResultList {
+		if index != 0 {
+			// if the result was not first, add blank line above
+			util.PrintWithWriterWithBlankLineAbove(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
+		} else {
+			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
+		}
+		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
+		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
+		if searchResult.Type == spotify.SearchTypeAlbum || searchResult.Type == spotify.SearchTypeTrack {
+			// if the search type is album or track, print the release date and the album name
+			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_RELEASE, searchResult.ReleaseDate))
+			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
+		}
+		if searchResult.Type == spotify.SearchTypeTrack {
+			// if the search type is track, print the track name
+			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
+		}
 	}
 }
 

@@ -14,49 +14,62 @@ type SearchResult struct {
 	Id          string
 	Type        spotify.SearchType
 	ArtistNames string
+	ReleaseDate string
 	AlbumName   string
 	TrackName   string
 }
 
 const (
-	search_error_message_something_wrong = "Something wrong occured..."
-	search_error_message_not_found       = "The content [%s] was not found..."
+	search_error_message_not_artist_album_track = "The content was not artist, album, or track..."
+	search_error_message_template_id_not_found  = "The content [%s] was not found..."
 )
 
-func SearchByQuery(client *spotify.Client, searchType spotify.SearchType, query string) (*SearchResult, error) {
-	result, err := client.Search(context.Background(), query, searchType, spotify.Limit(1))
+func SearchByQuery(client *spotify.Client, query string, number int, searchType spotify.SearchType) ([]SearchResult, error) {
+	var searchResultList []SearchResult
+	result, err := client.Search(context.Background(), query, searchType, spotify.Limit(number))
 	if err != nil {
 		return nil, err
 	}
 
 	if result.Artists != nil {
-		return &SearchResult{
-			Id:          result.Artists.Artists[0].ID.String(),
-			Type:        spotify.SearchTypeArtist,
-			ArtistNames: result.Artists.Artists[0].Name,
-		}, nil
+		for _, artist := range result.Artists.Artists {
+			searchResultList = append(searchResultList, SearchResult{
+				Id:          artist.ID.String(),
+				Type:        spotify.SearchTypeArtist,
+				ArtistNames: artist.Name,
+			})
+		}
+		return searchResultList, nil
 	}
 
 	if result.Albums != nil {
-		return &SearchResult{
-			Id:          result.Albums.Albums[0].ID.String(),
-			Type:        spotify.SearchTypeAlbum,
-			ArtistNames: combineArtistNames(result.Albums.Albums[0].Artists),
-			AlbumName:   result.Albums.Albums[0].Name,
-		}, nil
+		for _, album := range result.Albums.Albums {
+			searchResultList = append(searchResultList, SearchResult{
+				Id:          album.ID.String(),
+				Type:        spotify.SearchTypeAlbum,
+				ArtistNames: combineArtistNames(album.Artists),
+				ReleaseDate: album.ReleaseDate,
+				AlbumName:   album.Name,
+			})
+		}
+		return searchResultList, nil
 	}
 
 	if result.Tracks != nil {
-		return &SearchResult{
-			Id:          result.Tracks.Tracks[0].ID.String(),
-			Type:        spotify.SearchTypeTrack,
-			ArtistNames: combineArtistNames(result.Tracks.Tracks[0].Artists),
-			AlbumName:   result.Tracks.Tracks[0].Album.Name,
-			TrackName:   result.Tracks.Tracks[0].Name,
-		}, nil
+		for _, track := range result.Tracks.Tracks {
+			searchResultList = append(searchResultList, SearchResult{
+				Id:          track.ID.String(),
+				Type:        spotify.SearchTypeTrack,
+				ArtistNames: combineArtistNames(track.Artists),
+				ReleaseDate: track.Album.ReleaseDate,
+				AlbumName:   track.Album.Name,
+				TrackName:   track.Name,
+			})
+		}
+		return searchResultList, nil
 	}
 
-	return nil, errors.New(search_error_message_something_wrong)
+	return nil, errors.New(search_error_message_not_artist_album_track)
 }
 
 func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
@@ -85,6 +98,7 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 			Id:          result.ID.String(),
 			Type:        spotify.SearchTypeAlbum,
 			ArtistNames: combineArtistNames(result.Artists),
+			ReleaseDate: result.ReleaseDate,
 			AlbumName:   result.Name,
 		}, nil
 	}
@@ -94,10 +108,11 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 			Id:          result.ID.String(),
 			Type:        spotify.SearchTypeTrack,
 			ArtistNames: combineArtistNames(result.Artists),
+			ReleaseDate: result.Album.ReleaseDate,
 			AlbumName:   result.Album.Name,
 			TrackName:   result.Name,
 		}, nil
 	}
 
-	return nil, errors.New(fmt.Sprintf(search_error_message_not_found, id))
+	return nil, errors.New(fmt.Sprintf(search_error_message_template_id_not_found, id))
 }

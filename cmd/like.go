@@ -32,29 +32,29 @@ You can like content(s) using the flag "level" below :
   * track  (If you pass the artist ID, spotlike will like all tracks released by the artist.)
            (If you pass the album ID, spotlike will like all tracks contained in the album.)
            (If you pass the track ID, spotlike will like the track.)`
-	like_flag_id                                      = "id"
-	like_shorthand_id                                 = "i"
-	like_flag_description_id                          = "ID of the content for like"
-	like_flag_level                                   = "level"
-	like_shorthand_level                              = "l"
-	like_flag_description_level                       = "level for like"
-	like_flag_force                                   = "force"
-	like_shorthand_force                              = "f"
-	like_flag_description_force                       = "like without confirming"
-	like_error_message_args_or_flag_id_required       = `The arguments or the flag "id" is required...`
-	like_error_message_flag_level_invalid_artist      = "You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist."
-	like_error_message_flag_level_invalid_album       = "You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album."
-	like_error_message_flag_level_invalid_track       = "You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track."
-	like_error_message_something_wrong_with_searching = "Search result is wrong..."
-	message_like_artist_already_liked                 = "%s already liked!\t:\t[%s]"
-	message_like_artist_refused                       = "Like %s refused!\t:\t[%s]"
-	message_like_artist_succeeded                     = "Like %s succeeded!\t:\t[%s]"
-	message_like_album_already_liked                  = "%s by [%s] already liked!\t:\t[%s]"
-	message_like_album_refused                        = "Like %s by [%s] refused!\t:\t[%s]"
-	message_like_album_succeeded                      = "Like %s by [%s] succeeded!\t:\t[%s]"
-	message_like_track_already_liked                  = "%s in [%s] by [%s] already liked!\t:\t[%s]"
-	message_like_track_refused                        = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
-	message_like_track_succeeded                      = "Like %s in [%s] by []%s] succeeded!\t:\t[%s]"
+	like_flag_id                                    = "id"
+	like_shorthand_id                               = "i"
+	like_flag_description_id                        = "ID of the content for like"
+	like_flag_level                                 = "level"
+	like_shorthand_level                            = "l"
+	like_flag_description_level                     = "level for like"
+	like_flag_force                                 = "force"
+	like_shorthand_force                            = "f"
+	like_flag_description_force                     = "like without confirming"
+	like_error_message_args_or_flag_id_required     = `The arguments or the flag "id" is required...`
+	like_error_message_flag_level_invalid_artist    = "You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist."
+	like_error_message_flag_level_invalid_album     = "You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album."
+	like_error_message_flag_level_invalid_track     = "You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track."
+	like_error_message_not_artist_album_track       = "The content was not artist, album, or track..."
+	like_message_template_like_artist_already_liked = "%s already liked!\t:\t[%s]"
+	like_message_template_like_artist_refused       = "Like %s refused!\t:\t[%s]"
+	like_message_template_like_artist_succeeded     = "Like %s succeeded!\t:\t[%s]"
+	like_message_template_like_album_already_liked  = "%s by [%s] already liked!\t:\t[%s]"
+	like_message_template_like_album_refused        = "Like %s by [%s] refused!\t:\t[%s]"
+	like_message_template_like_album_succeeded      = "Like %s by [%s] succeeded!\t:\t[%s]"
+	like_message_template_like_track_already_liked  = "%s in [%s] by [%s] already liked!\t:\t[%s]"
+	like_message_template_like_track_refused        = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
+	like_message_template_like_track_succeeded      = "Like %s in [%s] by []%s] succeeded!\t:\t[%s]"
 )
 
 type likeOption struct {
@@ -71,7 +71,7 @@ type likeOption struct {
 
 func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 	o := &likeOption{}
-	sa := &auth.SpotlikeAuthenticator{}
+	authenticator := auth.New()
 
 	cmd := &cobra.Command{
 		Use:   like_use,
@@ -80,7 +80,7 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Client = globalOption.Client
 			if o.Client == nil {
-				client, err := sa.GetClient()
+				client, err := authenticator.Authenticate()
 				if err != nil {
 					return err
 				}
@@ -148,7 +148,7 @@ func (o *likeOption) like() error {
 				return errors.New(like_error_message_flag_level_invalid_track)
 			}
 		default:
-			return errors.New(like_error_message_something_wrong_with_searching)
+			return errors.New(like_error_message_not_artist_album_track)
 		}
 	}
 	o.printLikeResult(likeResults)
@@ -175,31 +175,31 @@ func (o *likeOption) printLikeResult(likeResults []*api.LikeResult) {
 
 func formatLikeArtistResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
-		return color.BlueString(fmt.Sprintf(message_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames))
+		return color.BlueString(fmt.Sprintf(like_message_template_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames))
 	} else if result.Refused {
-		return color.YellowString(fmt.Sprintf(message_like_artist_refused, util.STRING_ARTIST, result.ArtistNames))
+		return color.YellowString(fmt.Sprintf(like_message_template_like_artist_refused, util.STRING_ARTIST, result.ArtistNames))
 	} else {
-		return color.GreenString(fmt.Sprintf(message_like_artist_succeeded, util.STRING_ARTIST, result.ArtistNames))
+		return color.GreenString(fmt.Sprintf(like_message_template_like_artist_succeeded, util.STRING_ARTIST, result.ArtistNames))
 	}
 }
 
 func formatLikeAlbumResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
-		return color.BlueString(fmt.Sprintf(message_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+		return color.BlueString(fmt.Sprintf(like_message_template_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	} else if result.Refused {
-		return color.YellowString(fmt.Sprintf(message_like_album_refused, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+		return color.YellowString(fmt.Sprintf(like_message_template_like_album_refused, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	} else {
-		return color.GreenString(fmt.Sprintf(message_like_album_succeeded, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+		return color.GreenString(fmt.Sprintf(like_message_template_like_album_succeeded, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	}
 }
 
 func formatLikeTrackResult(result *api.LikeResult) string {
 	if result.AlreadyLiked {
-		return color.BlueString(fmt.Sprintf(message_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+		return color.BlueString(fmt.Sprintf(like_message_template_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	} else if result.Refused {
-		return color.YellowString(fmt.Sprintf(message_like_track_refused, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+		return color.YellowString(fmt.Sprintf(like_message_template_like_track_refused, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	} else {
-		return color.GreenString(fmt.Sprintf(message_like_track_succeeded, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+		return color.GreenString(fmt.Sprintf(like_message_template_like_track_succeeded, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	}
 }
 

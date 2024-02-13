@@ -6,11 +6,13 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"golang.org/x/oauth2"
 	"net/http"
 	"net/url"
 	"os"
 
+	"golang.org/x/oauth2"
+
+	"github.com/fatih/color"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/manifoldco/promptui
@@ -39,64 +41,88 @@ const (
 	auth_error_message_invalid_length_for_random_string = "Invalid length..."
 )
 
-var (
-	spotifyAuthenticator *spotifyauth.Authenticator
-	channel              = make(chan *spotify.Client)
-	state, _             = generateRandomString(11)
-)
+type Auth interface {
+}
 
+type auth struct {
+}
 type Authenticator interface {
-	GetClient()
+	New() *spotify.Client
+	Authenticate() (*spotify.Client, error)
+}
+
+type authenticator struct {
+	spotifyAuthenticator *spotifyauth.Authenticator
+	channel              chan *spotify.Client
+	state                string
+}
+
+func New() *authenticator {
 	setAuthInfo()
-	authenticate() (*spotify.Client, error)
-	completeAuthenticate(http.ResponseWriter, *http.Request)
-}
-
-type SpotlikeAuthenticator struct {
-	c Authenticator
-}
-
-func (sa *SpotlikeAuthenticator) GetClient() (*spotify.Client, error) {
-	sa.c.setAuthInfo()
-
-	client, err := sa.c.authenticate()
-	if err != nil {
-		return nil, err
+	st, _ := generateRandomString(11)
+	return &authenticator{
+		spotifyAuthenticator: spotifyauth.New(
+			spotifyauth.WithRedirectURL(os.Getenv(auth_env_spotify_redirect_uri)),
+			spotifyauth.WithScopes(
+				spotifyauth.ScopeUserFollowRead,
+				spotifyauth.ScopeUserLibraryRead,
+				spotifyauth.ScopeUserFollowModify,
+				spotifyauth.ScopeUserLibraryModify,
+			),
+		),
+		channel: make(chan *spotify.Client),
+		state:   st,
 	}
-
-	return client, nil
 }
 
-func (sa *SpotlikeAuthenticator) setAuthInfo() {
-	if id := os.Getenv(auth_env_spotify_id); id == "" {
+func setAuthInfo() {
+	if os.Getenv(auth_env_spotify_id) == "" {
 		prompt := promptui.Prompt{
 			Label: auth_input_label_spotify_id,
 		}
 
-		input, _ := prompt.Run()
+		var input string
+		for {
+			input, _ = prompt.Run()
+			if input != "" {
+				break
+			}
+		}
 		os.Setenv(auth_env_spotify_id, input)
 	}
 
-	if secret := os.Getenv(auth_env_spotify_secret); secret == "" {
+	if spotifySecret := os.Getenv(auth_env_spotify_secret); spotifySecret == "" {
 		prompt := promptui.Prompt{
 			Label: auth_input_label_spotify_secret,
 			Mask:  '*',
 		}
 
-		input, _ := prompt.Run()
+		var input string
+		for {
+			input, _ = prompt.Run()
+			if input != "" {
+				break
+			}
+		}
 		os.Setenv(auth_env_spotify_secret, input)
 	}
 
-	if uri := os.Getenv(auth_env_spotify_redirect_uri); uri == "" {
+	if os.Getenv(auth_env_spotify_redirect_uri) == "" {
 		prompt := promptui.Prompt{
 			Label: auth_input_label_spotify_redirect_uri,
 		}
 
-		input, _ := prompt.Run()
+		var input string
+		for {
+			input, _ = prompt.Run()
+			if input != "" {
+				break
+			}
+		}
 		os.Setenv(auth_env_spotify_redirect_uri, input)
 	}
 
-	if refresh := os.Getenv(auth_env_spotify_refresh_token); refresh == "" {
+	if os.Getenv(auth_env_spotify_refresh_token) == "" {
 		prompt := promptui.Prompt{
 			Label: auth_input_label_spotify_refresh_token,
 		}
@@ -104,19 +130,9 @@ func (sa *SpotlikeAuthenticator) setAuthInfo() {
 		input, _ := prompt.Run()
 		os.Setenv(auth_env_spotify_refresh_token, input)
 	}
-
-	spotifyAuthenticator = spotifyauth.New(
-		spotifyauth.WithRedirectURL(os.Getenv(auth_env_spotify_redirect_uri)),
-		spotifyauth.WithScopes(
-			spotifyauth.ScopeUserFollowRead,
-			spotifyauth.ScopeUserLibraryRead,
-			spotifyauth.ScopeUserFollowModify,
-			spotifyauth.ScopeUserLibraryModify,
-		),
-	)
 }
 
-func (sa *SpotlikeAuthenticator) authenticate() (*spotify.Client, error) {
+func (a *authenticator) Authenticate() (*spotify.Client, error) {
 	var client *spotify.Client
 
 	refreshToken := os.Getenv(auth_env_spotify_refresh_token)
@@ -126,56 +142,56 @@ func (sa *SpotlikeAuthenticator) authenticate() (*spotify.Client, error) {
 			return nil, err
 		}
 
-		http.HandleFunc("/callback", sa.c.completeAuthenticate)
+		http.HandleFunc("/callback", a.completeAuthenticate)
 		http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
 		go func() error {
 			err := http.ListenAndServe(":"+port, nil)
 			if err != nil {
 				return err
 			}
-			return err
+			return nil
 		}()
-		url := spotifyAuthenticator.AuthURL(state)
+		url := a.spotifyAuthenticator.AuthURL(a.state)
 
 		o := os.Stdout
 		util.PrintWithWriterBetweenBlankLine(o, auth_message_login_spotify)
 		util.PrintWithWriterWithBlankLineBelow(o, util.FormatIndent(url))
 
-		client = <-channel
+		client = <-a.channel
 	} else {
 		tok := &oauth2.Token{
 			TokenType:    "bearer",
 			RefreshToken: refreshToken,
 		}
 
-		client = spotify.New(spotifyAuthenticator.Client(context.Background(), tok))
+		client = spotify.New(a.spotifyAuthenticator.Client(context.Background(), tok))
 	}
 
 	return client, nil
 }
 
-func (sa *SpotlikeAuthenticator) completeAuthenticate(w http.ResponseWriter, r *http.Request) {
-	tok, err := spotifyAuthenticator.Token(r.Context(), state, r)
+func (a *authenticator) completeAuthenticate(w http.ResponseWriter, r *http.Request) {
+	tok, err := a.spotifyAuthenticator.Token(r.Context(), a.state, r)
 
 	if err != nil {
 		http.Error(w, auth_error_message_auth_failure, http.StatusForbidden)
 	}
 
-	if st := r.FormValue("state"); st != state {
+	if st := r.FormValue("state"); st != a.state {
 		http.NotFound(w, r)
 	}
 
-	client := spotify.New(spotifyAuthenticator.Client(r.Context(), tok))
+	client := spotify.New(a.spotifyAuthenticator.Client(r.Context(), tok))
 
 	o := os.Stdout
-	util.PrintlnWithWriter(o, auth_message_auth_success)
-	util.PrintWithWriterWithBlankLineBelow(o, auth_message_suggest_set_env)
+	util.PrintlnWithWriter(o, color.GreenString(auth_message_auth_success))
+	util.PrintWithWriterWithBlankLineBelow(o, color.YellowString(auth_message_suggest_set_env))
 	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, auth_env_spotify_id)+os.Getenv(auth_env_spotify_id)))
 	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, auth_env_spotify_secret)+os.Getenv(auth_env_spotify_secret)))
 	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, auth_env_spotify_redirect_uri)+os.Getenv(auth_env_spotify_redirect_uri)))
 	util.PrintWithWriterWithBlankLineBelow(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, auth_env_spotify_refresh_token)+tok.RefreshToken))
 
-	channel <- client
+	a.channel <- client
 }
 
 func getPortFromUri(uri string) (string, error) {

@@ -6,11 +6,12 @@ import (
 )
 
 const (
-	STRING_ID     = "ID"
-	STRING_TYPE   = "Type"
-	STRING_ARTIST = "Artist"
-	STRING_ALBUM  = "Album"
-	STRING_TRACK  = "Track"
+	STRING_ID      = "ID"
+	STRING_TYPE    = "Type"
+	STRING_ARTIST  = "Artist"
+	STRING_ALBUM   = "Album"
+	STRING_RELEASE = "Release"
+	STRING_TRACK   = "Track"
 )
 
 var (
