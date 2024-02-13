@@ -150,8 +150,8 @@ func (o *likeOption) like() error {
 		default:
 			return errors.New(like_error_message_not_artist_album_track)
 		}
+		o.printLikeResult(likeResults)
 	}
-	o.printLikeResult(likeResults)
 
 	return nil
 }
