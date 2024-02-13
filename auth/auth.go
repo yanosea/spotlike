@@ -2,8 +2,6 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,6 +13,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/yanosea/spotlike/util"
 
+	// https://github.com/google/uuid
+	"github.com/google/uuid"
 	// https://github.com/manifoldco/promptui
 	"github.com/manifoldco/promptui"
 	// https://github.com/zmb3/spotify/v2
@@ -24,28 +24,22 @@ import (
 )
 
 const (
-	auth_env_spotify_id                                 = "SPOTIFY_ID"
-	auth_env_spotify_secret                             = "SPOTIFY_SECRET"
-	auth_env_spotify_redirect_uri                       = "SPOTIFY_REDIRECT_URI"
-	auth_env_spotify_refresh_token                      = "SPOTIFY_REFRESH_TOKEN"
-	auth_input_label_spotify_id                         = "Input your Spotify Client ID"
-	auth_input_label_spotify_secret                     = "Input your Spotify Client Secret"
-	auth_input_label_spotify_redirect_uri               = "Input your Spotify Redirect URI"
-	auth_input_label_spotify_refresh_token              = "Input your Spotify Refresh Token if you have one (if you don't have it, leave it empty and press enter.)"
-	auth_message_login_spotify                          = "Log in to Spotify by visiting the page below in your browser."
-	auth_message_auth_success                           = "Authentication succeeded!"
-	auth_message_suggest_set_env                        = "If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those."
-	auth_message_template_set_env_command               = "export %s="
-	auth_error_message_auth_failure                     = "Authentication failed..."
-	auth_error_message_invalid_uri                      = "Invalid URI..."
-	auth_error_message_invalid_length_for_random_string = "Invalid length..."
+	auth_env_spotify_id                    = "SPOTIFY_ID"
+	auth_env_spotify_secret                = "SPOTIFY_SECRET"
+	auth_env_spotify_redirect_uri          = "SPOTIFY_REDIRECT_URI"
+	auth_env_spotify_refresh_token         = "SPOTIFY_REFRESH_TOKEN"
+	auth_input_label_spotify_id            = "Input your Spotify Client ID"
+	auth_input_label_spotify_secret        = "Input your Spotify Client Secret"
+	auth_input_label_spotify_redirect_uri  = "Input your Spotify Redirect URI"
+	auth_input_label_spotify_refresh_token = "Input your Spotify Refresh Token if you have one (if you don't have it, leave it empty and press enter.)"
+	auth_message_login_spotify             = "Log in to Spotify by visiting the page below in your browser."
+	auth_message_auth_success              = "Authentication succeeded!"
+	auth_message_suggest_set_env           = "If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those."
+	auth_message_template_set_env_command  = "export %s="
+	auth_error_message_auth_failure        = "Authentication failed..."
+	auth_error_message_invalid_uri         = "Invalid URI..."
 )
 
-type Auth interface {
-}
-
-type auth struct {
-}
 type Authenticator interface {
 	New() *spotify.Client
 	Authenticate() (*spotify.Client, error)
@@ -59,7 +53,6 @@ type authenticator struct {
 
 func New() *authenticator {
 	setAuthInfo()
-	st, _ := generateRandomString(11)
 	return &authenticator{
 		spotifyAuthenticator: spotifyauth.New(
 			spotifyauth.WithRedirectURL(os.Getenv(auth_env_spotify_redirect_uri)),
@@ -71,7 +64,7 @@ func New() *authenticator {
 			),
 		),
 		channel: make(chan *spotify.Client),
-		state:   st,
+		state:   uuid.New().String(),
 	}
 }
 
@@ -205,17 +198,4 @@ func getPortFromUri(uri string) (string, error) {
 	}
 
 	return u.Port(), nil
-}
-
-func generateRandomString(length int) (string, error) {
-	if length < 0 {
-		return "", errors.New(auth_error_message_invalid_length_for_random_string)
-	}
-
-	bytes := make([]byte, length)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-
-	return base64.RawURLEncoding.EncodeToString(bytes)[:length], nil
 }

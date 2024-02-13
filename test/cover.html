@@ -3,7 +3,7 @@
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-		<title>exit: Go Coverage Report</title>
+		<title>api: Go Coverage Report</title>
 		<style>
 			body {
 				background: black;
@@ -55,9 +55,13 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">github.com/yanosea/spotlike/exit/exit.go (100.0%)</option>
+				<option value="file0">github.com/yanosea/spotlike/api/like.go (0.0%)</option>
 				
-				<option value="file1">github.com/yanosea/spotlike/util/util.go (100.0%)</option>
+				<option value="file1">github.com/yanosea/spotlike/api/search.go (0.0%)</option>
+				
+				<option value="file2">github.com/yanosea/spotlike/api/util.go (100.0%)</option>
+				
+				<option value="file3">github.com/yanosea/spotlike/util/util.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -71,71 +75,794 @@
 		</div>
 		<div id="content">
 		
-		<pre class="file" id="file0" style="display: none">package exit
+		<pre class="file" id="file0" style="display: none">package api
 
 import (
-        "os"
+        "context"
+        "fmt"
+        "sort"
+        "strings"
+
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/manifoldco/promptui
+        "github.com/manifoldco/promptui"
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
 )
 
-// ExitCode represents possible exit codes for the spotlike application.
-type ExitCode int
+// LikeResult represents the result of liking content using the Spotify API.
+type LikeResult struct {
+        // ID is content's id
+        ID string
+        // Type is the content type
+        Type spotify.SearchType
+        // ArtistNames is the names of the artists
+        ArtistNames string
+        // AlbumName is the album name
+        AlbumName string
+        // TrackName is the track name
+        TrackName string
+        // AlreadyLiked is whether already liked or not (true : already liked, false : not already liked)
+        AlreadyLiked bool
+        // Refused is whether answer "y" or not (true : refused, false : not refused)
+        Refused bool
+        // Error is the error returned from the Spotify API
+        Error error
+}
 
-// constants
+// TrackWithAlbumName represents a Spotify simple track with an album name.
+type TrackWithAlbumName struct {
+        // Track is Spotify simple track
+        Track spotify.SimpleTrack
+        // AlbumName is the Name of the album the track is included in
+        AlbumName string
+}
+
 const (
-        // CodeOk is an exit code indicating a successful operation.
-        CodeOk ExitCode = iota
-        // CodeErrInit is an exit code indicating an initialization error.
-        CodeErrInit
-        // CodeErrCmd is an exit code indicating a command error.
-        CodeErrCmd
+        // input_label_confirm_like_artist is the message confirming like the artist.
+        input_label_confirm_like_artist = `Do you execute like artist [%s]]`
+        // input_label_confirm_like_artist is the message confirming like the album.
+        input_label_confirm_like_album = `Do you execute like album "[%s]" by "[%s]"`
+        // input_label_confirm_like_artist is the messagr confirming like the track.
+        input_label_confirm_like_track = `Do you execute like track "[%s]" in "[%s]" by "[%s]"`
 )
 
-// variables
-var (
-        // osExit is the variable for monkey patching
-        osExit = os.Exit
-)
+// LikeArtistById returns the like result for an artist with the given ID.
+func LikeArtistById(client *spotify.Client, id string, force bool) []*LikeResult <span class="cov0" title="0">{
+        var likeResults []*LikeResult
+        // execute search
+        searchResult, err := SearchById(client, id)
+        if err != nil || searchResult.Type != spotify.SearchTypeArtist </span><span class="cov0" title="0">{
+                // search failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
 
-// GetNumber returns the numeric value of an ExitCode.
-func (exitCode ExitCode) GetNumber() int <span class="cov8" title="1">{
-        return int(exitCode)
-}</span>
+                return likeResults
+        }</span>
+        // check the artist has been already liked
+        <span class="cov0" title="0">alreadyLiked, err := client.CurrentUserFollows(context.Background(), strings.ToLower(util.STRING_ARTIST), spotify.ID(searchResult.Id))
+        if err != nil </span><span class="cov0" title="0">{
+                // check failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
 
-// Exit exits the spotlike application with the OK exit code.
-func Exit() <span class="cov8" title="1">{
-        osExit(CodeOk.GetNumber())
-}</span>
+                return likeResults
+        }</span>
+        // skip like if already liked
+        <span class="cov0" title="0">if alreadyLiked[0] </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        ID:           searchResult.Id,
+                        Type:         searchResult.Type,
+                        ArtistNames:  searchResult.ArtistNames,
+                        AlreadyLiked: true,
+                        Refused:      false,
+                })
 
-// ErrorExit exits the spotlike application with the specified exit code.
-func ErrorExit(exitCode ExitCode) <span class="cov8" title="1">{
-        osExit(exitCode.GetNumber())
-}</span>
+                return likeResults
+        }</span>
+        // confirm like
+        <span class="cov0" title="0">answer := "y"
+        if !force </span><span class="cov0" title="0">{
+                prompt := promptui.Prompt{
+                        Label:     fmt.Sprintf(input_label_confirm_like_artist, searchResult.ArtistNames),
+                        IsConfirm: true,
+                }
+
+                input, err := prompt.Run()
+                if err != nil </span><span class="cov0" title="0">{
+                        answer = "n"
+                }</span>
+
+                <span class="cov0" title="0">answer = input</span>
+        }
+        // skip like if refused
+        <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        ID:           searchResult.Id,
+                        Type:         searchResult.Type,
+                        ArtistNames:  searchResult.ArtistNames,
+                        AlreadyLiked: false,
+                        Refused:      true,
+                })
+
+                return likeResults
+        }</span>
+        // execute like
+        <span class="cov0" title="0">if err := client.FollowArtist(context.Background(), spotify.ID(searchResult.Id)); err != nil </span><span class="cov0" title="0">{
+                // like failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // like succeeded
+        <span class="cov0" title="0">likeResults = append(likeResults, &amp;LikeResult{
+                ID:          searchResult.Id,
+                Type:        searchResult.Type,
+                ArtistNames: searchResult.ArtistNames,
+        })
+
+        return likeResults</span>
+}
+
+// LikeAllAlbumsReleasedByArtistById returns the like results for all albums released by an artist with the given ID.
+func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force bool) []*LikeResult <span class="cov0" title="0">{
+        var likeResults []*LikeResult
+        // execute search
+        searchResult, err := SearchById(client, id)
+        if err != nil || searchResult.Type != spotify.SearchTypeArtist </span><span class="cov0" title="0">{
+                // search failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // get all albums released by the artist
+        <span class="cov0" title="0">allAlbums, err := client.GetArtistAlbums(context.Background(), spotify.ID(searchResult.Id), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        // getting all albums by the artist searched by ID failed
+                        Error: err,
+                })
+                return likeResults
+        }</span>
+        // sort albums by release date
+        <span class="cov0" title="0">sort.Slice(allAlbums.Albums, func(i, j int) bool </span><span class="cov0" title="0">{
+                return allAlbums.Albums[i].ReleaseDateTime().Before(allAlbums.Albums[j].ReleaseDateTime())
+        }</span>)
+        // for each album
+        <span class="cov0" title="0">for _, album := range allAlbums.Albums </span><span class="cov0" title="0">{
+                // check the album has been already liked
+                alreadyLiked, err := client.UserHasAlbums(context.Background(), album.ID)
+                if err != nil </span><span class="cov0" title="0">{
+                        // check failed
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                Error: err,
+                        })
+
+                        continue</span>
+                }
+                // skip like if already liked
+                <span class="cov0" title="0">if alreadyLiked[0] </span><span class="cov0" title="0">{
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                ID:           album.ID.String(),
+                                Type:         spotify.SearchTypeAlbum,
+                                ArtistNames:  combineArtistNames(album.Artists),
+                                AlbumName:    album.Name,
+                                AlreadyLiked: true,
+                                Refused:      false,
+                        })
+
+                        continue</span>
+                }
+                // confirm like
+                <span class="cov0" title="0">answer := "y"
+                if !force </span><span class="cov0" title="0">{
+                        prompt := promptui.Prompt{
+                                Label:     fmt.Sprintf(input_label_confirm_like_album, album.Name, combineArtistNames(album.Artists)),
+                                IsConfirm: true,
+                        }
+
+                        input, err := prompt.Run()
+                        if err != nil </span><span class="cov0" title="0">{
+                                answer = "n"
+                        }</span>
+
+                        <span class="cov0" title="0">answer = input</span>
+                }
+                // skip like if refused
+                <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                ID:           album.ID.String(),
+                                Type:         spotify.SearchTypeAlbum,
+                                ArtistNames:  combineArtistNames(album.Artists),
+                                AlbumName:    album.Name,
+                                AlreadyLiked: false,
+                                Refused:      true,
+                        })
+
+                        continue</span>
+                }
+                // execute like
+                <span class="cov0" title="0">if err := client.AddAlbumsToLibrary(context.Background(), album.ID); err != nil </span><span class="cov0" title="0">{
+                        // like failed
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                Error: err,
+                        })
+
+                        continue</span>
+                }
+                // like succeeded
+                <span class="cov0" title="0">likeResults = append(likeResults, &amp;LikeResult{
+                        ID:          album.ID.String(),
+                        Type:        spotify.SearchTypeAlbum,
+                        ArtistNames: combineArtistNames(album.Artists),
+                        AlbumName:   album.Name,
+                })</span>
+        }
+
+        <span class="cov0" title="0">return likeResults</span>
+}
+
+// LikeAllTracksReleasedByArtistById returns the like results for all tracks released by an artist with the given ID.
+func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force bool) []*LikeResult <span class="cov0" title="0">{
+        var likeResults []*LikeResult
+        // execute search
+        searchResult, err := SearchById(client, id)
+        if err != nil || searchResult.Type != spotify.SearchTypeArtist </span><span class="cov0" title="0">{
+                // search failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // get all albums released by the artist
+        <span class="cov0" title="0">allAlbums, err := client.GetArtistAlbums(context.Background(), spotify.ID(searchResult.Id), nil)
+        if err != nil </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        // getting all albums by the artist searched by ID failed
+                        Error: err,
+                })
+                return likeResults
+        }</span>
+        // sort albums by release date
+        <span class="cov0" title="0">sort.Slice(allAlbums.Albums, func(i, j int) bool </span><span class="cov0" title="0">{
+                return allAlbums.Albums[i].ReleaseDateTime().Before(allAlbums.Albums[j].ReleaseDateTime())
+        }</span>)
+        // get all tracks from all albums
+        <span class="cov0" title="0">var allTracks []TrackWithAlbumName
+        for _, album := range allAlbums.Albums </span><span class="cov0" title="0">{
+                tracks, err := client.GetAlbumTracks(context.Background(), album.ID)
+                if err != nil </span><span class="cov0" title="0">{
+                        // getting all tracks in all albums by the artist searched by ID failed
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                Error: err,
+                        })
+                }</span>
+                // add album name
+                <span class="cov0" title="0">for _, track := range tracks.Tracks </span><span class="cov0" title="0">{
+                        trackWithAlbumName := &amp;TrackWithAlbumName{
+                                Track:     track,
+                                AlbumName: album.Name,
+                        }
+
+                        allTracks = append(allTracks, *trackWithAlbumName)
+                }</span>
+        }
+        // for each track
+        <span class="cov0" title="0">for _, track := range allTracks </span><span class="cov0" title="0">{
+                // check the track has been already liked
+                alreadyLiked, err := client.UserHasTracks(context.Background(), track.Track.ID)
+                if err != nil </span><span class="cov0" title="0">{
+                        // check failed
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                Error: err,
+                        })
+
+                        continue</span>
+                }
+                // skip like if already liked
+                <span class="cov0" title="0">if alreadyLiked[0] </span><span class="cov0" title="0">{
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                ID:           track.Track.ID.String(),
+                                Type:         spotify.SearchTypeTrack,
+                                ArtistNames:  combineArtistNames(track.Track.Artists),
+                                AlbumName:    track.AlbumName,
+                                TrackName:    track.Track.Name,
+                                AlreadyLiked: true,
+                                Refused:      false,
+                        })
+
+                        continue</span>
+                }
+                // confirm like
+                <span class="cov0" title="0">answer := "y"
+                if !force </span><span class="cov0" title="0">{
+                        prompt := promptui.Prompt{
+                                Label:     fmt.Sprintf(input_label_confirm_like_track, track.Track.Name, track.AlbumName, combineArtistNames(track.Track.Artists)),
+                                IsConfirm: true,
+                        }
+
+                        input, err := prompt.Run()
+                        if err != nil </span><span class="cov0" title="0">{
+                                answer = "n"
+                        }</span>
+
+                        <span class="cov0" title="0">answer = input</span>
+                }
+                // skip like if refused
+                <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                ID:           track.Track.ID.String(),
+                                Type:         spotify.SearchTypeTrack,
+                                ArtistNames:  combineArtistNames(track.Track.Artists),
+                                AlbumName:    track.AlbumName,
+                                TrackName:    track.Track.Name,
+                                AlreadyLiked: false,
+                                Refused:      true,
+                        })
+
+                        continue</span>
+                }
+                // execute like
+                <span class="cov0" title="0">if err := client.AddTracksToLibrary(context.Background(), track.Track.ID); err != nil </span><span class="cov0" title="0">{
+                        // like failed
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                Error: err,
+                        })
+
+                        continue</span>
+                }
+                // like succeeded
+                <span class="cov0" title="0">likeResults = append(likeResults, &amp;LikeResult{
+                        ID:          track.Track.ID.String(),
+                        Type:        spotify.SearchTypeTrack,
+                        ArtistNames: combineArtistNames(track.Track.Artists),
+                        AlbumName:   track.AlbumName,
+                        TrackName:   track.Track.Name,
+                })</span>
+        }
+
+        <span class="cov0" title="0">return likeResults</span>
+}
+
+// LikeAlbumById returns the like result for an album with the given ID.
+func LikeAlbumById(client *spotify.Client, id string, force bool) []*LikeResult <span class="cov0" title="0">{
+        var likeResults []*LikeResult
+        // execute search
+        searchResult, err := SearchById(client, id)
+        if err != nil || searchResult.Type != spotify.SearchTypeAlbum </span><span class="cov0" title="0">{
+                // search failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // check the album has been already liked
+        <span class="cov0" title="0">alreadyLiked, err := client.UserHasAlbums(context.Background(), spotify.ID(searchResult.Id))
+        if err != nil </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // skip like if already liked
+        <span class="cov0" title="0">if alreadyLiked[0] </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        ID:           searchResult.Id,
+                        Type:         searchResult.Type,
+                        ArtistNames:  searchResult.ArtistNames,
+                        AlbumName:    searchResult.AlbumName,
+                        AlreadyLiked: true,
+                        Refused:      false,
+                })
+
+                return likeResults
+        }</span>
+        // confirm like
+        <span class="cov0" title="0">answer := "y"
+        if !force </span><span class="cov0" title="0">{
+                prompt := promptui.Prompt{
+                        Label:     fmt.Sprintf(input_label_confirm_like_album, searchResult.AlbumName, searchResult.ArtistNames),
+                        IsConfirm: true,
+                }
+
+                input, err := prompt.Run()
+                if err != nil </span><span class="cov0" title="0">{
+                        answer = "n"
+                }</span>
+
+                <span class="cov0" title="0">answer = input</span>
+        }
+        // skip like if refused
+        <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        ID:           searchResult.Id,
+                        Type:         searchResult.Type,
+                        ArtistNames:  searchResult.ArtistNames,
+                        AlbumName:    searchResult.AlbumName,
+                        AlreadyLiked: false,
+                        Refused:      true,
+                })
+
+                return likeResults
+        }</span>
+        // execute like
+        <span class="cov0" title="0">if err := client.AddAlbumsToLibrary(context.Background(), spotify.ID(searchResult.Id)); err != nil </span><span class="cov0" title="0">{
+                // like failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+        }</span>
+        // like succeeded
+        <span class="cov0" title="0">likeResults = append(likeResults, &amp;LikeResult{
+                ID:          id,
+                Type:        searchResult.Type,
+                ArtistNames: searchResult.ArtistNames,
+                AlbumName:   searchResult.AlbumName,
+        })
+
+        return likeResults</span>
+}
+
+// LikeAllTracksInAlbumById returns an error if liking all tracks in an album with the given ID is failed.
+func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*LikeResult <span class="cov0" title="0">{
+        var likeResults []*LikeResult
+        // execute search
+        searchResult, err := SearchById(client, id)
+        if err != nil || searchResult.Type != spotify.SearchTypeAlbum </span><span class="cov0" title="0">{
+                // search failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // get all tracks from the albums
+        <span class="cov0" title="0">allTracks, err := client.GetAlbumTracks(context.Background(), spotify.ID(searchResult.Id))
+        if err != nil </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+        }</span>
+        // for each track
+        <span class="cov0" title="0">for _, track := range allTracks.Tracks </span><span class="cov0" title="0">{
+                // check the track has been already liked
+                alreadyLiked, err := client.UserHasTracks(context.Background(), track.ID)
+                if err != nil </span><span class="cov0" title="0">{
+                        // check failed
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                Error: err,
+                        })
+
+                        continue</span>
+                }
+                // skip like if already liked
+                <span class="cov0" title="0">if alreadyLiked[0] </span><span class="cov0" title="0">{
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                ID:           track.ID.String(),
+                                Type:         spotify.SearchTypeTrack,
+                                ArtistNames:  combineArtistNames(track.Artists),
+                                AlbumName:    track.Album.Name,
+                                TrackName:    track.Name,
+                                AlreadyLiked: true,
+                                Refused:      false,
+                        })
+
+                        continue</span>
+                }
+                // confirm like
+                <span class="cov0" title="0">answer := "y"
+                if !force </span><span class="cov0" title="0">{
+                        prompt := promptui.Prompt{
+                                Label:     fmt.Sprintf(input_label_confirm_like_track, track.Name, track.Album.Name, combineArtistNames(track.Artists)),
+                                IsConfirm: true,
+                        }
+
+                        input, err := prompt.Run()
+                        if err != nil </span><span class="cov0" title="0">{
+                                answer = "n"
+                        }</span>
+
+                        <span class="cov0" title="0">answer = input</span>
+                }
+                // skip like if refused
+                <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                ID:           track.ID.String(),
+                                Type:         spotify.SearchTypeTrack,
+                                ArtistNames:  combineArtistNames(track.Artists),
+                                AlbumName:    track.Album.Name,
+                                TrackName:    track.Name,
+                                AlreadyLiked: false,
+                                Refused:      true,
+                        })
+
+                        continue</span>
+                }
+                // execute like
+                <span class="cov0" title="0">if err := client.AddTracksToLibrary(context.Background(), track.ID); err != nil </span><span class="cov0" title="0">{
+                        // like failed
+                        likeResults = append(likeResults, &amp;LikeResult{
+                                Error: err,
+                        })
+
+                        continue</span>
+                }
+                // like succeeded
+                <span class="cov0" title="0">likeResults = append(likeResults, &amp;LikeResult{
+                        ID:          track.ID.String(),
+                        Type:        spotify.SearchTypeTrack,
+                        ArtistNames: combineArtistNames(track.Artists),
+                        AlbumName:   track.Album.Name,
+                        TrackName:   track.Name,
+                })</span>
+        }
+
+        <span class="cov0" title="0">return likeResults</span>
+}
+
+// LikeTrackById returns an error if liking a track with the given ID is failed.
+func LikeTrackById(client *spotify.Client, id string, force bool) []*LikeResult <span class="cov0" title="0">{
+        var likeResults []*LikeResult
+        // execute search
+        searchResult, err := SearchById(client, id)
+        if err != nil || searchResult.Type != spotify.SearchTypeTrack </span><span class="cov0" title="0">{
+                // search failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // check the track has been already liked
+        <span class="cov0" title="0">alreadyLiked, err := client.UserHasTracks(context.Background(), spotify.ID(searchResult.Id))
+        if err != nil </span><span class="cov0" title="0">{
+                // check failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // skip like if already liked
+        <span class="cov0" title="0">if alreadyLiked[0] </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        ID:           searchResult.Id,
+                        Type:         searchResult.Type,
+                        ArtistNames:  searchResult.ArtistNames,
+                        AlbumName:    searchResult.AlbumName,
+                        TrackName:    searchResult.TrackName,
+                        AlreadyLiked: true,
+                        Refused:      false,
+                })
+
+                return likeResults
+        }</span>
+        // confirm like
+        <span class="cov0" title="0">answer := "y"
+        if !force </span><span class="cov0" title="0">{
+                prompt := promptui.Prompt{
+                        Label:     fmt.Sprintf(input_label_confirm_like_track, searchResult.TrackName, searchResult.AlbumName, searchResult.ArtistNames),
+                        IsConfirm: true,
+                }
+
+                input, err := prompt.Run()
+                if err != nil </span><span class="cov0" title="0">{
+                        answer = "n"
+                }</span>
+
+                <span class="cov0" title="0">answer = input</span>
+        }
+        // skip like if refused
+        <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
+                likeResults = append(likeResults, &amp;LikeResult{
+                        ID:           searchResult.Id,
+                        Type:         searchResult.Type,
+                        ArtistNames:  searchResult.ArtistNames,
+                        AlbumName:    searchResult.AlbumName,
+                        TrackName:    searchResult.TrackName,
+                        AlreadyLiked: false,
+                        Refused:      true,
+                })
+
+                return likeResults
+        }</span>
+        // execute like
+        <span class="cov0" title="0">if err := client.AddTracksToLibrary(context.Background(), spotify.ID(searchResult.Id)); err != nil </span><span class="cov0" title="0">{
+                // like failed
+                likeResults = append(likeResults, &amp;LikeResult{
+                        Error: err,
+                })
+
+                return likeResults
+        }</span>
+        // like succeeded
+        <span class="cov0" title="0">likeResults = append(likeResults, &amp;LikeResult{
+                ID:          searchResult.Id,
+                Type:        searchResult.Type,
+                ArtistNames: searchResult.ArtistNames,
+                AlbumName:   searchResult.AlbumName,
+                TrackName:   searchResult.TrackName,
+        })
+
+        return likeResults</span>
+}
 </pre>
 		
-		<pre class="file" id="file1" style="display: none">package util
+		<pre class="file" id="file1" style="display: none">package api
+
+import (
+        "context"
+        "encoding/json"
+        "errors"
+        "fmt"
+
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+)
+
+type SearchResult struct {
+        Id          string
+        Type        spotify.SearchType
+        ArtistNames string
+        ReleaseDate string
+        AlbumName   string
+        TrackName   string
+}
+
+const (
+        search_error_message_not_artist_album_track = "The content was not artist, album, or track..."
+        search_error_message_template_id_not_found  = "The content [%s] was not found..."
+)
+
+func SearchByQuery(client *spotify.Client, query string, number int, searchType spotify.SearchType) ([]SearchResult, error) <span class="cov0" title="0">{
+        var searchResultList []SearchResult
+        result, err := client.Search(context.Background(), query, searchType, spotify.Limit(number))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">if result.Artists != nil </span><span class="cov0" title="0">{
+                for _, artist := range result.Artists.Artists </span><span class="cov0" title="0">{
+                        searchResultList = append(searchResultList, SearchResult{
+                                Id:          artist.ID.String(),
+                                Type:        spotify.SearchTypeArtist,
+                                ArtistNames: artist.Name,
+                        })
+                }</span>
+                <span class="cov0" title="0">return searchResultList, nil</span>
+        }
+
+        <span class="cov0" title="0">if result.Albums != nil </span><span class="cov0" title="0">{
+                for _, album := range result.Albums.Albums </span><span class="cov0" title="0">{
+                        searchResultList = append(searchResultList, SearchResult{
+                                Id:          album.ID.String(),
+                                Type:        spotify.SearchTypeAlbum,
+                                ArtistNames: combineArtistNames(album.Artists),
+                                ReleaseDate: album.ReleaseDate,
+                                AlbumName:   album.Name,
+                        })
+                }</span>
+                <span class="cov0" title="0">return searchResultList, nil</span>
+        }
+
+        <span class="cov0" title="0">if result.Tracks != nil </span><span class="cov0" title="0">{
+                for _, track := range result.Tracks.Tracks </span><span class="cov0" title="0">{
+                        searchResultList = append(searchResultList, SearchResult{
+                                Id:          track.ID.String(),
+                                Type:        spotify.SearchTypeTrack,
+                                ArtistNames: combineArtistNames(track.Artists),
+                                ReleaseDate: track.Album.ReleaseDate,
+                                AlbumName:   track.Album.Name,
+                                TrackName:   track.Name,
+                        })
+                }</span>
+                <span class="cov0" title="0">return searchResultList, nil</span>
+        }
+
+        <span class="cov0" title="0">return nil, errors.New(search_error_message_not_artist_album_track)</span>
+}
+
+func SearchById(client *spotify.Client, id string) (*SearchResult, error) <span class="cov0" title="0">{
+        var unmarshalTypeErr *json.UnmarshalTypeError
+        if _, err := client.GetArtist(context.Background(), spotify.ID(id)); errors.As(err, &amp;unmarshalTypeErr) </span><span class="cov0" title="0">{
+                // if search failed with UnmarshalTypeError, search artist albums again
+                // c.f. https://github.com/zmb3/spotify/issues/243
+                // c.f. https://community.spotify.com/t5/Spotify-for-Developers/Get-Artist-API-endpoint-responds-with-result-in-inconsistent/td-p/5806916
+                if result, err := client.GetArtistAlbums(context.Background(), spotify.ID(id), nil); err == nil </span><span class="cov0" title="0">{
+                        for _, album := range result.Albums </span><span class="cov0" title="0">{
+                                for _, artist := range album.Artists </span><span class="cov0" title="0">{
+                                        if artist.ID.String() == id </span><span class="cov0" title="0">{
+                                                return &amp;SearchResult{
+                                                        Id:          artist.ID.String(),
+                                                        Type:        spotify.SearchTypeArtist,
+                                                        ArtistNames: artist.Name,
+                                                }, nil
+                                        }</span>
+                                }
+                        }
+                }
+        }
+
+        <span class="cov0" title="0">if result, err := client.GetAlbum(context.Background(), spotify.ID(id)); err == nil </span><span class="cov0" title="0">{
+                return &amp;SearchResult{
+                        Id:          result.ID.String(),
+                        Type:        spotify.SearchTypeAlbum,
+                        ArtistNames: combineArtistNames(result.Artists),
+                        ReleaseDate: result.ReleaseDate,
+                        AlbumName:   result.Name,
+                }, nil
+        }</span>
+
+        <span class="cov0" title="0">if result, err := client.GetTrack(context.Background(), spotify.ID(id)); err == nil </span><span class="cov0" title="0">{
+                return &amp;SearchResult{
+                        Id:          result.ID.String(),
+                        Type:        spotify.SearchTypeTrack,
+                        ArtistNames: combineArtistNames(result.Artists),
+                        ReleaseDate: result.Album.ReleaseDate,
+                        AlbumName:   result.Album.Name,
+                        TrackName:   result.Name,
+                }, nil
+        }</span>
+
+        <span class="cov0" title="0">return nil, errors.New(fmt.Sprintf(search_error_message_template_id_not_found, id))</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package api
+
+import (
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+)
+
+func combineArtistNames(artists []spotify.SimpleArtist) string <span class="cov8" title="1">{
+        var artistNames string
+        for index, artist := range artists </span><span class="cov8" title="1">{
+                artistNames += artist.Name
+                if index+1 != len(artists) </span><span class="cov8" title="1">{
+                        artistNames += ", "
+                }</span>
+        }
+
+        <span class="cov8" title="1">return artistNames</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package util
 
 import (
         "fmt"
+        "io"
 )
 
-// FormatIndent indents the provided message by adding two spaces at the beginning.
-func FormatIndent(message string) string <span class="cov8" title="1">{
-        return "  " + message
+func FormatIndent(m string) string <span class="cov8" title="1">{
+        return "  " + m
 }</span>
 
-// PrintlnWithBlankLineBelow prints the provided message with a blank line below it.
-func PrintlnWithBlankLineBelow(message string) <span class="cov8" title="1">{
-        fmt.Println(fmt.Sprintf("%s\n", message))
+func PrintlnWithWriter(w io.Writer, a ...any) <span class="cov8" title="1">{
+        fmt.Fprintln(w, fmt.Sprintf("%s", a[0]))
 }</span>
 
-// PrintlnWithBlankLineAbove prints the provided message with a blank line above it.
-func PrintlnWithBlankLineAbove(message string) <span class="cov8" title="1">{
-        fmt.Println(fmt.Sprintf("\n%s", message))
+func PrintWithWriterWithBlankLineBelow(w io.Writer, a ...any) <span class="cov8" title="1">{
+        fmt.Fprintln(w, fmt.Sprintf("%s\n", a[0]))
 }</span>
 
-// PrintBetweenBlankLine prints the provided message between two blank lines.
-func PrintBetweenBlankLine(message string) <span class="cov8" title="1">{
-        fmt.Println(fmt.Sprintf("\n%s\n", message))
+func PrintWithWriterWithBlankLineAbove(w io.Writer, a ...any) <span class="cov8" title="1">{
+        fmt.Fprintln(w, fmt.Sprintf("\n%s", a[0]))
+}</span>
+
+func PrintWithWriterBetweenBlankLine(w io.Writer, a ...any) <span class="cov8" title="1">{
+        fmt.Fprintln(w, fmt.Sprintf("\n%s\n", a[0]))
 }</span>
 </pre>
 		

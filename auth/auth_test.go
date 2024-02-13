@@ -1,105 +1,135 @@
 package auth
 
 import (
-	"crypto/rand"
-	"errors"
+	"fmt"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
-func TestGetClient(t *testing.T) {
+func TestNew(t *testing.T) {
 	tests := []struct {
-		name    string
-		want    *spotify.Client
-		wantErr bool
+		name     string
+		setupEnv func()
+		want     *authenticator
 	}{
 		{
-			name: "positive testing",
-			want: &spotify.Client{},
-		}, {
-			name:    "negative testing (authenticate error)",
-			wantErr: true,
+			name: "Positive case",
+			setupEnv: func() {
+				os.Setenv(auth_env_spotify_id, "test_spotify_id")
+				os.Setenv(auth_env_spotify_secret, "test_spotify_secret")
+				os.Setenv(auth_env_spotify_redirect_uri, "http://localhost:8080/callback")
+				os.Setenv(auth_env_spotify_refresh_token, "")
+			},
+			want: &authenticator{
+				spotifyAuthenticator: spotifyauth.New(
+					spotifyauth.WithRedirectURL("http://localhost:8080/callback"),
+					spotifyauth.WithScopes(
+						spotifyauth.ScopeUserFollowRead,
+						spotifyauth.ScopeUserLibraryRead,
+						spotifyauth.ScopeUserFollowModify,
+						spotifyauth.ScopeUserLibraryModify,
+					),
+				),
+				channel: make(chan *spotify.Client),
+				state:   "test_state",
+			},
 		},
 	}
 	for _, tt := range tests {
-		sa := &SpotlikeAuthenticator{}
-		if tt.wantErr {
-			fakeSpotlikeAuthenticator := &FakeSpotlikeAuthenticator{
-				FakeGetClient: func() (*spotify.Client, error) {
-					return nil, errors.New("fake GetClient error")
-				},
-			}
-			sa = &SpotlikeAuthenticator{c: fakeSpotlikeAuthenticator}
-		}
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := sa.GetClient()
-			if err == nil && reflect.TypeOf(got) != reflect.TypeOf(tt.want) {
-				t.Errorf("GetClient() = %v, want = %v", got, tt.want)
-				return
-			}
-			if err != nil && tt.wantErr {
+			tt.setupEnv()
+			got := New()
+			fmt.Println(tt.want)
+			fmt.Println(got)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("New() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-type FakeSpotlikeAuthenticator struct {
-	Authenticator
-	FakeGetClient func() (*spotify.Client, error)
-}
-
-func TestSetAuthInfo(t *testing.T) {
+func Test_setAuthInfo(t *testing.T) {
 	tests := []struct {
 		name string
-	}{}
+	}{
+		// TODO: Add test cases.
+	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			setAuthInfo()
 		})
 	}
 }
 
-func TestAuthenticate(t *testing.T) {
+func Test_authenticator_Authenticate(t *testing.T) {
+	type fields struct {
+		spotifyAuthenticator *spotifyauth.Authenticator
+		channel              chan *spotify.Client
+		state                string
+	}
 	tests := []struct {
 		name    string
+		fields  fields
 		want    *spotify.Client
 		wantErr bool
-	}{}
+	}{
+		// TODO: Add test cases.
+	}
 	for _, tt := range tests {
-		sa := &SpotlikeAuthenticator{}
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := sa.authenticate()
+			a := &authenticator{
+				spotifyAuthenticator: tt.fields.spotifyAuthenticator,
+				channel:              tt.fields.channel,
+				state:                tt.fields.state,
+			}
+			got, err := a.Authenticate()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("authenticate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("authenticator.Authenticate() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("authenticate() = %v, want %v", got, tt.want)
+				t.Errorf("authenticator.Authenticate() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func TestCompleteAuthenticate(t *testing.T) {
+func Test_authenticator_completeAuthenticate(t *testing.T) {
+	type fields struct {
+		spotifyAuthenticator *spotifyauth.Authenticator
+		channel              chan *spotify.Client
+		state                string
+	}
 	type args struct {
 		w http.ResponseWriter
 		r *http.Request
 	}
 	tests := []struct {
-		name string
-		args args
-	}{}
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+	}
 	for _, tt := range tests {
-		sa := &SpotlikeAuthenticator{}
 		t.Run(tt.name, func(t *testing.T) {
-			sa.completeAuthenticate(tt.args.w, tt.args.r)
+			a := &authenticator{
+				spotifyAuthenticator: tt.fields.spotifyAuthenticator,
+				channel:              tt.fields.channel,
+				state:                tt.fields.state,
+			}
+			a.completeAuthenticate(tt.args.w, tt.args.r)
 		})
 	}
 }
-func TestGetPort(t *testing.T) {
+
+func Test_getPortFromUri(t *testing.T) {
 	type args struct {
 		uri string
 	}
@@ -167,81 +197,4 @@ func TestGetPort(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestGenerateRandomString(t *testing.T) {
-	type args struct {
-		length int
-	}
-
-	tests := []struct {
-		name        string
-		args        args
-		wantErr     bool
-		wantReadErr bool
-		wantMsg     string
-	}{
-		{
-			name: "positive testing",
-			args: args{
-				length: 16,
-			},
-			wantErr:     false,
-			wantReadErr: false,
-		}, {
-			name: "positive testing (zero)",
-			args: args{
-				length: 0,
-			},
-			wantErr:     false,
-			wantReadErr: false,
-		}, {
-			name: "negative testing (negative length)",
-			args: args{
-				length: -1,
-			},
-			wantErr:     true,
-			wantReadErr: false,
-			wantMsg:     auth_error_message_invalid_length_for_random_string,
-		}, {
-			name: "negative testing (failed to generate a random number)",
-			args: args{
-				length: 16,
-			},
-			wantErr:     true,
-			wantReadErr: true,
-			wantMsg:     "fake Read error",
-		},
-	}
-	for _, tt := range tests {
-		if tt.wantReadErr {
-			oldRandReader := rand.Reader
-			rand.Reader = &fakeRandReader{}
-			defer func() { rand.Reader = oldRandReader }()
-		}
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := generateRandomString(tt.args.length)
-			if err != nil && !tt.wantErr && tt.args.length > 0 && len(got) != tt.args.length {
-				t.Errorf("GenerateRandomString() = length %v, want length %v", len(got), tt.args.length)
-				return
-			}
-			if err != nil && tt.wantErr {
-				msg := err.Error()
-				if !strings.Contains(msg, tt.wantMsg) {
-					t.Errorf("GenerateRandomString() unexpected error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-			}
-			if err != nil && !tt.wantErr {
-				t.Errorf("GenerateRandomString() unexpected error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-		})
-	}
-}
-
-type fakeRandReader struct{}
-
-func (f *fakeRandReader) Read(p []byte) (n int, err error) {
-	return 0, errors.New("fake Read error")
 }
