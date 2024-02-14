@@ -71,7 +71,6 @@ type likeOption struct {
 
 func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 	o := &likeOption{}
-	authenticator := auth.New()
 
 	cmd := &cobra.Command{
 		Use:   like_use,
@@ -80,7 +79,7 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Client = globalOption.Client
 			if o.Client == nil {
-				client, err := authenticator.Authenticate()
+				client, _, err := auth.Authenticate()
 				if err != nil {
 					return err
 				}

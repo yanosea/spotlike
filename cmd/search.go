@@ -60,7 +60,6 @@ type searchOption struct {
 
 func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 	o := &searchOption{}
-	authenticator := auth.New()
 
 	cmd := &cobra.Command{
 		Use:   search_use,
@@ -69,7 +68,7 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Client = globalOption.Client
 			if o.Client == nil {
-				client, err := authenticator.Authenticate()
+				client, _, err := auth.Authenticate()
 				if err != nil {
 					return err
 				}

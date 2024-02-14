@@ -4,9 +4,9 @@ go 1.21.6
 
 require (
 	github.com/fatih/color v1.16.0
-	github.com/google/uuid v1.6.0
 	github.com/manifoldco/promptui v0.9.0
 	github.com/spf13/cobra v1.7.0
+	github.com/thanhpk/randstr v1.0.6
 	github.com/zmb3/spotify/v2 v2.4.0
 	golang.org/x/oauth2 v0.7.0
 )
