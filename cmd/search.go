@@ -68,7 +68,10 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Client = globalOption.Client
 			if o.Client == nil {
-				client, _, err := auth.Authenticate()
+				if !auth.IsEnvsSet() {
+					auth.SetAuthInfo()
+				}
+				client, err := auth.Authenticate(globalOption.Out)
 				if err != nil {
 					return err
 				}

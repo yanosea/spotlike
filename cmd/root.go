@@ -23,8 +23,10 @@ const (
 You can get the ID of some contents in Spotify.
 You can LIKE the contents in Spotify by ID.`
 	root_error_message_no_sub_command = `Use sub command below...
+  * auth
+  * like
   * search
-  * like`
+  * version`
 )
 
 type GlobalOption struct {

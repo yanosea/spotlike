@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,6 +13,10 @@ import (
 
 	"github.com/yanosea/spotlike/util"
 
+	// https://github.com/fatih/color
+	"github.com/fatih/color"
+	// https://github.com/manifoldco/promptui
+	"github.com/manifoldco/promptui"
 	// https://github.com/thanhpk/randstr"
 	"github.com/thanhpk/randstr"
 	// https://github.com/zmb3/spotify/v2
@@ -26,13 +32,88 @@ const (
 	auth_error_message_platform_not_supported = "Platform not supported..."
 	auth_error_message_refresh_failed         = `Refresh failed...
   Please clear your Spotify environment variables and try again.`
-	auth_message_login_spotify = "Log in to Spotify by visiting the page below in your browser."
+	auth_message_login_spotify             = "Log in to Spotify by visiting the page below in your browser."
+	auth_input_label_spotify_id            = "Input your Spotify Client ID"
+	auth_input_label_spotify_secret        = "Input your Spotify Client Secret"
+	auth_input_label_spotify_redirect_uri  = "Input your Spotify Redirect URI"
+	auth_input_label_spotify_refresh_token = "Input your Spotify Refresh Token if you have one (if you don't have it, leave it empty and press enter.)"
+	auth_message_auth_success              = "Authentication succeeded!"
+	auth_message_suggest_set_env           = "If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those."
+	auth_message_template_set_env_command  = "export %s="
 )
 
-func Authenticate() (*spotify.Client, string, error) {
+func IsEnvsSet() bool {
+	return os.Getenv(util.AUTH_ENV_SPOTIFY_ID) != "" &&
+		os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET) != "" &&
+		os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI) != "" &&
+		os.Getenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN) != ""
+}
+
+func SetAuthInfo() {
+	// SPOTIFY_ID
+	if os.Getenv(util.AUTH_ENV_SPOTIFY_ID) == "" {
+		prompt := promptui.Prompt{
+			Label: auth_input_label_spotify_id,
+		}
+
+		var input string
+		for {
+			input, _ = prompt.Run()
+			if input != "" {
+				break
+			}
+		}
+		os.Setenv(util.AUTH_ENV_SPOTIFY_ID, input)
+	}
+
+	// SPOTIFY_SECRET
+	if spotifySecret := os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET); spotifySecret == "" {
+		prompt := promptui.Prompt{
+			Label: auth_input_label_spotify_secret,
+			Mask:  '*',
+		}
+
+		var input string
+		for {
+			input, _ = prompt.Run()
+			if input != "" {
+				break
+			}
+		}
+		os.Setenv(util.AUTH_ENV_SPOTIFY_SECRET, input)
+	}
+
+	// SPOTIFY_REDIRECT_URI
+	if os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI) == "" {
+		prompt := promptui.Prompt{
+			Label: auth_input_label_spotify_redirect_uri,
+		}
+
+		var input string
+		for {
+			input, _ = prompt.Run()
+			if input != "" {
+				break
+			}
+		}
+		os.Setenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI, input)
+	}
+
+	// SPOTIFY_REFRESH_TOKEN
+	if os.Getenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN) == "" {
+		prompt := promptui.Prompt{
+			Label: auth_input_label_spotify_refresh_token,
+		}
+
+		input, _ := prompt.Run()
+		os.Setenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN, input)
+	}
+}
+
+func Authenticate(o io.Writer) (*spotify.Client, error) {
 	port, err := getPortFromUri(os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI))
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
 	var (
@@ -42,7 +123,6 @@ func Authenticate() (*spotify.Client, string, error) {
 	)
 
 	authenticator := spotifyauth.New(
-		spotifyauth.WithRedirectURL(os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI)),
 		spotifyauth.WithScopes(
 			spotifyauth.ScopeUserFollowRead,
 			spotifyauth.ScopeUserLibraryRead,
@@ -51,6 +131,7 @@ func Authenticate() (*spotify.Client, string, error) {
 		),
 		spotifyauth.WithClientID(os.Getenv(util.AUTH_ENV_SPOTIFY_ID)),
 		spotifyauth.WithClientSecret(os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET)),
+		spotifyauth.WithRedirectURL(os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI)),
 	)
 
 	if os.Getenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN) != "" {
@@ -59,7 +140,6 @@ func Authenticate() (*spotify.Client, string, error) {
 
 	url := authenticator.AuthURL(state)
 
-	o := os.Stdout
 	util.PrintWithWriterBetweenBlankLine(o, auth_message_login_spotify)
 	util.PrintWithWriterWithBlankLineBelow(o, util.FormatIndent(url))
 
@@ -93,7 +173,15 @@ func Authenticate() (*spotify.Client, string, error) {
 	}()
 	client = <-channel
 
-	return client, refreshToken, nil
+	// print success message and suggest to set env
+	util.PrintlnWithWriter(o, color.GreenString(auth_message_auth_success))
+	util.PrintWithWriterWithBlankLineBelow(o, color.YellowString(auth_message_suggest_set_env))
+	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_ID)+os.Getenv(util.AUTH_ENV_SPOTIFY_ID)))
+	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_SECRET)+os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET)))
+	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REDIRECT_URI)+os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI)))
+	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN)+refreshToken))
+
+	return client, nil
 }
 
 func getPortFromUri(uri string) (string, error) {
@@ -109,7 +197,7 @@ func getPortFromUri(uri string) (string, error) {
 	return u.Port(), nil
 }
 
-func refresh(authenticator *spotifyauth.Authenticator, refreshToken string) (*spotify.Client, string, error) {
+func refresh(authenticator *spotifyauth.Authenticator, refreshToken string) (*spotify.Client, error) {
 	tok := &oauth2.Token{
 		TokenType:    "bearer",
 		RefreshToken: refreshToken,
@@ -117,8 +205,8 @@ func refresh(authenticator *spotifyauth.Authenticator, refreshToken string) (*sp
 
 	client := spotify.New(authenticator.Client(context.Background(), tok))
 	if client == nil {
-		return nil, "", errors.New(auth_error_message_platform_not_supported)
+		return nil, errors.New(auth_error_message_platform_not_supported)
 	}
 
-	return client, tok.RefreshToken, nil
+	return client, nil
 }

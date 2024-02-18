@@ -41,6 +41,9 @@ You can like content(s) using the flag "level" below :
 	like_flag_force                                 = "force"
 	like_shorthand_force                            = "f"
 	like_flag_description_force                     = "like without confirming"
+	like_flag_verbose                               = "verbose"
+	like_shorthand_verbose                          = "v"
+	like_flag_description_verbose                   = "print verbose output"
 	like_error_message_args_or_flag_id_required     = `The arguments or the flag "id" is required...`
 	like_error_message_flag_level_invalid_artist    = "You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist."
 	like_error_message_flag_level_invalid_album     = "You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album."
@@ -54,16 +57,17 @@ You can like content(s) using the flag "level" below :
 	like_message_template_like_album_succeeded      = "Like %s by [%s] succeeded!\t:\t[%s]"
 	like_message_template_like_track_already_liked  = "%s in [%s] by [%s] already liked!\t:\t[%s]"
 	like_message_template_like_track_refused        = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
-	like_message_template_like_track_succeeded      = "Like %s in [%s] by []%s] succeeded!\t:\t[%s]"
+	like_message_template_like_track_succeeded      = "Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
 )
 
 type likeOption struct {
 	Client *spotify.Client
 
-	Args  []string
-	Id    string
-	Level string
-	Force bool
+	Args    []string
+	Id      string
+	Level   string
+	Force   bool
+	Verbose bool
 
 	Out    io.Writer
 	ErrOut io.Writer
@@ -79,7 +83,10 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			o.Client = globalOption.Client
 			if o.Client == nil {
-				client, _, err := auth.Authenticate()
+				if !auth.IsEnvsSet() {
+					auth.SetAuthInfo()
+				}
+				client, err := auth.Authenticate(globalOption.Out)
 				if err != nil {
 					return err
 				}
@@ -96,6 +103,7 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&o.Id, like_flag_id, like_shorthand_id, "", like_flag_description_id)
 	cmd.PersistentFlags().StringVarP(&o.Level, like_flag_level, like_shorthand_level, "", like_flag_description_level)
 	cmd.PersistentFlags().BoolVarP(&o.Force, like_flag_force, like_shorthand_force, false, like_flag_description_force)
+	cmd.PersistentFlags().BoolVarP(&o.Verbose, like_flag_verbose, like_shorthand_verbose, false, like_flag_description_verbose)
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
 
@@ -157,6 +165,9 @@ func (o *likeOption) like() error {
 
 func (o *likeOption) printLikeResult(likeResults []*api.LikeResult) {
 	for _, result := range likeResults {
+		if (result.Refused || result.AlreadyLiked) && !o.Verbose {
+			continue
+		}
 		if result.Error != nil {
 			util.PrintlnWithWriter(o.ErrOut, formatLikeResultError(result.Error))
 		}
