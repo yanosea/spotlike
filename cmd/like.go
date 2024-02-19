@@ -165,7 +165,7 @@ func (o *likeOption) like() error {
 
 func (o *likeOption) printLikeResult(likeResults []*api.LikeResult) {
 	for _, result := range likeResults {
-		if (result.Refused || result.AlreadyLiked) && !o.Verbose {
+		if (result.Refused || result.AlreadyLiked) && len(likeResults) != 1 && !o.Verbose {
 			continue
 		}
 		if result.Error != nil {
