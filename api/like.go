@@ -44,7 +44,7 @@ type TrackWithAlbumName struct {
 
 const (
 	// input_label_confirm_like_artist is the message confirming like the artist.
-	input_label_confirm_like_artist = `Do you execute like artist [%s]]`
+	input_label_confirm_like_artist = `Do you execute like artist [%s]`
 	// input_label_confirm_like_artist is the message confirming like the album.
 	input_label_confirm_like_album = `Do you execute like album [%s] by [%s]`
 	// input_label_confirm_like_artist is the messagr confirming like the track.

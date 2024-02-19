@@ -25,6 +25,9 @@ You can LIKE the contents in Spotify by ID.`
 	root_error_message_no_sub_command = `Use sub command below...
   * auth
   * like
+    * artist
+    * album
+    * track
   * search
   * version`
 )
