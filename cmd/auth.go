@@ -51,6 +51,7 @@ func newAuthCommand(globalOption *GlobalOption) *cobra.Command {
 func (o *authOption) auth() error {
 	// check if auth info is already set
 	if auth.IsEnvsSet() {
+		// if already set, print message and return
 		util.PrintlnWithWriter(o.Out, color.YellowString(auth_message_already_authenticated))
 		return nil
 	}

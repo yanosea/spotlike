@@ -38,7 +38,7 @@ You must specify the the flag "type" below :
 	search_flag_query_description                    = "query for search"
 	search_flag_number                               = "number"
 	search_flag_number_shorthand                     = "n"
-	search_flag_number_description                   = "number of search results"
+	search_flag_number_description                   = "number of search results (default is 1)"
 	search_flag_type                                 = "type"
 	search_flag_type_shorthand                       = "t"
 	search_flag_type_description                     = "type of the content for search"
@@ -98,11 +98,13 @@ func (o *searchOption) search() error {
 	// set the query
 	q := strings.TrimSpace(o.combineAllArgs() + o.Query)
 	if q == "" {
+		// if the args or the flag query is empty, return error
 		return errors.New(search_error_message_args_or_flag_query_required)
 	}
 	// set the search type
 	st := o.defineSearchType(o.SearchType)
 	if st == 0 {
+		// if the search type is invalid,  return error
 		return errors.New(search_error_message_flag_type_invalid)
 	}
 	// execute search
@@ -110,7 +112,7 @@ func (o *searchOption) search() error {
 	if err != nil {
 		return err
 	}
-	// show the result
+	// print the search result
 	o.printSearchResult(searchResult)
 
 	return nil
@@ -135,10 +137,11 @@ func (o *searchOption) defineSearchType(searchType string) spotify.SearchType {
 		return spotify.SearchTypeArtist | spotify.SearchTypeArtist | spotify.SearchTypeTrack
 	}
 	if st, ok := util.SEARCH_TYPE_MAP[strings.ToLower(o.SearchType)]; ok {
-		// if the search type is defined and matched,  set the type
+		// if the search type is defined and valid,  return the search type
 		return st
 	}
 
+	// if the search type is invalid, return 0
 	return 0
 }
 

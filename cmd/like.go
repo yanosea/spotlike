@@ -32,32 +32,32 @@ You can like content(s) using the flag "level" below :
   * track  (If you pass the artist ID, spotlike will like all tracks released by the artist.)
            (If you pass the album ID, spotlike will like all tracks contained in the album.)
            (If you pass the track ID, spotlike will like the track.)`
-	like_flag_id                                    = "id"
-	like_shorthand_id                               = "i"
-	like_flag_description_id                        = "ID of the content for like"
-	like_flag_level                                 = "level"
-	like_shorthand_level                            = "l"
-	like_flag_description_level                     = "level for like"
-	like_flag_force                                 = "force"
-	like_shorthand_force                            = "f"
-	like_flag_description_force                     = "like without confirming"
-	like_flag_verbose                               = "verbose"
-	like_shorthand_verbose                          = "v"
-	like_flag_description_verbose                   = "print verbose output"
-	like_error_message_args_or_flag_id_required     = `The arguments or the flag "id" is required...`
-	like_error_message_flag_level_invalid_artist    = "You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist."
-	like_error_message_flag_level_invalid_album     = "You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album."
-	like_error_message_flag_level_invalid_track     = "You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track."
-	like_error_message_not_artist_album_track       = "The content was not artist, album, or track..."
-	like_message_template_like_artist_already_liked = "%s already liked!\t:\t[%s]"
-	like_message_template_like_artist_refused       = "Like %s refused!\t:\t[%s]"
-	like_message_template_like_artist_succeeded     = "Like %s succeeded!\t:\t[%s]"
-	like_message_template_like_album_already_liked  = "%s by [%s] already liked!\t:\t[%s]"
-	like_message_template_like_album_refused        = "Like %s by [%s] refused!\t:\t[%s]"
-	like_message_template_like_album_succeeded      = "Like %s by [%s] succeeded!\t:\t[%s]"
-	like_message_template_like_track_already_liked  = "%s in [%s] by [%s] already liked!\t:\t[%s]"
-	like_message_template_like_track_refused        = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
-	like_message_template_like_track_succeeded      = "Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
+	like_flag_id                                      = "id"
+	like_shorthand_id                                 = "i"
+	like_flag_description_id                          = "ID of the content for like"
+	like_flag_level                                   = "level"
+	like_shorthand_level                              = "l"
+	like_flag_description_level                       = "level for like"
+	like_flag_force                                   = "force"
+	like_shorthand_force                              = "f"
+	like_flag_description_force                       = "like without confirming"
+	like_flag_verbose                                 = "verbose"
+	like_shorthand_verbose                            = "v"
+	like_flag_description_verbose                     = "print verbose output"
+	like_error_message_args_or_flag_id_required       = `The arguments or the flag "id" is required...`
+	like_error_message_flag_level_invalid_artist      = "You passed the artist ID, so you have to pass 'artist', 'album', or 'track' for the level option. Or you should not specify the level option to like the artist."
+	like_error_message_flag_level_invalid_album       = "You passed the album ID, so you have to pass 'album' or 'track' for the level option. Or you should not specify the level option to like the album."
+	like_error_message_flag_level_invalid_track       = "You passed the track ID, so you have to pass 'track' for the level option. Or you should not specify the level option to like the track."
+	like_error_message_content_not_artist_album_track = "The content was not artist, album, or track..."
+	like_message_template_like_artist_already_liked   = "%s already liked!\t:\t[%s]"
+	like_message_template_like_artist_refused         = "Like %s refused!\t:\t[%s]"
+	like_message_template_like_artist_succeeded       = "Like %s succeeded!\t:\t[%s]"
+	like_message_template_like_album_already_liked    = "%s by [%s] already liked!\t:\t[%s]"
+	like_message_template_like_album_refused          = "Like %s by [%s] refused!\t:\t[%s]"
+	like_message_template_like_album_succeeded        = "Like %s by [%s] succeeded!\t:\t[%s]"
+	like_message_template_like_track_already_liked    = "%s in [%s] by [%s] already liked!\t:\t[%s]"
+	like_message_template_like_track_refused          = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
+	like_message_template_like_track_succeeded        = "Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
 )
 
 type likeOption struct {
@@ -111,6 +111,7 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 }
 
 func (o *likeOption) like() error {
+	// set the the id(s) from the args and the flag
 	var ids []string
 	for _, arg := range o.Args {
 		for _, a := range strings.Fields(arg) {
@@ -121,10 +122,12 @@ func (o *likeOption) like() error {
 		ids = append(ids, a)
 	}
 	if len(ids) == 0 {
+		// if the id(s) was not set
 		return errors.New(like_error_message_args_or_flag_id_required)
 	}
 	var likeResults []*api.LikeResult
 	for _, id := range ids {
+		// first, search the content by the id
 		searchResult, err := api.SearchById(o.Client, id)
 		if err != nil {
 			return err
@@ -155,7 +158,7 @@ func (o *likeOption) like() error {
 				return errors.New(like_error_message_flag_level_invalid_track)
 			}
 		default:
-			return errors.New(like_error_message_not_artist_album_track)
+			return errors.New(like_error_message_content_not_artist_album_track)
 		}
 		o.printLikeResult(likeResults)
 	}
@@ -164,8 +167,16 @@ func (o *likeOption) like() error {
 }
 
 func (o *likeOption) printLikeResult(likeResults []*api.LikeResult) {
-	for _, result := range likeResults {
+	for index, result := range likeResults {
+		if index == 0 {
+			// if the result was first, add blank line
+			util.PrintlnWithWriter(o.Out, "")
+		}
 		if (result.Refused || result.AlreadyLiked) && len(likeResults) != 1 && !o.Verbose {
+			// if the result was refused or already liked
+			// and the result was not one,
+			// and the verbose option was not set
+			// skip the result
 			continue
 		}
 		if result.Error != nil {
