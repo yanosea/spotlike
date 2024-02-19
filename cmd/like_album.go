@@ -30,21 +30,24 @@ If you set both args and flag "id", both albums will be liked.
 
 You can also set the flag "artist".
 If you set the flag "artist" and pass the artist ID, spotlike will like all albums released by the artist.`
-	like_album_flag_id                             = "id"
-	like_album_shorthand_id                        = "i"
-	like_album_flag_description_id                 = "ID of the album(s) or the artist(s) for like"
-	like_album_flag_force                          = "force"
-	like_album_shorthand_force                     = "f"
-	like_album_flag_description_force              = "like album(s) without confirming"
-	like_album_flag_verbose                        = "verbose"
-	like_album_shorthand_verbose                   = "v"
-	like_album_flag_artist                         = "artist"
-	like_album_flag_description_artist             = "like all albums released by the artist"
-	like_album_flag_description_verbose            = "print verbose output"
-	like_album_error_message_template_id_not_album = `The ID you passed [%s] is not the album ID.
-You have to pass the album ID for like the album(s) or set flag "artist" and pass the artist ID.`
-	like_album_error_message_template_flag_artist_invalid = `You set the flag "artist" but the ID you passed [%s] is not the artist ID.
-You have to pass the artist ID for like all albums released by the artist.`
+	like_album_flag_id                                           = "id"
+	like_album_shorthand_id                                      = "i"
+	like_album_flag_description_id                               = "ID of the album(s) or the artist(s) for like"
+	like_album_flag_force                                        = "force"
+	like_album_shorthand_force                                   = "f"
+	like_album_flag_description_force                            = "like album(s) without confirming"
+	like_album_flag_verbose                                      = "verbose"
+	like_album_shorthand_verbose                                 = "v"
+	like_album_flag_artist                                       = "artist"
+	like_album_flag_description_artist                           = "like all albums released by the artist"
+	like_album_flag_description_verbose                          = "print verbose output"
+	like_album_error_message_template_flag_artist_invalid_artist = `The ID you passed [%s] is artist ID but you did not set the flag "artist".
+You have to set the flag "artist" ID with setting the flag "artist".`
+	like_album_error_message_template_flag_artist_invalid_album = `You set the flag "artist" but the ID you passed [%s] is album ID.
+You have to pass the album ID without setting the flag "artist".`
+	like_album_error_message_template_id_not_album_artist = `The ID you passed [%s] is neither the album ID nor the artist ID.
+You have to pass the album ID for like the album(s).
+You have to pass the artist Id for like the all albums released by the artist with setting the flag "artist".`
 	like_album_confirm_message_template_all_album_by_artist = "Do you execute like all albums by [%s]"
 	like_album_message_template_like_album_already_liked    = "%s by [%s] already liked!\t:\t[%s]"
 	like_album_message_template_like_album_refused          = "Like %s by [%s] refused!\t:\t[%s]"
@@ -123,12 +126,20 @@ func (o *likeAlbumOption) likeAlbum() error {
 		if err != nil {
 			return err
 		}
-		if searchResult.Type != spotify.SearchTypeAlbum {
-			if o.Artist && searchResult.Type != spotify.SearchTypeArtist {
-				// if the search result was not album
-				// or the search result was not artist and the artist flag was not set
-				return errors.New(fmt.Sprintf(like_album_error_message_template_flag_artist_invalid, id))
+		switch searchResult.Type {
+		case spotify.SearchTypeArtist:
+			if !o.Artist {
+				// if the search result was artist and the artist flag was not set
+				return errors.New(fmt.Sprintf(like_album_error_message_template_flag_artist_invalid_artist, id))
 			}
+		case spotify.SearchTypeAlbum:
+			// if the search result was album and the artist flag was set
+			if o.Artist {
+				return errors.New(fmt.Sprintf(like_album_error_message_template_flag_artist_invalid_album, id))
+			}
+		default:
+			// if the search result was not album and not artist
+			return errors.New(fmt.Sprintf(like_album_error_message_template_id_not_album_artist, id))
 		}
 		switch searchResult.Type {
 		case spotify.SearchTypeArtist:
