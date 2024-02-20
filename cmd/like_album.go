@@ -129,11 +129,11 @@ func (o *likeAlbumOption) likeAlbum() error {
 		switch searchResult.Type {
 		case spotify.SearchTypeArtist:
 			if !o.Artist {
-				// if the search result was artist and the artist flag was not set
+				// if the search result was artist and the flag "artist" was not set
 				return errors.New(fmt.Sprintf(like_album_error_message_template_flag_artist_invalid_artist, id))
 			}
 		case spotify.SearchTypeAlbum:
-			// if the search result was album and the artist flag was set
+			// if the search result was album and the flag "artist" was set
 			if o.Artist {
 				return errors.New(fmt.Sprintf(like_album_error_message_template_flag_artist_invalid_album, id))
 			}
