@@ -61,7 +61,27 @@
 				
 				<option value="file2">github.com/yanosea/spotlike/api/util.go (100.0%)</option>
 				
-				<option value="file3">github.com/yanosea/spotlike/util/util.go (100.0%)</option>
+				<option value="file3">github.com/yanosea/spotlike/auth/auth.go (9.2%)</option>
+				
+				<option value="file4">github.com/yanosea/spotlike/cmd/auth.go (0.0%)</option>
+				
+				<option value="file5">github.com/yanosea/spotlike/cmd/like.go (0.0%)</option>
+				
+				<option value="file6">github.com/yanosea/spotlike/cmd/like_album.go (0.0%)</option>
+				
+				<option value="file7">github.com/yanosea/spotlike/cmd/like_artist.go (0.0%)</option>
+				
+				<option value="file8">github.com/yanosea/spotlike/cmd/like_track.go (0.0%)</option>
+				
+				<option value="file9">github.com/yanosea/spotlike/cmd/root.go (0.0%)</option>
+				
+				<option value="file10">github.com/yanosea/spotlike/cmd/search.go (0.0%)</option>
+				
+				<option value="file11">github.com/yanosea/spotlike/cmd/version.go (0.0%)</option>
+				
+				<option value="file12">github.com/yanosea/spotlike/main.go (0.0%)</option>
+				
+				<option value="file13">github.com/yanosea/spotlike/util/util.go (100.0%)</option>
 				
 				</select>
 			</div>
@@ -121,11 +141,11 @@ type TrackWithAlbumName struct {
 
 const (
         // input_label_confirm_like_artist is the message confirming like the artist.
-        input_label_confirm_like_artist = `Do you execute like artist [%s]]`
+        input_label_confirm_like_artist = `Do you execute like artist [%s]`
         // input_label_confirm_like_artist is the message confirming like the album.
-        input_label_confirm_like_album = `Do you execute like album "[%s]" by "[%s]"`
+        input_label_confirm_like_album = `Do you execute like album [%s] by [%s]`
         // input_label_confirm_like_artist is the messagr confirming like the track.
-        input_label_confirm_like_track = `Do you execute like track "[%s]" in "[%s]" by "[%s]"`
+        input_label_confirm_like_track = `Do you execute like track [%s] in [%s] by [%s]`
 )
 
 // LikeArtistById returns the like result for an artist with the given ID.
@@ -172,11 +192,9 @@ func LikeArtistById(client *spotify.Client, id string, force bool) []*LikeResult
                 }
 
                 input, err := prompt.Run()
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil || input == "" </span><span class="cov0" title="0">{
                         answer = "n"
                 }</span>
-
-                <span class="cov0" title="0">answer = input</span>
         }
         // skip like if refused
         <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
@@ -269,11 +287,9 @@ func LikeAllAlbumsReleasedByArtistById(client *spotify.Client, id string, force 
                         }
 
                         input, err := prompt.Run()
-                        if err != nil </span><span class="cov0" title="0">{
+                        if err != nil || input == "" </span><span class="cov0" title="0">{
                                 answer = "n"
                         }</span>
-
-                        <span class="cov0" title="0">answer = input</span>
                 }
                 // skip like if refused
                 <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
@@ -329,6 +345,7 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
                         // getting all albums by the artist searched by ID failed
                         Error: err,
                 })
+
                 return likeResults
         }</span>
         // sort albums by release date
@@ -390,11 +407,9 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
                         }
 
                         input, err := prompt.Run()
-                        if err != nil </span><span class="cov0" title="0">{
+                        if err != nil || input == "" </span><span class="cov0" title="0">{
                                 answer = "n"
                         }</span>
-
-                        <span class="cov0" title="0">answer = input</span>
                 }
                 // skip like if refused
                 <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
@@ -476,11 +491,9 @@ func LikeAlbumById(client *spotify.Client, id string, force bool) []*LikeResult 
                 }
 
                 input, err := prompt.Run()
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil || input == "" </span><span class="cov0" title="0">{
                         answer = "n"
                 }</span>
-
-                <span class="cov0" title="0">answer = input</span>
         }
         // skip like if refused
         <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
@@ -568,11 +581,9 @@ func LikeAllTracksInAlbumById(client *spotify.Client, id string, force bool) []*
                         }
 
                         input, err := prompt.Run()
-                        if err != nil </span><span class="cov0" title="0">{
+                        if err != nil || input == "" </span><span class="cov0" title="0">{
                                 answer = "n"
                         }</span>
-
-                        <span class="cov0" title="0">answer = input</span>
                 }
                 // skip like if refused
                 <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
@@ -656,11 +667,9 @@ func LikeTrackById(client *spotify.Client, id string, force bool) []*LikeResult 
                 }
 
                 input, err := prompt.Run()
-                if err != nil </span><span class="cov0" title="0">{
+                if err != nil || input == "" </span><span class="cov0" title="0">{
                         answer = "n"
                 }</span>
-
-                <span class="cov0" title="0">answer = input</span>
         }
         // skip like if refused
         <span class="cov0" title="0">if answer == "n" </span><span class="cov0" title="0">{
@@ -726,12 +735,15 @@ const (
 
 func SearchByQuery(client *spotify.Client, query string, number int, searchType spotify.SearchType) ([]SearchResult, error) <span class="cov0" title="0">{
         var searchResultList []SearchResult
+        // execute search
         result, err := client.Search(context.Background(), query, searchType, spotify.Limit(number))
         if err != nil </span><span class="cov0" title="0">{
+                // search failed
                 return nil, err
         }</span>
 
         <span class="cov0" title="0">if result.Artists != nil </span><span class="cov0" title="0">{
+                // if the search result is artist, append to searchResultList
                 for _, artist := range result.Artists.Artists </span><span class="cov0" title="0">{
                         searchResultList = append(searchResultList, SearchResult{
                                 Id:          artist.ID.String(),
@@ -744,6 +756,7 @@ func SearchByQuery(client *spotify.Client, query string, number int, searchType 
 
         <span class="cov0" title="0">if result.Albums != nil </span><span class="cov0" title="0">{
                 for _, album := range result.Albums.Albums </span><span class="cov0" title="0">{
+                        // if the search result is album, append to searchResultList
                         searchResultList = append(searchResultList, SearchResult{
                                 Id:          album.ID.String(),
                                 Type:        spotify.SearchTypeAlbum,
@@ -756,6 +769,7 @@ func SearchByQuery(client *spotify.Client, query string, number int, searchType 
         }
 
         <span class="cov0" title="0">if result.Tracks != nil </span><span class="cov0" title="0">{
+                // if the search result is track, append to searchResultList
                 for _, track := range result.Tracks.Tracks </span><span class="cov0" title="0">{
                         searchResultList = append(searchResultList, SearchResult{
                                 Id:          track.ID.String(),
@@ -769,16 +783,20 @@ func SearchByQuery(client *spotify.Client, query string, number int, searchType 
                 <span class="cov0" title="0">return searchResultList, nil</span>
         }
 
+        // if the search result is not artist, album, or track, return error
         <span class="cov0" title="0">return nil, errors.New(search_error_message_not_artist_album_track)</span>
 }
 
 func SearchById(client *spotify.Client, id string) (*SearchResult, error) <span class="cov0" title="0">{
         var unmarshalTypeErr *json.UnmarshalTypeError
+        // execute search artist
         if _, err := client.GetArtist(context.Background(), spotify.ID(id)); errors.As(err, &amp;unmarshalTypeErr) </span><span class="cov0" title="0">{
                 // if search failed with UnmarshalTypeError, search artist albums again
                 // c.f. https://github.com/zmb3/spotify/issues/243
                 // c.f. https://community.spotify.com/t5/Spotify-for-Developers/Get-Artist-API-endpoint-responds-with-result-in-inconsistent/td-p/5806916
+                // execute search the artist albums
                 if result, err := client.GetArtistAlbums(context.Background(), spotify.ID(id), nil); err == nil </span><span class="cov0" title="0">{
+                        // get the artist from album
                         for _, album := range result.Albums </span><span class="cov0" title="0">{
                                 for _, artist := range album.Artists </span><span class="cov0" title="0">{
                                         if artist.ID.String() == id </span><span class="cov0" title="0">{
@@ -793,6 +811,7 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) <span 
                 }
         }
 
+        // execute search album
         <span class="cov0" title="0">if result, err := client.GetAlbum(context.Background(), spotify.ID(id)); err == nil </span><span class="cov0" title="0">{
                 return &amp;SearchResult{
                         Id:          result.ID.String(),
@@ -803,6 +822,7 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) <span 
                 }, nil
         }</span>
 
+        // execute search track
         <span class="cov0" title="0">if result, err := client.GetTrack(context.Background(), spotify.ID(id)); err == nil </span><span class="cov0" title="0">{
                 return &amp;SearchResult{
                         Id:          result.ID.String(),
@@ -814,6 +834,7 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) <span 
                 }, nil
         }</span>
 
+        // if the search result is not artist, album, or track, return error
         <span class="cov0" title="0">return nil, errors.New(fmt.Sprintf(search_error_message_template_id_not_found, id))</span>
 }
 </pre>
@@ -838,7 +859,1207 @@ func combineArtistNames(artists []spotify.SimpleArtist) string <span class="cov8
 }
 </pre>
 		
-		<pre class="file" id="file3" style="display: none">package util
+		<pre class="file" id="file3" style="display: none">package auth
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "net/http"
+        "net/url"
+        "os"
+
+        "golang.org/x/oauth2"
+
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/fatih/color
+        "github.com/fatih/color"
+        // https://github.com/manifoldco/promptui
+        "github.com/manifoldco/promptui"
+        // https://github.com/thanhpk/randstr"
+        "github.com/thanhpk/randstr"
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+        // https://github.com/zmb3/spotify/v2/auth
+        spotifyauth "github.com/zmb3/spotify/v2/auth"
+)
+
+const (
+        auth_close_tab_html                       = "&lt;!DOCTYPE html&gt;&lt;html&gt;&lt;head&gt;&lt;script&gt;open(location, '_self').close();&lt;/script&gt;&lt;/head&gt;&lt;/html&gt;"
+        auth_error_message_auth_failure           = "Authentication failed..."
+        auth_error_message_invalid_uri            = "Invalid URI..."
+        auth_error_message_platform_not_supported = "Platform not supported..."
+        auth_error_message_refresh_failed         = `Refresh failed...
+  Please clear your Spotify environment variables and try again.`
+        auth_message_login_spotify             = "Log in to Spotify by visiting the page below in your browser."
+        auth_input_label_spotify_id            = "Input your Spotify Client ID"
+        auth_input_label_spotify_secret        = "Input your Spotify Client Secret"
+        auth_input_label_spotify_redirect_uri  = "Input your Spotify Redirect URI"
+        auth_input_label_spotify_refresh_token = "Input your Spotify Refresh Token if you have one (if you don't have it, leave it empty and press enter.)"
+        auth_message_auth_success              = "Authentication succeeded!"
+        auth_message_suggest_set_env           = "If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those."
+        auth_message_template_set_env_command  = "export %s="
+)
+
+func IsEnvsSet() bool <span class="cov8" title="1">{
+        return os.Getenv(util.AUTH_ENV_SPOTIFY_ID) != "" &amp;&amp;
+                os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET) != "" &amp;&amp;
+                os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI) != "" &amp;&amp;
+                os.Getenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN) != ""
+}</span>
+
+func SetAuthInfo() <span class="cov0" title="0">{
+        // SPOTIFY_ID
+        if os.Getenv(util.AUTH_ENV_SPOTIFY_ID) == "" </span><span class="cov0" title="0">{
+                prompt := promptui.Prompt{
+                        Label: auth_input_label_spotify_id,
+                }
+
+                var input string
+                for </span><span class="cov0" title="0">{
+                        input, _ = prompt.Run()
+                        if input != "" </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                }
+                <span class="cov0" title="0">os.Setenv(util.AUTH_ENV_SPOTIFY_ID, input)</span>
+        }
+
+        // SPOTIFY_SECRET
+        <span class="cov0" title="0">if spotifySecret := os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET); spotifySecret == "" </span><span class="cov0" title="0">{
+                prompt := promptui.Prompt{
+                        Label: auth_input_label_spotify_secret,
+                        Mask:  '*',
+                }
+
+                var input string
+                for </span><span class="cov0" title="0">{
+                        input, _ = prompt.Run()
+                        if input != "" </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                }
+                <span class="cov0" title="0">os.Setenv(util.AUTH_ENV_SPOTIFY_SECRET, input)</span>
+        }
+
+        // SPOTIFY_REDIRECT_URI
+        <span class="cov0" title="0">if os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI) == "" </span><span class="cov0" title="0">{
+                prompt := promptui.Prompt{
+                        Label: auth_input_label_spotify_redirect_uri,
+                }
+
+                var input string
+                for </span><span class="cov0" title="0">{
+                        input, _ = prompt.Run()
+                        if input != "" </span><span class="cov0" title="0">{
+                                break</span>
+                        }
+                }
+                <span class="cov0" title="0">os.Setenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI, input)</span>
+        }
+
+        // SPOTIFY_REFRESH_TOKEN
+        <span class="cov0" title="0">if os.Getenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN) == "" </span><span class="cov0" title="0">{
+                prompt := promptui.Prompt{
+                        Label: auth_input_label_spotify_refresh_token,
+                }
+
+                input, _ := prompt.Run()
+                os.Setenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN, input)
+        }</span>
+}
+
+func Authenticate(o io.Writer) (*spotify.Client, error) <span class="cov0" title="0">{
+        port, err := getPortFromUri(os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI))
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">var (
+                client  *spotify.Client
+                state   = randstr.Hex(11)
+                channel = make(chan *spotify.Client)
+        )
+
+        authenticator := spotifyauth.New(
+                spotifyauth.WithScopes(
+                        spotifyauth.ScopeUserFollowRead,
+                        spotifyauth.ScopeUserLibraryRead,
+                        spotifyauth.ScopeUserFollowModify,
+                        spotifyauth.ScopeUserLibraryModify,
+                ),
+                spotifyauth.WithClientID(os.Getenv(util.AUTH_ENV_SPOTIFY_ID)),
+                spotifyauth.WithClientSecret(os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET)),
+                spotifyauth.WithRedirectURL(os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI)),
+        )
+
+        if os.Getenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN) != "" </span><span class="cov0" title="0">{
+                return refresh(authenticator, os.Getenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN))
+        }</span>
+
+        <span class="cov0" title="0">url := authenticator.AuthURL(state)
+
+        util.PrintWithWriterBetweenBlankLine(o, auth_message_login_spotify)
+        util.PrintWithWriterWithBlankLineBelow(o, util.FormatIndent(url))
+
+        var refreshToken string
+        http.HandleFunc("/callback", func(w http.ResponseWriter, r *http.Request) </span><span class="cov0" title="0">{
+                tok, err := authenticator.Token(r.Context(), state, r)
+
+                if err != nil </span><span class="cov0" title="0">{
+                        http.Error(w, auth_error_message_auth_failure, http.StatusForbidden)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">if st := r.FormValue("state"); st != state </span><span class="cov0" title="0">{
+                        http.NotFound(w, r)
+                        return
+                }</span>
+
+                <span class="cov0" title="0">client := spotify.New(authenticator.Client(r.Context(), tok))
+
+                refreshToken = tok.RefreshToken
+                channel &lt;- client</span>
+        })
+
+        <span class="cov0" title="0">http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) </span>{<span class="cov0" title="0">}</span>)
+        <span class="cov0" title="0">go func() error </span><span class="cov0" title="0">{
+                err := http.ListenAndServe(":"+port, nil)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">return nil</span>
+        }()
+        <span class="cov0" title="0">client = &lt;-channel
+
+        // print success message and suggest to set env
+        util.PrintlnWithWriter(o, color.GreenString(auth_message_auth_success))
+        util.PrintWithWriterWithBlankLineBelow(o, color.YellowString(auth_message_suggest_set_env))
+        util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_ID)+os.Getenv(util.AUTH_ENV_SPOTIFY_ID)))
+        util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_SECRET)+os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET)))
+        util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REDIRECT_URI)+os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI)))
+        util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN)+refreshToken))
+
+        return client, nil</span>
+}
+
+func refresh(authenticator *spotifyauth.Authenticator, refreshToken string) (*spotify.Client, error) <span class="cov0" title="0">{
+        tok := &amp;oauth2.Token{
+                TokenType:    "bearer",
+                RefreshToken: refreshToken,
+        }
+
+        client := spotify.New(authenticator.Client(context.Background(), tok))
+        if client == nil </span><span class="cov0" title="0">{
+                return nil, errors.New(auth_error_message_platform_not_supported)
+        }</span>
+
+        <span class="cov0" title="0">return client, nil</span>
+}
+
+func getPortFromUri(uri string) (string, error) <span class="cov8" title="1">{
+        u, err := url.Parse(uri)
+        if err != nil </span><span class="cov8" title="1">{
+                return "", err
+        }</span>
+
+        <span class="cov8" title="1">if u.Port() == "" </span><span class="cov8" title="1">{
+                return "", errors.New(auth_error_message_invalid_uri)
+        }</span>
+
+        <span class="cov8" title="1">return u.Port(), nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package cmd
+
+import (
+        "io"
+
+        "github.com/yanosea/spotlike/auth"
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/fatih/color
+        "github.com/fatih/color"
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+)
+
+const (
+        auth_use   = "auth"
+        auth_short = "Authenticate your Spotify client."
+        auth_long  = `Authenticate your Spotify client.
+
+You have to authenticate your Spotify client to use spotlike at first.
+spotlike will ask you to input your Client ID, Client Secret, Redirect URI, and Refresh Token.`
+        auth_message_already_authenticated = "You are already authenticated and set envs!"
+)
+
+type authOption struct {
+        Out    io.Writer
+        ErrOut io.Writer
+}
+
+func newAuthCommand(globalOption *GlobalOption) *cobra.Command <span class="cov0" title="0">{
+        o := &amp;authOption{}
+        cmd := &amp;cobra.Command{
+                Use:   auth_use,
+                Short: auth_short,
+                Long:  auth_long,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+
+                        o.Out = globalOption.Out
+                        o.ErrOut = globalOption.ErrOut
+
+                        return o.auth()
+                }</span>,
+        }
+
+        <span class="cov0" title="0">cmd.SetOut(globalOption.Out)
+        cmd.SetErr(globalOption.ErrOut)
+
+        return cmd</span>
+}
+
+func (o *authOption) auth() error <span class="cov0" title="0">{
+        // check if auth info is already set
+        if auth.IsEnvsSet() </span><span class="cov0" title="0">{
+                // if already set, print message and return
+                util.PrintlnWithWriter(o.Out, color.YellowString(auth_message_already_authenticated))
+                return nil
+        }</span>
+
+        // set auth info
+        <span class="cov0" title="0">auth.SetAuthInfo()
+
+        // execute auth
+        _, err := auth.Authenticate(o.Out)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package cmd
+
+import (
+        "errors"
+        "fmt"
+
+        // https://github.com/fatih/color
+        "github.com/fatih/color"
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+)
+
+const (
+        like_use   = "like"
+        like_short = "Like content in Spotify by ID."
+
+        like_long = `Like content in Spotify by ID.
+
+You must use sub command below...
+  * artist
+  * album
+  * track`
+        like_error_message_no_sub_command = `Use sub command below...
+  * artist
+  * album
+  * track`
+        like_error_message_args_or_flag_id_required = `The arguments or the flag "id" is required...`
+)
+
+func newLikeCommand(globalOption *GlobalOption) *cobra.Command <span class="cov0" title="0">{
+        cmd := &amp;cobra.Command{
+                Use:   like_use,
+                Short: like_short,
+                Long:  like_long,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return errors.New(like_error_message_no_sub_command)
+                }</span>,
+        }
+
+        <span class="cov0" title="0">cmd.SetOut(globalOption.Out)
+        cmd.SetErr(globalOption.ErrOut)
+
+        cmd.AddCommand(
+                newLikeArtistCommand(globalOption),
+                newLikeAlbumCommand(globalOption),
+                newLikeTrackCommand(globalOption),
+        )
+
+        return cmd</span>
+}
+func FormatLikeResultError(error error) string <span class="cov0" title="0">{
+        return color.RedString(fmt.Sprintf("Error:\n  %s", error))
+}</span>
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package cmd
+
+import (
+        "errors"
+        "fmt"
+        "io"
+        "strings"
+
+        "github.com/yanosea/spotlike/api"
+        "github.com/yanosea/spotlike/auth"
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/fatih/color
+        "github.com/fatih/color"
+        // https://github.com/manifoldco/promptui
+        "github.com/manifoldco/promptui"
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+)
+
+const (
+        like_album_use   = "album"
+        like_album_short = "Like album(s) in Spotify by ID."
+        like_album_long  = `Like album(s) in Spotify by ID.
+
+You must set the args or the flag "id" of album(s) or artist(s) for like.
+If you set both args and flag "id", both will be liked.
+
+If you pass the artist ID, spotlike will like all albums released by the artist.`
+        like_album_flag_id                                    = "id"
+        like_album_shorthand_id                               = "i"
+        like_album_flag_description_id                        = "ID of the album(s) or the artist(s) for like"
+        like_album_flag_force                                 = "force"
+        like_album_shorthand_force                            = "f"
+        like_album_flag_description_force                     = "like album(s) without confirming"
+        like_album_flag_verbose                               = "verbose"
+        like_album_shorthand_verbose                          = "v"
+        like_album_flag_description_verbose                   = "print verbose output"
+        like_album_error_message_template_id_not_artist_album = "The ID you passed [%s] is not album or artist."
+        like_album_input_label_template_all_album_by_artist   = "Do you execute like all albums by [%s]"
+        like_album_message_template_like_album_already_liked  = "%s by [%s] already liked!\t:\t[%s]"
+        like_album_message_template_like_album_refused        = "Like %s by [%s] refused!\t:\t[%s]"
+        like_album_message_template_like_album_succeeded      = "Like %s by [%s] succeeded!\t:\t[%s]"
+)
+
+type likeAlbumOption struct {
+        Client *spotify.Client
+
+        Args    []string
+        Id      string
+        Force   bool
+        Verbose bool
+
+        Out    io.Writer
+        ErrOut io.Writer
+}
+
+func newLikeAlbumCommand(globalOption *GlobalOption) *cobra.Command <span class="cov0" title="0">{
+        o := &amp;likeAlbumOption{}
+
+        cmd := &amp;cobra.Command{
+                Use:   like_album_use,
+                Short: like_album_short,
+                Long:  like_album_long,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        o.Client = globalOption.Client
+                        if o.Client == nil </span><span class="cov0" title="0">{
+                                if !auth.IsEnvsSet() </span><span class="cov0" title="0">{
+                                        auth.SetAuthInfo()
+                                }</span>
+                                <span class="cov0" title="0">client, err := auth.Authenticate(globalOption.Out)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return err
+                                }</span>
+                                <span class="cov0" title="0">o.Client = client</span>
+                        }
+                        <span class="cov0" title="0">o.Args = args
+                        o.Out = globalOption.Out
+                        o.ErrOut = globalOption.ErrOut
+
+                        return o.likeAlbum()</span>
+                },
+        }
+
+        <span class="cov0" title="0">cmd.PersistentFlags().StringVarP(&amp;o.Id, like_album_flag_id, like_album_shorthand_id, "", like_album_flag_description_id)
+        cmd.PersistentFlags().BoolVarP(&amp;o.Force, like_album_flag_force, like_album_shorthand_force, false, like_album_flag_description_force)
+        cmd.PersistentFlags().BoolVarP(&amp;o.Verbose, like_album_flag_verbose, like_album_shorthand_verbose, false, like_album_flag_description_verbose)
+        cmd.SetOut(globalOption.Out)
+        cmd.SetErr(globalOption.ErrOut)
+
+        return cmd</span>
+}
+
+func (o *likeAlbumOption) likeAlbum() error <span class="cov0" title="0">{
+        // set the the id(s) from the args and the flag
+        var ids []string
+        for _, arg := range o.Args </span><span class="cov0" title="0">{
+                for _, a := range strings.Fields(arg) </span><span class="cov0" title="0">{
+                        ids = append(ids, a)
+                }</span>
+        }
+        <span class="cov0" title="0">for _, a := range strings.Fields(o.Id) </span><span class="cov0" title="0">{
+                ids = append(ids, a)
+        }</span>
+        <span class="cov0" title="0">if len(ids) == 0 </span><span class="cov0" title="0">{
+                // if the id(s) was not set
+                return errors.New(like_error_message_args_or_flag_id_required)
+        }</span>
+        <span class="cov0" title="0">var likeResults []*api.LikeResult
+        for _, id := range ids </span><span class="cov0" title="0">{
+                // first, search the content by the id
+                searchResult, err := api.SearchById(o.Client, id)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">switch searchResult.Type </span>{
+                case spotify.SearchTypeArtist:<span class="cov0" title="0">
+                        // confirm like all albums by the artist
+                        answer := "y"
+                        if !o.Force </span><span class="cov0" title="0">{
+                                prompt := promptui.Prompt{
+                                        Label:     fmt.Sprintf(like_album_input_label_template_all_album_by_artist, searchResult.ArtistNames),
+                                        IsConfirm: true,
+                                }
+
+                                input, err := prompt.Run()
+                                if err != nil || input == "" </span><span class="cov0" title="0">{
+                                        answer = "n"
+                                }</span>
+                        }
+                        <span class="cov0" title="0">if answer == "y" </span><span class="cov0" title="0">{
+                                // like all albums released by the artist
+                                likeResults = api.LikeAllAlbumsReleasedByArtistById(o.Client, searchResult.Id, o.Force)
+                        }</span>
+                case spotify.SearchTypeAlbum:<span class="cov0" title="0">
+                        // like the album
+                        likeResults = api.LikeAlbumById(o.Client, searchResult.Id, o.Force)</span>
+                default:<span class="cov0" title="0">
+                        // if the id was not artist or album
+                        return errors.New(fmt.Sprintf(like_album_error_message_template_id_not_artist_album, id))</span>
+                }
+                // print the like result
+                <span class="cov0" title="0">o.printLikeAlbumResult(likeResults)</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (o *likeAlbumOption) printLikeAlbumResult(likeResults []*api.LikeResult) <span class="cov0" title="0">{
+        for index, result := range likeResults </span><span class="cov0" title="0">{
+                if index == 0 </span><span class="cov0" title="0">{
+                        // if the result was first, add blank line
+                        util.PrintlnWithWriter(o.Out, "")
+                }</span>
+                <span class="cov0" title="0">if (result.Refused || result.AlreadyLiked) &amp;&amp; len(likeResults) != 1 &amp;&amp; !o.Verbose </span><span class="cov0" title="0">{
+                        // if the result was refused or already liked
+                        // and the result was not one,
+                        // and the verbose option was not set
+                        // skip the result
+                        continue</span>
+                }
+                <span class="cov0" title="0">if result.Error != nil </span><span class="cov0" title="0">{
+                        util.PrintlnWithWriter(o.ErrOut, formatLikeResultError(result.Error))
+                }</span>
+                <span class="cov0" title="0">util.PrintlnWithWriter(o.Out, formatLikeAlbumResult(result))</span>
+        }
+}
+
+func formatLikeAlbumResult(result *api.LikeResult) string <span class="cov0" title="0">{
+        if result.AlreadyLiked </span><span class="cov0" title="0">{
+                return color.BlueString(fmt.Sprintf(like_album_message_template_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+        }</span> else<span class="cov0" title="0"> if result.Refused </span><span class="cov0" title="0">{
+                return color.YellowString(fmt.Sprintf(like_album_message_template_like_album_refused, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+        }</span> else<span class="cov0" title="0"> {
+                return color.GreenString(fmt.Sprintf(like_album_message_template_like_album_succeeded, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">package cmd
+
+import (
+        "errors"
+        "fmt"
+        "io"
+        "strings"
+
+        "github.com/yanosea/spotlike/api"
+        "github.com/yanosea/spotlike/auth"
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/fatih/color
+        "github.com/fatih/color"
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+)
+
+const (
+        like_artist_use   = "artist"
+        like_artist_short = "Like artist(s) in Spotify by ID."
+        like_artist_long  = `Like artist(s) in Spotify by ID.
+
+You must set the args or the flag "id" of artist(s) for like.
+If you set both args and flag "id", both will be liked.`
+        like_artist_flag_id                                    = "id"
+        like_artist_shorthand_id                               = "i"
+        like_artist_flag_description_id                        = "ID of the artist(s) for like"
+        like_artist_flag_force                                 = "force"
+        like_artist_shorthand_force                            = "f"
+        like_artist_flag_description_force                     = "like artist(s) without confirming"
+        like_artist_flag_verbose                               = "verbose"
+        like_artist_shorthand_verbose                          = "v"
+        like_artist_flag_description_verbose                   = "print verbose output"
+        like_artist_error_message_template_id_not_artist       = "The ID you passed [%s] is not artist."
+        like_artist_message_template_like_artist_already_liked = "%s already liked!\t:\t[%s]"
+        like_artist_message_template_like_artist_refused       = "Like %s refused!\t:\t[%s]"
+        like_artist_message_template_like_artist_succeeded     = "Like %s succeeded!\t:\t[%s]"
+)
+
+type likeArtistOption struct {
+        Client *spotify.Client
+
+        Args    []string
+        Id      string
+        Force   bool
+        Verbose bool
+
+        Out    io.Writer
+        ErrOut io.Writer
+}
+
+func newLikeArtistCommand(globalOption *GlobalOption) *cobra.Command <span class="cov0" title="0">{
+        o := &amp;likeArtistOption{}
+
+        cmd := &amp;cobra.Command{
+                Use:   like_artist_use,
+                Short: like_artist_short,
+                Long:  like_artist_long,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        o.Client = globalOption.Client
+                        if o.Client == nil </span><span class="cov0" title="0">{
+                                if !auth.IsEnvsSet() </span><span class="cov0" title="0">{
+                                        auth.SetAuthInfo()
+                                }</span>
+                                <span class="cov0" title="0">client, err := auth.Authenticate(globalOption.Out)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return err
+                                }</span>
+                                <span class="cov0" title="0">o.Client = client</span>
+                        }
+                        <span class="cov0" title="0">o.Args = args
+                        o.Out = globalOption.Out
+                        o.ErrOut = globalOption.ErrOut
+
+                        return o.likeArtist()</span>
+                },
+        }
+
+        <span class="cov0" title="0">cmd.PersistentFlags().StringVarP(&amp;o.Id, like_artist_flag_id, like_artist_shorthand_id, "", like_artist_flag_description_id)
+        cmd.PersistentFlags().BoolVarP(&amp;o.Force, like_artist_flag_force, like_artist_shorthand_force, false, like_artist_flag_description_force)
+        cmd.PersistentFlags().BoolVarP(&amp;o.Verbose, like_artist_flag_verbose, like_artist_shorthand_verbose, false, like_artist_flag_description_verbose)
+        cmd.SetOut(globalOption.Out)
+        cmd.SetErr(globalOption.ErrOut)
+
+        return cmd</span>
+}
+
+func (o *likeArtistOption) likeArtist() error <span class="cov0" title="0">{
+        // set the the id(s) from the args and the flag
+        var ids []string
+        for _, arg := range o.Args </span><span class="cov0" title="0">{
+                for _, a := range strings.Fields(arg) </span><span class="cov0" title="0">{
+                        ids = append(ids, a)
+                }</span>
+        }
+        <span class="cov0" title="0">for _, a := range strings.Fields(o.Id) </span><span class="cov0" title="0">{
+                ids = append(ids, a)
+        }</span>
+        <span class="cov0" title="0">if len(ids) == 0 </span><span class="cov0" title="0">{
+                // if the id(s) was not set
+                return errors.New(like_error_message_args_or_flag_id_required)
+        }</span>
+        <span class="cov0" title="0">var likeResults []*api.LikeResult
+        for _, id := range ids </span><span class="cov0" title="0">{
+                // first, search the artist by the id
+                searchResult, err := api.SearchById(o.Client, id)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">if searchResult.Type != spotify.SearchTypeArtist </span><span class="cov0" title="0">{
+                        // if the search result was not artist
+                        return errors.New(fmt.Sprintf(like_artist_error_message_template_id_not_artist, id))
+                }</span>
+                <span class="cov0" title="0">likeResults = api.LikeArtistById(o.Client, searchResult.Id, o.Force)</span>
+        }
+        // print the like result
+        <span class="cov0" title="0">o.printLikeArtistResult(likeResults)
+
+        return nil</span>
+}
+
+func (o *likeArtistOption) printLikeArtistResult(likeResults []*api.LikeResult) <span class="cov0" title="0">{
+        for index, result := range likeResults </span><span class="cov0" title="0">{
+                if index == 0 </span><span class="cov0" title="0">{
+                        // if the result was first, add blank line
+                        util.PrintlnWithWriter(o.Out, "")
+                }</span>
+                <span class="cov0" title="0">if (result.Refused || result.AlreadyLiked) &amp;&amp; len(likeResults) != 1 &amp;&amp; !o.Verbose </span><span class="cov0" title="0">{
+                        // if the result was refused or already liked
+                        // and the result was not one,
+                        // and the verbose option was not set
+                        // skip the result
+                        continue</span>
+                }
+                <span class="cov0" title="0">if result.Error != nil </span><span class="cov0" title="0">{
+                        util.PrintlnWithWriter(o.ErrOut, FormatLikeResultError(result.Error))
+                }</span>
+                <span class="cov0" title="0">util.PrintlnWithWriter(o.Out, formatLikeArtistResult(result))</span>
+        }
+}
+
+func formatLikeArtistResult(result *api.LikeResult) string <span class="cov0" title="0">{
+        if result.AlreadyLiked </span><span class="cov0" title="0">{
+                return color.BlueString(fmt.Sprintf(like_artist_message_template_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames))
+        }</span> else<span class="cov0" title="0"> if result.Refused </span><span class="cov0" title="0">{
+                return color.YellowString(fmt.Sprintf(like_artist_message_template_like_artist_refused, util.STRING_ARTIST, result.ArtistNames))
+        }</span> else<span class="cov0" title="0"> {
+                return color.GreenString(fmt.Sprintf(like_artist_message_template_like_artist_succeeded, util.STRING_ARTIST, result.ArtistNames))
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">package cmd
+
+import (
+        "errors"
+        "fmt"
+        "io"
+        "strings"
+
+        "github.com/yanosea/spotlike/api"
+        "github.com/yanosea/spotlike/auth"
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/fatih/color
+        "github.com/fatih/color"
+        // https://github.com/manifoldco/promptui
+        "github.com/manifoldco/promptui"
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+)
+
+const (
+        like_track_use   = "track"
+        like_track_short = "Like track(s) in Spotify by ID."
+        like_track_long  = `Like track(s) in Spotify by ID.
+
+You must set the args or the flag "id" of track(s), album(s) or artist(s) for like.
+If you set both args and flag "id", both will be liked.
+
+If you pass the artist ID, spotlike will like all albums released by the artist.
+If you pass the album ID, spotlike will like all tracks included in the album.`
+        like_track_flag_id                                          = "id"
+        like_track_shorthand_id                                     = "i"
+        like_track_flag_description_id                              = "ID of the track(s) or the artist(s) or the album for like"
+        like_track_flag_force                                       = "force"
+        like_track_shorthand_force                                  = "f"
+        like_track_flag_description_force                           = "like track(s) without confirming"
+        like_track_flag_verbose                                     = "verbose"
+        like_track_shorthand_verbose                                = "v"
+        like_track_flag_description_verbose                         = "print verbose output"
+        like_track_error_message_template_id_not_artist_album_track = "The ID you passed [%s] is not track, album or artist."
+        like_track_input_label_template_all_track_by_artist         = "Do you execute like all tracks by [%s]"
+        like_track_input_label_template_all_track_in_album          = "Do you execute like all tracks in [%s]"
+        like_track_message_template_like_track_already_liked        = "%s in [%s] by [%s] already liked!\t:\t[%s]"
+        like_track_message_template_like_track_refused              = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
+        like_track_message_template_like_track_succeeded            = "Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
+)
+
+type likeTrackOption struct {
+        Client *spotify.Client
+
+        Args    []string
+        Id      string
+        Level   string
+        Force   bool
+        Verbose bool
+
+        Out    io.Writer
+        ErrOut io.Writer
+}
+
+func newLikeTrackCommand(globalOption *GlobalOption) *cobra.Command <span class="cov0" title="0">{
+        o := &amp;likeTrackOption{}
+
+        cmd := &amp;cobra.Command{
+                Use:   like_track_use,
+                Short: like_track_short,
+                Long:  like_track_long,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        o.Client = globalOption.Client
+                        if o.Client == nil </span><span class="cov0" title="0">{
+                                if !auth.IsEnvsSet() </span><span class="cov0" title="0">{
+                                        auth.SetAuthInfo()
+                                }</span>
+                                <span class="cov0" title="0">client, err := auth.Authenticate(globalOption.Out)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return err
+                                }</span>
+                                <span class="cov0" title="0">o.Client = client</span>
+                        }
+                        <span class="cov0" title="0">o.Args = args
+                        o.Out = globalOption.Out
+                        o.ErrOut = globalOption.ErrOut
+
+                        return o.likeTrack()</span>
+                },
+        }
+
+        <span class="cov0" title="0">cmd.PersistentFlags().StringVarP(&amp;o.Id, like_track_flag_id, like_track_shorthand_id, "", like_track_flag_description_id)
+        cmd.PersistentFlags().BoolVarP(&amp;o.Force, like_track_flag_force, like_track_shorthand_force, false, like_track_flag_description_force)
+        cmd.PersistentFlags().BoolVarP(&amp;o.Verbose, like_track_flag_verbose, like_track_shorthand_verbose, false, like_track_flag_description_verbose)
+        cmd.SetOut(globalOption.Out)
+        cmd.SetErr(globalOption.ErrOut)
+
+        return cmd</span>
+}
+
+func (o *likeTrackOption) likeTrack() error <span class="cov0" title="0">{
+        // set the the id(s) from the args and the flag
+        var ids []string
+        for _, arg := range o.Args </span><span class="cov0" title="0">{
+                for _, a := range strings.Fields(arg) </span><span class="cov0" title="0">{
+                        ids = append(ids, a)
+                }</span>
+        }
+        <span class="cov0" title="0">for _, a := range strings.Fields(o.Id) </span><span class="cov0" title="0">{
+                ids = append(ids, a)
+        }</span>
+        <span class="cov0" title="0">if len(ids) == 0 </span><span class="cov0" title="0">{
+                // if the id(s) was not set
+                return errors.New(like_error_message_args_or_flag_id_required)
+        }</span>
+        <span class="cov0" title="0">var likeResults []*api.LikeResult
+        for _, id := range ids </span><span class="cov0" title="0">{
+                // first, search the content by the id
+                searchResult, err := api.SearchById(o.Client, id)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">switch searchResult.Type </span>{
+                case spotify.SearchTypeArtist:<span class="cov0" title="0">
+                        // confirm like all tracks by the artist
+                        answer := "y"
+                        if !o.Force </span><span class="cov0" title="0">{
+                                prompt := promptui.Prompt{
+                                        Label:     fmt.Sprintf(like_track_input_label_template_all_track_by_artist, searchResult.ArtistNames),
+                                        IsConfirm: true,
+                                }
+
+                                input, err := prompt.Run()
+                                if err != nil || input == "" </span><span class="cov0" title="0">{
+                                        answer = "n"
+                                }</span>
+                        }
+                        <span class="cov0" title="0">if answer == "y" </span><span class="cov0" title="0">{
+                                // like all tracks released by the artist
+                                likeResults = api.LikeAllTracksReleasedByArtistById(o.Client, searchResult.Id, o.Force)
+                        }</span>
+                case spotify.SearchTypeAlbum:<span class="cov0" title="0">
+                        // confirm like all tracks included in the album
+                        answer := "y"
+                        if !o.Force </span><span class="cov0" title="0">{
+                                prompt := promptui.Prompt{
+                                        Label:     fmt.Sprintf(like_track_input_label_template_all_track_in_album, searchResult.AlbumName),
+                                        IsConfirm: true,
+                                }
+
+                                input, err := prompt.Run()
+                                if err != nil || input == "" </span><span class="cov0" title="0">{
+                                        answer = "n"
+                                }</span>
+                        }
+                        <span class="cov0" title="0">if answer == "y" </span><span class="cov0" title="0">{
+                                // like all tracks included in the album
+                                likeResults = api.LikeAllTracksInAlbumById(o.Client, searchResult.Id, o.Force)
+                        }</span>
+                case spotify.SearchTypeTrack:<span class="cov0" title="0">
+                        // like the track
+                        likeResults = api.LikeTrackById(o.Client, searchResult.Id, o.Force)</span>
+                default:<span class="cov0" title="0">
+                        // if the id was not artist, album or track
+                        return errors.New(fmt.Sprintf(like_track_error_message_template_id_not_artist_album_track, id))</span>
+                }
+                // print the like result
+                <span class="cov0" title="0">o.printLikeTrackResult(likeResults)</span>
+        }
+
+        <span class="cov0" title="0">return nil</span>
+}
+
+func (o *likeTrackOption) printLikeTrackResult(likeResults []*api.LikeResult) <span class="cov0" title="0">{
+        for index, result := range likeResults </span><span class="cov0" title="0">{
+                if index == 0 </span><span class="cov0" title="0">{
+                        // if the result was first, add blank line
+                        util.PrintlnWithWriter(o.Out, "")
+                }</span>
+                <span class="cov0" title="0">if (result.Refused || result.AlreadyLiked) &amp;&amp; len(likeResults) != 1 &amp;&amp; !o.Verbose </span><span class="cov0" title="0">{
+                        // if the result was refused or already liked
+                        // and the result was not one,
+                        // and the verbose option was not set
+                        // skip the result
+                        continue</span>
+                }
+                <span class="cov0" title="0">if result.Error != nil </span><span class="cov0" title="0">{
+                        util.PrintlnWithWriter(o.ErrOut, formatLikeResultError(result.Error))
+                }</span>
+                <span class="cov0" title="0">util.PrintlnWithWriter(o.Out, formatLikeTrackResult(result))</span>
+        }
+}
+
+func formatLikeTrackResult(result *api.LikeResult) string <span class="cov0" title="0">{
+        if result.AlreadyLiked </span><span class="cov0" title="0">{
+                return color.BlueString(fmt.Sprintf(like_track_message_template_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+        }</span> else<span class="cov0" title="0"> if result.Refused </span><span class="cov0" title="0">{
+                return color.YellowString(fmt.Sprintf(like_track_message_template_like_track_refused, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+        }</span> else<span class="cov0" title="0"> {
+                return color.GreenString(fmt.Sprintf(like_track_message_template_like_track_succeeded, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+        }</span>
+}
+
+func formatLikeResultError(error error) string <span class="cov0" title="0">{
+        return color.RedString(fmt.Sprintf("Error:\n  %s", error))
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">package cmd
+
+import (
+        "errors"
+        "io"
+        "os"
+
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/fatih/color
+        "github.com/fatih/color"
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+)
+
+const (
+        root_use   = "spotlike"
+        root_short = "spotlike is the CLI tool to LIKE contents in Spotify."
+        root_long  = `'spotlike' is the CLI tool to LIKE contents in Spotify.
+
+You can get the ID of some contents in Spotify.
+You can LIKE the contents in Spotify by ID.`
+        root_error_message_no_sub_command = `Use sub command below...
+  * auth
+  * like
+    * artist
+    * album
+    * track
+  * search
+  * version`
+)
+
+type GlobalOption struct {
+        Client *spotify.Client
+
+        Out    io.Writer
+        ErrOut io.Writer
+}
+
+var version = "develop"
+
+func Execute() int <span class="cov0" title="0">{
+        o := os.Stdout
+        e := os.Stderr
+
+        rootCmd, err := NewRootCommand(o, e)
+        if err != nil </span><span class="cov0" title="0">{
+                util.PrintlnWithWriter(e, color.RedString(err.Error()))
+                return 1
+        }</span>
+
+        <span class="cov0" title="0">if err = rootCmd.Execute(); err != nil </span><span class="cov0" title="0">{
+                util.PrintlnWithWriter(e, color.RedString(err.Error()))
+                return 1
+        }</span>
+
+        <span class="cov0" title="0">return 0</span>
+}
+
+func NewRootCommand(outWriter, errWriter io.Writer) (*cobra.Command, error) <span class="cov0" title="0">{
+        o := &amp;GlobalOption{}
+
+        cmd := &amp;cobra.Command{
+                Use:           root_use,
+                Short:         root_short,
+                Long:          root_long,
+                Version:       version,
+                SilenceErrors: true,
+                SilenceUsage:  true,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return errors.New(root_error_message_no_sub_command)
+                }</span>,
+        }
+
+        <span class="cov0" title="0">o.Out = outWriter
+        o.ErrOut = errWriter
+        cmd.SetOut(outWriter)
+        cmd.SetErr(errWriter)
+
+        cmd.AddCommand(
+                newAuthCommand(o),
+                newLikeCommand(o),
+                newSearchCommand(o),
+                newVersionCommand(o),
+        )
+
+        return cmd, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">package cmd
+
+import (
+        "errors"
+        "fmt"
+        "io"
+        "strings"
+
+        "github.com/yanosea/spotlike/api"
+        "github.com/yanosea/spotlike/auth"
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+        // https://github.com/zmb3/spotify/v2
+        "github.com/zmb3/spotify/v2"
+)
+
+const (
+        search_use   = "search"
+        search_short = "Search for the ID of content in Spotify."
+        search_long  = `Search for the ID of content in Spotify.
+
+You can set the args or the flag "query" to specify the search query.
+If you set both args and flag "query", they will be combined.
+
+You can set the flag "number" to limiting the number of search results.
+Default is 1.
+
+You can set the flag "type" to search type of the content.
+If you don't set the flag "type", searching without specifying the content type will be executed.
+You must specify the the flag "type" below :
+  * artist
+  * album
+  * track`
+        search_flag_query                                = "query"
+        search_flag_query_shorthand                      = "q"
+        search_flag_query_description                    = "query for search"
+        search_flag_number                               = "number"
+        search_flag_number_shorthand                     = "n"
+        search_flag_number_description                   = "number of search results (default is 1)"
+        search_flag_type                                 = "type"
+        search_flag_type_shorthand                       = "t"
+        search_flag_type_description                     = "type of the content for search"
+        search_error_message_args_or_flag_query_required = `The arguments or the flag "query" is required...`
+        search_error_message_flag_type_invalid           = `The argument of the flag "type" must be "artist", "album", or "track"...`
+)
+
+type searchOption struct {
+        Client *spotify.Client
+
+        Args       []string
+        Query      string
+        Number     int
+        SearchType string
+
+        Out    io.Writer
+        ErrOut io.Writer
+}
+
+func newSearchCommand(globalOption *GlobalOption) *cobra.Command <span class="cov0" title="0">{
+        o := &amp;searchOption{}
+
+        cmd := &amp;cobra.Command{
+                Use:   search_use,
+                Short: search_short,
+                Long:  search_long,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        o.Client = globalOption.Client
+                        if o.Client == nil </span><span class="cov0" title="0">{
+                                if !auth.IsEnvsSet() </span><span class="cov0" title="0">{
+                                        auth.SetAuthInfo()
+                                }</span>
+                                <span class="cov0" title="0">client, err := auth.Authenticate(globalOption.Out)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return err
+                                }</span>
+                                <span class="cov0" title="0">o.Client = client</span>
+                        }
+                        <span class="cov0" title="0">o.Args = args
+                        o.Out = globalOption.Out
+                        o.ErrOut = globalOption.ErrOut
+
+                        return o.search()</span>
+                },
+        }
+
+        <span class="cov0" title="0">cmd.PersistentFlags().StringVarP(&amp;o.Query, search_flag_query, search_flag_query_shorthand, "", search_flag_query_description)
+        cmd.PersistentFlags().IntVarP(&amp;o.Number, search_flag_number, search_flag_number_shorthand, 1, search_flag_number_description)
+        cmd.PersistentFlags().StringVarP(&amp;o.SearchType, search_flag_type, search_flag_type_shorthand, "", search_flag_type_description)
+        cmd.SetOut(globalOption.Out)
+        cmd.SetErr(globalOption.ErrOut)
+
+        return cmd</span>
+}
+
+func (o *searchOption) search() error <span class="cov0" title="0">{
+        // set the query
+        q := strings.TrimSpace(o.combineAllArgs() + o.Query)
+        if q == "" </span><span class="cov0" title="0">{
+                // if the args or the flag query is empty, return error
+                return errors.New(search_error_message_args_or_flag_query_required)
+        }</span>
+        // set the search type
+        <span class="cov0" title="0">st := o.defineSearchType(o.SearchType)
+        if st == 0 </span><span class="cov0" title="0">{
+                // if the search type is invalid,  return error
+                return errors.New(search_error_message_flag_type_invalid)
+        }</span>
+        // execute search
+        <span class="cov0" title="0">searchResult, err := api.SearchByQuery(o.Client, q, o.Number, st)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        // print the search result
+        <span class="cov0" title="0">o.printSearchResult(searchResult)
+
+        return nil</span>
+}
+
+func (o *searchOption) combineAllArgs() string <span class="cov0" title="0">{
+        var allArgs string
+        for index, arg := range o.Args </span><span class="cov0" title="0">{
+                allArgs += arg
+                if index+1 != len(o.Args) </span><span class="cov0" title="0">{
+                        // if the arg is not last, add space
+                        allArgs += " "
+                }</span>
+        }
+
+        <span class="cov0" title="0">return allArgs</span>
+}
+
+func (o *searchOption) defineSearchType(searchType string) spotify.SearchType <span class="cov0" title="0">{
+        if o.SearchType == "" </span><span class="cov0" title="0">{
+                // if the search type is not defined,  set all types
+                return spotify.SearchTypeArtist | spotify.SearchTypeArtist | spotify.SearchTypeTrack
+        }</span>
+        <span class="cov0" title="0">if st, ok := util.SEARCH_TYPE_MAP[strings.ToLower(o.SearchType)]; ok </span><span class="cov0" title="0">{
+                // if the search type is defined and valid,  return the search type
+                return st
+        }</span>
+
+        // if the search type is invalid, return 0
+        <span class="cov0" title="0">return 0</span>
+}
+
+func (o *searchOption) printSearchResult(searchResultList []api.SearchResult) <span class="cov0" title="0">{
+        for index, searchResult := range searchResultList </span><span class="cov0" title="0">{
+                if index != 0 </span><span class="cov0" title="0">{
+                        // if the result was not first, add blank line above
+                        util.PrintWithWriterWithBlankLineAbove(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
+                }</span> else<span class="cov0" title="0"> {
+                        util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
+                }</span>
+                <span class="cov0" title="0">util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
+                util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
+                if searchResult.Type == spotify.SearchTypeAlbum || searchResult.Type == spotify.SearchTypeTrack </span><span class="cov0" title="0">{
+                        // if the search type is album or track, print the release date and the album name
+                        util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_RELEASE, searchResult.ReleaseDate))
+                        util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
+                }</span>
+                <span class="cov0" title="0">if searchResult.Type == spotify.SearchTypeTrack </span><span class="cov0" title="0">{
+                        // if the search type is track, print the track name
+                        util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
+                }</span>
+        }
+}
+
+func formatSearchResult(topic string, detail string) string <span class="cov0" title="0">{
+        return fmt.Sprintf("%s\t:\t[%s]", topic, detail)
+}</span>
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">package cmd
+
+import (
+        "fmt"
+
+        "github.com/yanosea/spotlike/util"
+
+        // https://github.com/spf13/cobra
+        "github.com/spf13/cobra"
+)
+
+const (
+        version_use              = "version"
+        version_short            = "Show the version of spotlike."
+        version_message_template = "spotlike version %s"
+)
+
+func newVersionCommand(globalOption *GlobalOption) *cobra.Command <span class="cov0" title="0">{
+        cmd := &amp;cobra.Command{
+                Use:   version_use,
+                Short: version_short,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return globalOption.version()
+                }</span>,
+        }
+
+        <span class="cov0" title="0">cmd.SetOut(globalOption.Out)
+        cmd.SetErr(globalOption.ErrOut)
+
+        return cmd</span>
+}
+
+func (g *GlobalOption) version() error <span class="cov0" title="0">{
+        // show version
+        util.PrintlnWithWriter(g.Out, fmt.Sprintf(version_message_template, version))
+        return nil
+}</span>
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">package main
+
+import (
+        "os"
+
+        "github.com/yanosea/spotlike/cmd"
+)
+
+func main() <span class="cov0" title="0">{
+        os.Exit(cmd.Execute())
+}</span>
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">package util
 
 import (
         "fmt"

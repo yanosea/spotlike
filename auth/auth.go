@@ -184,19 +184,6 @@ func Authenticate(o io.Writer) (*spotify.Client, error) {
 	return client, nil
 }
 
-func getPortFromUri(uri string) (string, error) {
-	u, err := url.Parse(uri)
-	if err != nil {
-		return "", err
-	}
-
-	if u.Port() == "" {
-		return "", errors.New(auth_error_message_invalid_uri)
-	}
-
-	return u.Port(), nil
-}
-
 func refresh(authenticator *spotifyauth.Authenticator, refreshToken string) (*spotify.Client, error) {
 	tok := &oauth2.Token{
 		TokenType:    "bearer",
@@ -209,4 +196,17 @@ func refresh(authenticator *spotifyauth.Authenticator, refreshToken string) (*sp
 	}
 
 	return client, nil
+}
+
+func getPortFromUri(uri string) (string, error) {
+	u, err := url.Parse(uri)
+	if err != nil {
+		return "", err
+	}
+
+	if u.Port() == "" {
+		return "", errors.New(auth_error_message_invalid_uri)
+	}
+
+	return u.Port(), nil
 }

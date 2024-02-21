@@ -1,60 +1,156 @@
 package auth
 
 import (
-	"fmt"
-	"net/http"
+	"bytes"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/yanosea/spotlike/util"
+
 	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2/auth"
 )
 
-func TestNew(t *testing.T) {
+func TestIsEnvsSet(t *testing.T) {
 	tests := []struct {
-		name     string
-		setupEnv func()
-		want     *authenticator
+		name                string
+		spotifyID           string
+		spotifySecret       string
+		spotifyRedirectUri  string
+		spotifyRefreshToken string
+		want                bool
 	}{
 		{
-			name: "Positive case",
-			setupEnv: func() {
-				os.Setenv(auth_env_spotify_id, "test_spotify_id")
-				os.Setenv(auth_env_spotify_secret, "test_spotify_secret")
-				os.Setenv(auth_env_spotify_redirect_uri, "http://localhost:8080/callback")
-				os.Setenv(auth_env_spotify_refresh_token, "")
-			},
-			want: &authenticator{
-				spotifyAuthenticator: spotifyauth.New(
-					spotifyauth.WithRedirectURL("http://localhost:8080/callback"),
-					spotifyauth.WithScopes(
-						spotifyauth.ScopeUserFollowRead,
-						spotifyauth.ScopeUserLibraryRead,
-						spotifyauth.ScopeUserFollowModify,
-						spotifyauth.ScopeUserLibraryModify,
-					),
-				),
-				channel: make(chan *spotify.Client),
-				state:   "test_state",
-			},
+			name:                "positive testing (all set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                true,
+		}, {
+			name:                "positive testing (SPOTIFY_ID not set)",
+			spotifyID:           "",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_SECRET not set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_REDIRECT_URI not set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_REFRESH_TOKEN not set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_ID and SPOTIFY_SECRET not set)",
+			spotifyID:           "",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_ID and SPOTIFY_REDIRECT_URI not set)",
+			spotifyID:           "",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_ID and SPOTIFY_REFRESH_TOKEN not set)",
+			spotifyID:           "",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_SECRET and SPOTIFY_REDIRECT_URI not set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_SECRET and SPOTIFY_REFRESH_TOKEN not set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_REDIRECT_URI and SPOTIFY_REFRESH_TOKEN not set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_ID, SPOTIFY_SECRET, SPOTIFY_REDIRECT_URI not set)",
+			spotifyID:           "",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "test_refresh_token",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_ID, SPOTIFY_SECRET, SPOTIFY_REFRESH_TOKEN not set)",
+			spotifyID:           "",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "test_redirect_uri",
+			spotifyRefreshToken: "",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_ID, SPOTIFY_REDIRECT_URI, SPOTIFY_REFRESH_TOKEN not set)",
+			spotifyID:           "",
+			spotifySecret:       "test_secret",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "",
+			want:                false,
+		}, {
+			name:                "positive testing (SPOTIFY_SECRET, SPOTIFY_REDIRECT_URI, SPOTIFY_REFRESH_TOKEN not set)",
+			spotifyID:           "test_id",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "",
+			want:                false,
+		}, {
+			name:                "positive testing (all empty)",
+			spotifyID:           "",
+			spotifySecret:       "",
+			spotifyRedirectUri:  "",
+			spotifyRefreshToken: "",
+			want:                false,
 		},
 	}
+
 	for _, tt := range tests {
+		os.Setenv(util.AUTH_ENV_SPOTIFY_ID, tt.spotifyID)
+		os.Setenv(util.AUTH_ENV_SPOTIFY_SECRET, tt.spotifySecret)
+		os.Setenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI, tt.spotifyRedirectUri)
+		os.Setenv(util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN, tt.spotifyRefreshToken)
 		t.Run(tt.name, func(t *testing.T) {
-			tt.setupEnv()
-			got := New()
-			fmt.Println(tt.want)
-			fmt.Println(got)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("New() = %v, want %v", got, tt.want)
+			if got := IsEnvsSet(); got != tt.want {
+				t.Errorf("IsEnvsSet() = %v, want %v", got, tt.want)
 			}
 		})
 	}
 }
 
-func Test_setAuthInfo(t *testing.T) {
+func TestSetAuthInfo(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
@@ -62,20 +158,46 @@ func Test_setAuthInfo(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			setAuthInfo()
+			SetAuthInfo()
 		})
 	}
 }
 
-func Test_authenticator_Authenticate(t *testing.T) {
-	type fields struct {
-		spotifyAuthenticator *spotifyauth.Authenticator
-		channel              chan *spotify.Client
-		state                string
+func TestAuthenticate(t *testing.T) {
+	tests := []struct {
+		name    string
+		want    *spotify.Client
+		wantO   string
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			o := &bytes.Buffer{}
+			got, err := Authenticate(o)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Authenticate() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Authenticate() = %v, want %v", got, tt.want)
+			}
+			if gotO := o.String(); gotO != tt.wantO {
+				t.Errorf("Authenticate() = %v, want %v", gotO, tt.wantO)
+			}
+		})
+	}
+}
+
+func Test_refresh(t *testing.T) {
+	type args struct {
+		authenticator *spotifyauth.Authenticator
+		refreshToken  string
 	}
 	tests := []struct {
 		name    string
-		fields  fields
+		args    args
 		want    *spotify.Client
 		wantErr bool
 	}{
@@ -83,48 +205,14 @@ func Test_authenticator_Authenticate(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := &authenticator{
-				spotifyAuthenticator: tt.fields.spotifyAuthenticator,
-				channel:              tt.fields.channel,
-				state:                tt.fields.state,
-			}
-			got, err := a.Authenticate()
+			got, err := refresh(tt.args.authenticator, tt.args.refreshToken)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("authenticator.Authenticate() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("refresh() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("authenticator.Authenticate() = %v, want %v", got, tt.want)
+				t.Errorf("refresh() = %v, want %v", got, tt.want)
 			}
-		})
-	}
-}
-
-func Test_authenticator_completeAuthenticate(t *testing.T) {
-	type fields struct {
-		spotifyAuthenticator *spotifyauth.Authenticator
-		channel              chan *spotify.Client
-		state                string
-	}
-	type args struct {
-		w http.ResponseWriter
-		r *http.Request
-	}
-	tests := []struct {
-		name   string
-		fields fields
-		args   args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			a := &authenticator{
-				spotifyAuthenticator: tt.fields.spotifyAuthenticator,
-				channel:              tt.fields.channel,
-				state:                tt.fields.state,
-			}
-			a.completeAuthenticate(tt.args.w, tt.args.r)
 		})
 	}
 }
@@ -144,36 +232,31 @@ func Test_getPortFromUri(t *testing.T) {
 			name: "positive testing",
 			args: args{
 				uri: "http://localhost:8080/callback",
-			},
-			want:    "8080",
+			}, want: "8080",
 			wantErr: false,
 		}, {
 			name: "negative testing (the uri doesn't have port number)",
 			args: args{
 				uri: "http://localhost/callback",
-			},
-			wantErr: true,
+			}, wantErr: true,
 			wantMsg: auth_error_message_invalid_uri,
 		}, {
 			name: "negative testing (space)",
 			args: args{
 				uri: " ",
-			},
-			wantErr: true,
+			}, wantErr: true,
 			wantMsg: auth_error_message_invalid_uri,
 		}, {
 			name: "negative testing (blank)",
 			args: args{
 				uri: "",
-			},
-			wantErr: true,
+			}, wantErr: true,
 			wantMsg: auth_error_message_invalid_uri,
 		}, {
 			name: "negative testing (invalid uri)",
 			args: args{
 				uri: "http://localhost:8080/invalid%2",
-			},
-			wantErr: true,
+			}, wantErr: true,
 			wantMsg: "invalid URL escape",
 		},
 	}
