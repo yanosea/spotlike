@@ -248,6 +248,7 @@ func LikeAllTracksReleasedByArtistById(client *spotify.Client, id string, force 
 			// getting all albums by the artist searched by ID failed
 			Error: err,
 		})
+
 		return likeResults
 	}
 	// sort albums by release date

@@ -25,43 +25,26 @@ const (
 	like_track_short = "Like track(s) in Spotify by ID."
 	like_track_long  = `Like track(s) in Spotify by ID.
 
-You must set the args or the flag "id" of track(s) for like.
-If you set both args and flag "id", both tracks will be liked.
+You must set the args or the flag "id" of track(s), album(s) or artist(s) for like.
+If you set both args and flag "id", both will be liked.
 
-You can also set the flag "album" or "artist".
-If you set the flag "artist" and pass the artist ID, spotlike will like all tracks released by the artist.
-If you set the flag "album" and pass the album ID, spotlike will like all tracks included in the album.`
-	like_track_flag_id                                    = "id"
-	like_track_shorthand_id                               = "i"
-	like_track_flag_description_id                        = "ID of the track(s) or the artist(s) or the album for like"
-	like_track_flag_force                                 = "force"
-	like_track_shorthand_force                            = "f"
-	like_track_flag_description_force                     = "like track(s) without confirming"
-	like_track_flag_verbose                               = "verbose"
-	like_track_shorthand_verbose                          = "v"
-	like_track_flag_description_verbose                   = "print verbose output"
-	like_track_flag_artist                                = "artist"
-	like_track_flag_description_artist                    = "like all albums released by the artist"
-	like_track_flag_album                                 = "album"
-	like_track_flag_description_album                     = "like all tracks included in the album"
-	like_track_error_message_args_or_flag_id_required     = `The arguments or the flag "id" is required...`
-	like_track_error_message_template_flag_artist_invalid = `The ID you passed [%s] is artist ID but you did not set the flag "artist".
-You have to set the flag "artist" ID with setting the flag "artist".
-You do not have to set the flag "album".`
-	like_track_error_message_template_flag_album_invalid = `The ID you passed [%s] is album ID but you did not set the flag "album".
-You have to set the flag "artist" ID with setting the flag "artist".
-You do not have to set the flag "artist".`
-	like_track_error_message_template_flag_artist_album_invalid = `The ID you passed [%s] is track ID.
-You do not have to set the flags "artist" and "album".`
-	like_track_error_message_template_id_not_album_artist_track = `The ID you passed [%s] is neither the album ID, the artist ID nor the track ID.
-You have to pass the track ID for like the track(s).
-You have to pass the album ID for like the all tracks included in the album with setting the flag "album".
-You have to pass the artist Id for like the all tracks released by the artist with setting the flag "artist".`
-	like_track_confirm_message_template_all_track_by_artist = "Do you execute like all tracks by [%s]"
-	like_track_confirm_message_template_all_track_in_album  = "Do you execute like all tracks in [%s]"
-	like_track_message_template_like_track_already_liked    = "%s in [%s] by [%s] already liked!\t:\t[%s]"
-	like_track_message_template_like_track_refused          = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
-	like_track_message_template_like_track_succeeded        = "Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
+If you pass the artist ID, spotlike will like all albums released by the artist.
+If you pass the album ID, spotlike will like all tracks included in the album.`
+	like_track_flag_id                                          = "id"
+	like_track_shorthand_id                                     = "i"
+	like_track_flag_description_id                              = "ID of the track(s) or the artist(s) or the album for like"
+	like_track_flag_force                                       = "force"
+	like_track_shorthand_force                                  = "f"
+	like_track_flag_description_force                           = "like track(s) without confirming"
+	like_track_flag_verbose                                     = "verbose"
+	like_track_shorthand_verbose                                = "v"
+	like_track_flag_description_verbose                         = "print verbose output"
+	like_track_error_message_template_id_not_artist_album_track = "The ID you passed [%s] is not track, album or artist."
+	like_track_input_label_template_all_track_by_artist         = "Do you execute like all tracks by [%s]"
+	like_track_input_label_template_all_track_in_album          = "Do you execute like all tracks in [%s]"
+	like_track_message_template_like_track_already_liked        = "%s in [%s] by [%s] already liked!\t:\t[%s]"
+	like_track_message_template_like_track_refused              = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
+	like_track_message_template_like_track_succeeded            = "Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
 )
 
 type likeTrackOption struct {
@@ -72,8 +55,6 @@ type likeTrackOption struct {
 	Level   string
 	Force   bool
 	Verbose bool
-	Artist  bool
-	Album   bool
 
 	Out    io.Writer
 	ErrOut io.Writer
@@ -109,8 +90,6 @@ func newLikeTrackCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&o.Id, like_track_flag_id, like_track_shorthand_id, "", like_track_flag_description_id)
 	cmd.PersistentFlags().BoolVarP(&o.Force, like_track_flag_force, like_track_shorthand_force, false, like_track_flag_description_force)
 	cmd.PersistentFlags().BoolVarP(&o.Verbose, like_track_flag_verbose, like_track_shorthand_verbose, false, like_track_flag_description_verbose)
-	cmd.PersistentFlags().BoolVarP(&o.Artist, like_track_flag_artist, "", false, like_track_flag_description_artist)
-	cmd.PersistentFlags().BoolVarP(&o.Album, like_track_flag_album, "", false, like_track_flag_description_album)
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
 
@@ -141,31 +120,11 @@ func (o *likeTrackOption) likeTrack() error {
 		}
 		switch searchResult.Type {
 		case spotify.SearchTypeArtist:
-			if !o.Artist || (!o.Artist && o.Album) || (o.Artist && o.Album) {
-				// if the search result was artist, and the flag "artist" was not set or the flag "album" was set
-				return errors.New(fmt.Sprintf(like_track_error_message_template_flag_artist_invalid, id))
-			}
-		case spotify.SearchTypeAlbum:
-			if !o.Album || (!o.Album && o.Artist) || (o.Album && o.Artist) {
-				// if the search result was album, and the flag "album" was not set or the flag "artist" was set
-				return errors.New(fmt.Sprintf(like_track_error_message_template_flag_album_invalid, id))
-			}
-		case spotify.SearchTypeTrack:
-			// if the search result was track and the flag "artist" or the flag "album" was set
-			if o.Artist || o.Album {
-				return errors.New(fmt.Sprintf(like_track_error_message_template_flag_artist_album_invalid, id))
-			}
-		default:
-			// if the search result was not album and not artist
-			return errors.New(fmt.Sprintf(like_track_error_message_template_id_not_album_artist_track, id))
-		}
-		switch searchResult.Type {
-		case spotify.SearchTypeArtist:
 			// confirm like all tracks by the artist
 			answer := "y"
 			if !o.Force {
 				prompt := promptui.Prompt{
-					Label:     fmt.Sprintf(like_track_confirm_message_template_all_track_by_artist, searchResult.ArtistNames),
+					Label:     fmt.Sprintf(like_track_input_label_template_all_track_by_artist, searchResult.ArtistNames),
 					IsConfirm: true,
 				}
 
@@ -175,6 +134,7 @@ func (o *likeTrackOption) likeTrack() error {
 				}
 			}
 			if answer == "y" {
+				// like all tracks released by the artist
 				likeResults = api.LikeAllTracksReleasedByArtistById(o.Client, searchResult.Id, o.Force)
 			}
 		case spotify.SearchTypeAlbum:
@@ -182,7 +142,7 @@ func (o *likeTrackOption) likeTrack() error {
 			answer := "y"
 			if !o.Force {
 				prompt := promptui.Prompt{
-					Label:     fmt.Sprintf(like_track_confirm_message_template_all_track_in_album, searchResult.AlbumName),
+					Label:     fmt.Sprintf(like_track_input_label_template_all_track_in_album, searchResult.AlbumName),
 					IsConfirm: true,
 				}
 
@@ -192,11 +152,17 @@ func (o *likeTrackOption) likeTrack() error {
 				}
 			}
 			if answer == "y" {
+				// like all tracks included in the album
 				likeResults = api.LikeAllTracksInAlbumById(o.Client, searchResult.Id, o.Force)
 			}
 		case spotify.SearchTypeTrack:
+			// like the track
 			likeResults = api.LikeTrackById(o.Client, searchResult.Id, o.Force)
+		default:
+			// if the id was not artist, album or track
+			return errors.New(fmt.Sprintf(like_track_error_message_template_id_not_artist_album_track, id))
 		}
+		// print the like result
 		o.printLikeTrackResult(likeResults)
 	}
 

@@ -26,12 +26,15 @@ const (
 
 func SearchByQuery(client *spotify.Client, query string, number int, searchType spotify.SearchType) ([]SearchResult, error) {
 	var searchResultList []SearchResult
+	// execute search
 	result, err := client.Search(context.Background(), query, searchType, spotify.Limit(number))
 	if err != nil {
+		// search failed
 		return nil, err
 	}
 
 	if result.Artists != nil {
+		// if the search result is artist, append to searchResultList
 		for _, artist := range result.Artists.Artists {
 			searchResultList = append(searchResultList, SearchResult{
 				Id:          artist.ID.String(),
@@ -44,6 +47,7 @@ func SearchByQuery(client *spotify.Client, query string, number int, searchType 
 
 	if result.Albums != nil {
 		for _, album := range result.Albums.Albums {
+			// if the search result is album, append to searchResultList
 			searchResultList = append(searchResultList, SearchResult{
 				Id:          album.ID.String(),
 				Type:        spotify.SearchTypeAlbum,
@@ -56,6 +60,7 @@ func SearchByQuery(client *spotify.Client, query string, number int, searchType 
 	}
 
 	if result.Tracks != nil {
+		// if the search result is track, append to searchResultList
 		for _, track := range result.Tracks.Tracks {
 			searchResultList = append(searchResultList, SearchResult{
 				Id:          track.ID.String(),
@@ -69,16 +74,20 @@ func SearchByQuery(client *spotify.Client, query string, number int, searchType 
 		return searchResultList, nil
 	}
 
+	// if the search result is not artist, album, or track, return error
 	return nil, errors.New(search_error_message_not_artist_album_track)
 }
 
 func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 	var unmarshalTypeErr *json.UnmarshalTypeError
+	// execute search artist
 	if _, err := client.GetArtist(context.Background(), spotify.ID(id)); errors.As(err, &unmarshalTypeErr) {
 		// if search failed with UnmarshalTypeError, search artist albums again
 		// c.f. https://github.com/zmb3/spotify/issues/243
 		// c.f. https://community.spotify.com/t5/Spotify-for-Developers/Get-Artist-API-endpoint-responds-with-result-in-inconsistent/td-p/5806916
+		// execute search the artist albums
 		if result, err := client.GetArtistAlbums(context.Background(), spotify.ID(id), nil); err == nil {
+			// get the artist from album
 			for _, album := range result.Albums {
 				for _, artist := range album.Artists {
 					if artist.ID.String() == id {
@@ -93,6 +102,7 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 		}
 	}
 
+	// execute search album
 	if result, err := client.GetAlbum(context.Background(), spotify.ID(id)); err == nil {
 		return &SearchResult{
 			Id:          result.ID.String(),
@@ -103,6 +113,7 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 		}, nil
 	}
 
+	// execute search track
 	if result, err := client.GetTrack(context.Background(), spotify.ID(id)); err == nil {
 		return &SearchResult{
 			Id:          result.ID.String(),
@@ -114,5 +125,6 @@ func SearchById(client *spotify.Client, id string) (*SearchResult, error) {
 		}, nil
 	}
 
+	// if the search result is not artist, album, or track, return error
 	return nil, errors.New(fmt.Sprintf(search_error_message_template_id_not_found, id))
 }
