@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
+
+	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
 	"github.com/fatih/color"
@@ -21,7 +22,7 @@ You must use sub command below...
 * 🖌️  artist
 * 💿 album
 * 🎵 track`
-	like_error_message_no_sub_command = `Use sub command below...
+	like_message_no_sub_command = `Use sub command below...
 
 * 🖌️  artist
 * 💿 album
@@ -35,7 +36,10 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 		Short: like_short,
 		Long:  like_long,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return errors.New(like_error_message_no_sub_command)
+			// If no sub command is specified, print the message and return nil.
+			util.PrintlnWithWriter(globalOption.Out, like_message_no_sub_command)
+
+			return nil
 		},
 	}
 

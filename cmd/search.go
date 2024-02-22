@@ -39,7 +39,7 @@ You must specify the the flag "type" below :
 	search_flag_query_description                    = "query for search"
 	search_flag_number                               = "number"
 	search_flag_number_shorthand                     = "n"
-	search_flag_number_description                   = "number of search results (default is 1)"
+	search_flag_number_description                   = "number of search results"
 	search_flag_type                                 = "type"
 	search_flag_type_shorthand                       = "t"
 	search_flag_type_description                     = "type of the content for search"

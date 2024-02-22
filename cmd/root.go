@@ -86,6 +86,8 @@ func NewRootCommand(outWriter, errWriter io.Writer) (*cobra.Command, error) {
 
 	cmd.AddCommand(
 		newAuthCommand(o),
+		newCompletionCommand(o),
+		newHelpCommand(o),
 		newLikeCommand(o),
 		newSearchCommand(o),
 		newVersionCommand(o),
