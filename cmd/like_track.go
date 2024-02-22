@@ -8,6 +8,7 @@ import (
 
 	"github.com/yanosea/spotlike/api"
 	"github.com/yanosea/spotlike/auth"
+	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -90,8 +91,11 @@ func newLikeTrackCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&o.Id, like_track_flag_id, like_track_shorthand_id, "", like_track_flag_description_id)
 	cmd.PersistentFlags().BoolVarP(&o.Force, like_track_flag_force, like_track_shorthand_force, false, like_track_flag_description_force)
 	cmd.PersistentFlags().BoolVarP(&o.Verbose, like_track_flag_verbose, like_track_shorthand_verbose, false, like_track_flag_description_verbose)
+
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.LIKE_TRACK_HELP_TEMPLATE)
 
 	return cmd
 }

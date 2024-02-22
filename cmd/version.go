@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/spf13/cobra
@@ -30,6 +31,8 @@ func newVersionCommand(globalOption *GlobalOption) *cobra.Command {
 
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.VERSION_HELP_TEMPLATE)
 
 	return cmd
 }

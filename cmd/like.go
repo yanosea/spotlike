@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -45,6 +46,8 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.LIKE_HELP_TEMPLATE)
 
 	cmd.AddCommand(
 		newLikeArtistCommand(globalOption),

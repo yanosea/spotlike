@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/yanosea/spotlike/help"
+
 	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
 )
@@ -26,6 +28,11 @@ func newCompletionPowerShellCommand(globalOption *GlobalOption) *cobra.Command {
 			return cmd.GenPowerShellCompletion(globalOption.Out)
 		},
 	}
+
+	cmd.SetOut(globalOption.Out)
+	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.COMPLETION_POWERSHELL_HELP_TEMPLATE)
 
 	return cmd
 }

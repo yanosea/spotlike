@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -83,6 +84,8 @@ func NewRootCommand(outWriter, errWriter io.Writer) (*cobra.Command, error) {
 	o.ErrOut = errWriter
 	cmd.SetOut(outWriter)
 	cmd.SetErr(errWriter)
+
+	cmd.SetHelpTemplate(help.ROOT_HELP_TEMPLATE)
 
 	cmd.AddCommand(
 		newAuthCommand(o),

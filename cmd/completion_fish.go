@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"github.com/yanosea/spotlike/help"
+
 	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
 )
@@ -30,6 +32,11 @@ func newCompletionFishCommand(globalOption *GlobalOption) *cobra.Command {
 			return cmd.GenFishCompletion(globalOption.Out, false)
 		},
 	}
+
+	cmd.SetOut(globalOption.Out)
+	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.COMPLETION_FISH_HELP_TEMPLATE)
 
 	return cmd
 }

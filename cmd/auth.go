@@ -4,6 +4,7 @@ import (
 	"io"
 
 	"github.com/yanosea/spotlike/auth"
+	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -44,6 +45,8 @@ func newAuthCommand(globalOption *GlobalOption) *cobra.Command {
 
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.AUTH_HELP_TEMPLATE)
 
 	return cmd
 }

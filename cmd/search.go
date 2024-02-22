@@ -8,6 +8,7 @@ import (
 
 	"github.com/yanosea/spotlike/api"
 	"github.com/yanosea/spotlike/auth"
+	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/spf13/cobra
@@ -89,8 +90,11 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&o.Query, search_flag_query, search_flag_query_shorthand, "", search_flag_query_description)
 	cmd.PersistentFlags().IntVarP(&o.Number, search_flag_number, search_flag_number_shorthand, 1, search_flag_number_description)
 	cmd.PersistentFlags().StringVarP(&o.SearchType, search_flag_type, search_flag_type_shorthand, "", search_flag_type_description)
+
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.SEARCH_HELP_TEMPLATE)
 
 	return cmd
 }

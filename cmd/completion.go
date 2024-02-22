@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/spf13/cobra
@@ -41,6 +42,8 @@ func newCompletionCommand(globalOption *GlobalOption) *cobra.Command {
 
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
+
+	cmd.SetHelpTemplate(help.COMPLETION_HELP_TEMPLATE)
 
 	cmd.AddCommand(
 		newCompletionBashCommand(globalOption),
