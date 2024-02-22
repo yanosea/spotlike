@@ -22,13 +22,13 @@ To load completions in your current shell session:
 
 To load completions for every new session, execute once:
 
-* Linux:
+  * Linux:
 
-  spotlike completion zsh > "${fpath[1]}/_spotlike"
+    spotlike completion zsh > "${fpath[1]}/_spotlike"
 
-* macOS:
+  * macOS:
 
-  spotlike completion zsh > $(brew --prefix)/share/zsh/site-functions/_spotlike
+    spotlike completion zsh > $(brew --prefix)/share/zsh/site-functions/_spotlike
 
 You will need to start a new shell for this setup to take effect.`
 )
