@@ -14,12 +14,12 @@ import (
 
 const (
 	auth_use   = "auth"
-	auth_short = "Authenticate your Spotify client."
-	auth_long  = `Authenticate your Spotify client.
+	auth_short = "🔑 Authenticate your Spotify client."
+	auth_long  = `🔑 Authenticate your Spotify client.
 
 You have to authenticate your Spotify client to use spotlike at first.
 spotlike will ask you to input your Client ID, Client Secret, Redirect URI, and Refresh Token.`
-	auth_message_already_authenticated = "You are already authenticated and set envs!"
+	auth_message_already_authenticated = "✅ You are already authenticated and set envs!"
 )
 
 type authOption struct {

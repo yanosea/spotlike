@@ -11,8 +11,8 @@ import (
 
 const (
 	version_use              = "version"
-	version_short            = "Show the version of spotlike."
-	version_message_template = "spotlike version %s"
+	version_short            = "🔖 Show the version of spotlike."
+	version_message_template = "🔖 spotlike version %s"
 )
 
 func newVersionCommand(globalOption *GlobalOption) *cobra.Command {

@@ -20,8 +20,8 @@ import (
 
 const (
 	like_artist_use   = "artist"
-	like_artist_short = "Like artist(s) in Spotify by ID."
-	like_artist_long  = `Like artist(s) in Spotify by ID.
+	like_artist_short = "🤍🖌️  Like artist(s) in Spotify by ID."
+	like_artist_long  = `🤍🖌️  Like artist(s) in Spotify by ID.
 
 You must set the args or the flag "id" of artist(s) for like.
 If you set both args and flag "id", both will be liked.`

@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"io"
 	"os"
 
@@ -17,19 +16,22 @@ import (
 
 const (
 	root_use   = "spotlike"
-	root_short = "spotlike is the CLI tool to LIKE contents in Spotify."
-	root_long  = `'spotlike' is the CLI tool to LIKE contents in Spotify.
+	root_short = "⚪ spotlike is the CLI tool to LIKE contents in Spotify."
+	root_long  = `⚪ spotlike is the CLI tool to LIKE contents in Spotify.
 
 You can get the ID of some contents in Spotify.
 You can LIKE the contents in Spotify by ID.`
-	root_error_message_no_sub_command = `Use sub command below...
-  * auth
-  * like
-    * artist
-    * album
-    * track
-  * search
-  * version`
+	root_message_no_sub_command = `Use sub command below...
+
+* 🔑 auth
+* 🤍 like
+  * 🖌️  artist
+  * 💿 album
+  * 🎵 track
+* 🔍 search
+* 🔖 version
+
+Use "spotlike --help" for more information about spotlike.`
 )
 
 type GlobalOption struct {
@@ -70,7 +72,10 @@ func NewRootCommand(outWriter, errWriter io.Writer) (*cobra.Command, error) {
 		SilenceErrors: true,
 		SilenceUsage:  true,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return errors.New(root_error_message_no_sub_command)
+			// If no sub command is specified, print the message and return nil.
+			util.PrintlnWithWriter(o.Out, root_message_no_sub_command)
+
+			return nil
 		},
 	}
 

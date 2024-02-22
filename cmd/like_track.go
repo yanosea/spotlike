@@ -22,8 +22,8 @@ import (
 
 const (
 	like_track_use   = "track"
-	like_track_short = "Like track(s) in Spotify by ID."
-	like_track_long  = `Like track(s) in Spotify by ID.
+	like_track_short = "🤍🎵 Like track(s) in Spotify by ID."
+	like_track_long  = `🤍🎵 Like track(s) in Spotify by ID.
 
 You must set the args or the flag "id" of track(s), album(s) or artist(s) for like.
 If you set both args and flag "id", both will be liked.
