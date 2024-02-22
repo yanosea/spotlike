@@ -9,8 +9,8 @@ import (
 
 const (
 	completion_powershell_use   = "powershell"
-	completion_powershell_short = "🔧🎭 Generate the autocompletion script for the powershell shell."
-	completion_powershell_long  = `🔧🎭 Generate the autocompletion script for the powershell shell.
+	completion_powershell_short = "🔧🪟 Generate the autocompletion script for the powershell shell."
+	completion_powershell_long  = `🔧🪟 Generate the autocompletion script for the powershell shell.
 
 To load completions in your current shell session:
 

@@ -32,7 +32,7 @@ You can set the flag "type" to search type of the content.
 If you don't set the flag "type", searching without specifying the content type will be executed.
 You must specify the the flag "type" below :
 
-  * 🖌️ artist
+  * 🎤 artist
   * 💿 album
   * 🎵 track`
 	search_flag_query                                = "query"
@@ -154,24 +154,32 @@ func (o *searchOption) printSearchResult(searchResultList []api.SearchResult) {
 	for index, searchResult := range searchResultList {
 		if index != 0 {
 			// if the result was not first, add blank line above
-			util.PrintWithWriterWithBlankLineAbove(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
+			util.PrintWithWriterWithBlankLineAbove(o.Out, formatSearchResult("🆔", util.STRING_ID, searchResult.Id))
 		} else {
-			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ID, searchResult.Id))
+			util.PrintlnWithWriter(o.Out, formatSearchResult("🆔", util.STRING_ID, searchResult.Id))
 		}
-		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
-		util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ARTIST, searchResult.ArtistNames))
+		util.PrintlnWithWriter(o.Out, formatSearchResult("📦", util.STRING_TYPE, util.SEARCH_TYPE_MAP_REVERSED[searchResult.Type]))
+		util.PrintlnWithWriter(o.Out, formatSearchResult("🎤", util.STRING_ARTIST, searchResult.ArtistNames))
 		if searchResult.Type == spotify.SearchTypeAlbum || searchResult.Type == spotify.SearchTypeTrack {
 			// if the search type is album or track, print the release date and the album name
-			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_RELEASE, searchResult.ReleaseDate))
-			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_ALBUM, searchResult.AlbumName))
+			util.PrintlnWithWriter(o.Out, formatSearchResult("📅", util.STRING_RELEASE, searchResult.ReleaseDate))
+			util.PrintlnWithWriter(o.Out, formatSearchResult("💿", util.STRING_ALBUM, searchResult.AlbumName))
 		}
 		if searchResult.Type == spotify.SearchTypeTrack {
 			// if the search type is track, print the track name
-			util.PrintlnWithWriter(o.Out, formatSearchResult(util.STRING_TRACK, searchResult.TrackName))
+			util.PrintlnWithWriter(o.Out, formatSearchResult("🎵", util.STRING_TRACK, searchResult.TrackName))
 		}
 	}
 }
 
-func formatSearchResult(topic string, detail string) string {
-	return fmt.Sprintf("%s\t:\t[%s]", topic, detail)
+func formatSearchResult(icon string, topic string, detail string) string {
+	return fmt.Sprintf("%s %s:\t[%s]", icon, addSpacesToLength(topic, 8), detail)
+}
+
+func addSpacesToLength(str string, length int) string {
+	spacesToAdd := length - len(str)
+	if spacesToAdd <= 0 {
+		return str
+	}
+	return str + strings.Repeat(" ", spacesToAdd)
 }

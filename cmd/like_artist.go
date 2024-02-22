@@ -21,8 +21,8 @@ import (
 
 const (
 	like_artist_use   = "artist"
-	like_artist_short = "🤍🖌️  Like artist(s) in Spotify by ID."
-	like_artist_long  = `🤍🖌️  Like artist(s) in Spotify by ID.
+	like_artist_short = "🤍🎤 Like artist(s) in Spotify by ID."
+	like_artist_long  = `🤍🎤 Like artist(s) in Spotify by ID.
 
 You must set the args or the flag "id" of artist(s) for like.
 If you set both args and flag "id", both will be liked.`
@@ -36,9 +36,9 @@ If you set both args and flag "id", both will be liked.`
 	like_artist_shorthand_verbose                          = "v"
 	like_artist_flag_description_verbose                   = "print verbose output"
 	like_artist_error_message_template_id_not_artist       = "The ID you passed [%s] is not artist."
-	like_artist_message_template_like_artist_already_liked = "%s already liked!\t:\t[%s]"
-	like_artist_message_template_like_artist_refused       = "Like %s refused!\t:\t[%s]"
-	like_artist_message_template_like_artist_succeeded     = "Like %s succeeded!\t:\t[%s]"
+	like_artist_message_template_like_artist_already_liked = "✨ %s already liked!\t:\t[%s]"
+	like_artist_message_template_like_artist_refused       = "❌ Like %s refused!\t:\t[%s]"
+	like_artist_message_template_like_artist_succeeded     = "✅ Like %s succeeded!\t:\t[%s]"
 )
 
 type likeArtistOption struct {

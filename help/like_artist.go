@@ -1,7 +1,7 @@
 package help
 
 const (
-	LIKE_ARTIST_HELP_TEMPLATE = `🤍🖌️  Like artist(s) in Spotify by ID.
+	LIKE_ARTIST_HELP_TEMPLATE = `🤍🎤  Like artist(s) in Spotify by ID.
 
 You must set the args or the flag "id" of artist(s) for like.
 If you set both args and flag "id", both will be liked.

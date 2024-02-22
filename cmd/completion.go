@@ -18,13 +18,13 @@ You must use sub command below...
 
   * 🐚 bash
   * 🐟 fish
-  * 🎭 powershell
+  * 🪟 powershell
   * 🧙 zsh`
 	completion_message_no_sub_command = `Use sub command below...
 
   * 🐚 bash
   * 🐟 fish
-  * 🎭 powershell
+  * 🪟 powershell
   * 🧙 zsh`
 )
 

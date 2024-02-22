@@ -26,7 +26,7 @@ You can LIKE the contents in Spotify by ID.`
 
   * 🔑 auth
   * 🤍 like
-    * 🖌️  artist
+    * 🎤  artist
     * 💿 album
     * 🎵 track
   * 🔍 search

@@ -41,11 +41,11 @@ If you pass the album ID, spotlike will like all tracks included in the album.`
 	like_track_shorthand_verbose                                = "v"
 	like_track_flag_description_verbose                         = "print verbose output"
 	like_track_error_message_template_id_not_artist_album_track = "The ID you passed [%s] is not track, album or artist."
-	like_track_input_label_template_all_track_by_artist         = "Do you execute like all tracks by [%s]"
-	like_track_input_label_template_all_track_in_album          = "Do you execute like all tracks in [%s]"
-	like_track_message_template_like_track_already_liked        = "%s in [%s] by [%s] already liked!\t:\t[%s]"
-	like_track_message_template_like_track_refused              = "Like %s in [%s] by [%s] refused!\t:\t[%s]"
-	like_track_message_template_like_track_succeeded            = "Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
+	like_track_input_label_template_all_track_by_artist         = "❔ Do you execute like all tracks by [%s]"
+	like_track_input_label_template_all_track_in_album          = "❔ Do you execute like all tracks in [%s]"
+	like_track_message_template_like_track_already_liked        = "✨ %s in [%s] by [%s] already liked!\t:\t[%s]"
+	like_track_message_template_like_track_refused              = "❌ Like %s in [%s] by [%s] refused!\t:\t[%s]"
+	like_track_message_template_like_track_succeeded            = "✅ Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
 )
 
 type likeTrackOption struct {

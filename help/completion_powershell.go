@@ -1,7 +1,7 @@
 package help
 
 const (
-	COMPLETION_POWERSHELL_HELP_TEMPLATE = `🔧🎭 Generate the autocompletion script for the powershell shell.
+	COMPLETION_POWERSHELL_HELP_TEMPLATE = `🔧🪟 Generate the autocompletion script for the powershell shell.
 
 To load completions in your current shell session:
 

@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 
 	"golang.org/x/oauth2"
 
@@ -26,20 +27,18 @@ import (
 )
 
 const (
-	auth_close_tab_html                       = "<!DOCTYPE html><html><head><script>open(location, '_self').close();</script></head></html>"
-	auth_error_message_auth_failure           = "Authentication failed..."
-	auth_error_message_invalid_uri            = "Invalid URI..."
-	auth_error_message_platform_not_supported = "Platform not supported..."
-	auth_error_message_refresh_failed         = `Refresh failed...
-  Please clear your Spotify environment variables and try again.`
-	auth_message_login_spotify             = "Log in to Spotify by visiting the page below in your browser."
-	auth_input_label_spotify_id            = "Input your Spotify Client ID"
-	auth_input_label_spotify_secret        = "Input your Spotify Client Secret"
-	auth_input_label_spotify_redirect_uri  = "Input your Spotify Redirect URI"
-	auth_input_label_spotify_refresh_token = "Input your Spotify Refresh Token if you have one (if you don't have it, leave it empty and press enter.)"
-	auth_message_auth_success              = "Authentication succeeded!"
-	auth_message_suggest_set_env           = "If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those."
-	auth_message_template_set_env_command  = "export %s="
+	auth_input_label_spotify_id                = "🆔 Input your Spotify Client ID"
+	auth_input_label_spotify_secret            = "🔑 Input your Spotify Client Secret"
+	auth_input_label_spotify_redirect_uri      = "🔗 Input your Spotify Redirect URI"
+	auth_input_label_spotify_refresh_token     = "🔢 Input your Spotify Refresh Token if you have one (if you don't have it, leave it empty and press enter.)"
+	auth_message_login_spotify                 = "🌐 Log in to Spotify by visiting the page below in your browser."
+	auth_message_auth_success                  = "🎉 Authentication succeeded!"
+	auth_message_suggest_set_env               = "If you don't want spotlike to ask questions above again, execute commands below to set envs or set your profile to set those."
+	auth_message_template_set_env_command      = "export %s="
+	auth_error_message_invalid_uri             = "Invalid URI..."
+	auth_error_message_auth_failure            = "Authentication failed..."
+	auth_error_message_template_refresh_failed = `Refresh failed...
+Please clear your Spotify environment variables and try again.`
 )
 
 func IsEnvsSet() bool {
@@ -175,7 +174,7 @@ func Authenticate(o io.Writer) (*spotify.Client, error) {
 
 	// print success message and suggest to set env
 	util.PrintlnWithWriter(o, color.GreenString(auth_message_auth_success))
-	util.PrintWithWriterWithBlankLineBelow(o, color.YellowString(auth_message_suggest_set_env))
+	util.PrintWithWriterBetweenBlankLine(o, color.YellowString(auth_message_suggest_set_env))
 	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_ID)+os.Getenv(util.AUTH_ENV_SPOTIFY_ID)))
 	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_SECRET)+os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET)))
 	util.PrintlnWithWriter(o, util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REDIRECT_URI)+os.Getenv(util.AUTH_ENV_SPOTIFY_REDIRECT_URI)))
@@ -192,7 +191,14 @@ func refresh(authenticator *spotifyauth.Authenticator, refreshToken string) (*sp
 
 	client := spotify.New(authenticator.Client(context.Background(), tok))
 	if client == nil {
-		return nil, errors.New(auth_error_message_platform_not_supported)
+		clearCommands := []string{
+			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_ID)),
+			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_SECRET)),
+			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REDIRECT_URI)),
+			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN)),
+		}
+		auth_error_message_refresh_failed := fmt.Sprintf("%s\n\n%s", auth_error_message_template_refresh_failed, strings.Join(clearCommands, "\n"))
+		return nil, errors.New(auth_error_message_refresh_failed)
 	}
 
 	return client, nil

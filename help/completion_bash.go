@@ -12,11 +12,11 @@ To load completions in your current shell session:
 
 To load completions for every new session, execute once:
 
-  * Linux:
+  * 🐧 Linux:
 
     spotlike completion bash > /etc/bash_completion.d/spotlike
 
-  * macOS:
+  * 🍎 macOS:
 
     spotlike completion bash > $(brew --prefix)/etc/bash_completion.d/spotlike
 

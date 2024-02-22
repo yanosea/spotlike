@@ -5,7 +5,7 @@ const (
 
 You must use sub command below...
 
-  * 🖌️  artist
+  * 🎤  artist
   * 💿 album
   * 🎵 track
 
@@ -15,7 +15,7 @@ Usage:
 
 Available Commands:
   album       🤍💿 Like album(s) in Spotify by ID.
-  artist      🤍🖌️  Like artist(s) in Spotify by ID.
+  artist      🤍🎤 Like artist(s) in Spotify by ID.
   track       🤍🎵 Like track(s) in Spotify by ID.
 
 Flags:

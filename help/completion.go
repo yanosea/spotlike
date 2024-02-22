@@ -10,7 +10,7 @@ Usage:
 Available Commands:
   bash        🔧🐚 Generate the autocompletion script for the bash shell.
   fish        🔧🐟 Generate the autocompletion script for the fish shell.
-  powershell  🔧🎭 Generate the autocompletion script for the powershell shell.
+  powershell  🔧🪟 Generate the autocompletion script for the powershell shell.
   zsh         🔧🧙 Generate the autocompletion script for the zsh shell.
 
 Flags:
