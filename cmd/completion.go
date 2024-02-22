@@ -15,16 +15,16 @@ const (
 See each sub-command's help for details on how to use the generated script.
 You must use sub command below...
 
-* 🐚 bash
-* 🐟 fish
-* 🎭 powershell
-* 🧙 zsh`
+  * 🐚 bash
+  * 🐟 fish
+  * 🎭 powershell
+  * 🧙 zsh`
 	completion_message_no_sub_command = `Use sub command below...
 
-* 🐚 bash
-* 🐟 fish
-* 🎭 powershell
-* 🧙 zsh`
+  * 🐚 bash
+  * 🐟 fish
+  * 🎭 powershell
+  * 🧙 zsh`
 )
 
 func newCompletionCommand(globalOption *GlobalOption) *cobra.Command {

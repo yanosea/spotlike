@@ -31,9 +31,9 @@ You can set the flag "type" to search type of the content.
 If you don't set the flag "type", searching without specifying the content type will be executed.
 You must specify the the flag "type" below :
 
-* 🖌️ artist
-* 💿 album
-* 🎵 track`
+  * 🖌️ artist
+  * 💿 album
+  * 🎵 track`
 	search_flag_query                                = "query"
 	search_flag_query_shorthand                      = "q"
 	search_flag_query_description                    = "query for search"

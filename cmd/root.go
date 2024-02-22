@@ -23,13 +23,13 @@ You can get the ID of some contents in Spotify.
 You can LIKE the contents in Spotify by ID.`
 	root_message_no_sub_command = `Use sub command below...
 
-* 🔑 auth
-* 🤍 like
-  * 🖌️  artist
-  * 💿 album
-  * 🎵 track
-* 🔍 search
-* 🔖 version
+  * 🔑 auth
+  * 🤍 like
+    * 🖌️  artist
+    * 💿 album
+    * 🎵 track
+  * 🔍 search
+  * 🔖 version
 
 Use "spotlike --help" for more information about spotlike.`
 )
@@ -87,7 +87,6 @@ func NewRootCommand(outWriter, errWriter io.Writer) (*cobra.Command, error) {
 	cmd.AddCommand(
 		newAuthCommand(o),
 		newCompletionCommand(o),
-		newHelpCommand(o),
 		newLikeCommand(o),
 		newSearchCommand(o),
 		newVersionCommand(o),

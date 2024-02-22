@@ -19,14 +19,14 @@ const (
 
 You must use sub command below...
 
-* 🖌️  artist
-* 💿 album
-* 🎵 track`
+  * 🖌️  artist
+  * 💿 album
+  * 🎵 track`
 	like_message_no_sub_command = `Use sub command below...
 
-* 🖌️  artist
-* 💿 album
-* 🎵 track`
+  * 🖌️  artist
+  * 💿 album
+  * 🎵 track`
 	like_error_message_args_or_flag_id_required = `The arguments or the flag "id" is required...`
 )
 
