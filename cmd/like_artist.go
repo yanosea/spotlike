@@ -35,7 +35,7 @@ If you set both args and flag "id", both will be liked.`
 	like_artist_flag_verbose                               = "verbose"
 	like_artist_shorthand_verbose                          = "v"
 	like_artist_flag_description_verbose                   = "print verbose output"
-	like_artist_error_message_template_id_not_artist       = "The ID you passed [%s] is not artist."
+	like_artist_error_message_template_id_not_artist       = "The ID you passed [%s] is not artist..."
 	like_artist_message_template_like_artist_already_liked = "✨ %s already liked!\t:\t[%s]"
 	like_artist_message_template_like_artist_refused       = "❌ Like %s refused!\t:\t[%s]"
 	like_artist_message_template_like_artist_succeeded     = "✅ Like %s succeeded!\t:\t[%s]"
@@ -127,11 +127,7 @@ func (o *likeArtistOption) likeArtist() error {
 }
 
 func (o *likeArtistOption) printLikeArtistResult(likeResults []*api.LikeResult) {
-	for index, result := range likeResults {
-		if index == 0 {
-			// if the result was first, add blank line
-			util.PrintlnWithWriter(o.Out, "")
-		}
+	for _, result := range likeResults {
 		if (result.Refused || result.AlreadyLiked) && len(likeResults) != 1 && !o.Verbose {
 			// if the result was refused or already liked
 			// and the result was not one,

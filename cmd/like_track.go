@@ -40,7 +40,7 @@ If you pass the album ID, spotlike will like all tracks included in the album.`
 	like_track_flag_verbose                                     = "verbose"
 	like_track_shorthand_verbose                                = "v"
 	like_track_flag_description_verbose                         = "print verbose output"
-	like_track_error_message_template_id_not_artist_album_track = "The ID you passed [%s] is not track, album or artist."
+	like_track_error_message_template_id_not_artist_album_track = "The ID you passed [%s] is not track, album or artist..."
 	like_track_input_label_template_all_track_by_artist         = "❔ Do you execute like all tracks by [%s]"
 	like_track_input_label_template_all_track_in_album          = "❔ Do you execute like all tracks in [%s]"
 	like_track_message_template_like_track_already_liked        = "✨ %s in [%s] by [%s] already liked!\t:\t[%s]"
@@ -174,11 +174,7 @@ func (o *likeTrackOption) likeTrack() error {
 }
 
 func (o *likeTrackOption) printLikeTrackResult(likeResults []*api.LikeResult) {
-	for index, result := range likeResults {
-		if index == 0 {
-			// if the result was first, add blank line
-			util.PrintlnWithWriter(o.Out, "")
-		}
+	for _, result := range likeResults {
 		if (result.Refused || result.AlreadyLiked) && len(likeResults) != 1 && !o.Verbose {
 			// if the result was refused or already liked
 			// and the result was not one,
