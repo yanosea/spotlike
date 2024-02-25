@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/spf13/cobra
@@ -9,6 +8,23 @@ import (
 )
 
 const (
+	completion_help_template = `🔧 Generate the autocompletion script for the specified shell.
+
+Usage:
+  spotlike completion [flags]
+  spotlike completion [command]
+
+Available Commands:
+  bash        🔧🐚 Generate the autocompletion script for the bash shell.
+  fish        🔧🐟 Generate the autocompletion script for the fish shell.
+  powershell  🔧🪟 Generate the autocompletion script for the powershell shell.
+  zsh         🔧🧙 Generate the autocompletion script for the zsh shell.
+
+Flags:
+  -h, --help   help for completion
+
+Use "spotlike completion [command] --help" for more information about a command.
+`
 	completion_use   = "completion"
 	completion_short = "🔧 Generate the autocompletion script for the specified shell."
 	completion_long  = `🔧 Generate the autocompletion script for the specified shell.
@@ -43,7 +59,7 @@ func newCompletionCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
 
-	cmd.SetHelpTemplate(help.COMPLETION_HELP_TEMPLATE)
+	cmd.SetHelpTemplate(completion_help_template)
 
 	cmd.AddCommand(
 		newCompletionBashCommand(globalOption),

@@ -8,7 +8,6 @@ import (
 
 	"github.com/yanosea/spotlike/api"
 	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/spf13/cobra
@@ -18,6 +17,31 @@ import (
 )
 
 const (
+	search_help_template = `🔍 Search for the ID of content in Spotify.
+
+You can set the args or the flag "query" to specify the search query.
+If you set both args and flag "query", they will be combined.
+
+You can set the flag "number" to limiting the number of search results.
+Default is 1.
+
+You can set the flag "type" to search type of the content.
+If you don't set the flag "type", searching without specifying the content type will be executed.
+You must specify the the flag "type" below :
+
+  * 🎤 artist
+  * 💿 album
+  * 🎵 track
+
+Usage:
+  spotlike search [flags]
+
+Flags:
+  -h, --help           help for search
+  -n, --number int     number of search results (default 1)
+  -q, --query string   query for search
+  -t, --type string    type of the content for search
+`
 	search_use   = "search"
 	search_short = "🔍 Search for the ID of content in Spotify."
 	search_long  = `🔍 Search for the ID of content in Spotify.
@@ -91,10 +115,12 @@ func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.PersistentFlags().IntVarP(&o.Number, search_flag_number, search_flag_number_shorthand, 1, search_flag_number_description)
 	cmd.PersistentFlags().StringVarP(&o.SearchType, search_flag_type, search_flag_type_shorthand, "", search_flag_type_description)
 
-	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
+	o.Out = globalOption.Out
+	o.ErrOut = globalOption.ErrOut
+	cmd.SetOut(o.Out)
+	cmd.SetErr(o.ErrOut)
 
-	cmd.SetHelpTemplate(help.SEARCH_HELP_TEMPLATE)
+	cmd.SetHelpTemplate(search_help_template)
 
 	return cmd
 }

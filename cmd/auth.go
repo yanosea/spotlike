@@ -4,7 +4,6 @@ import (
 	"io"
 
 	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -14,6 +13,17 @@ import (
 )
 
 const (
+	auth_help_template = `🔑 Authenticate your Spotify client.
+
+You have to authenticate your Spotify client to use spotlike at first.
+spotlike will ask you to input your Client ID, Client Secret, Redirect URI, and Refresh Token.
+
+Usage:
+  spotlike auth [flags]
+
+Flags:
+  -h, --help   help for auth
+`
 	auth_use   = "auth"
 	auth_short = "🔑 Authenticate your Spotify client."
 	auth_long  = `🔑 Authenticate your Spotify client.
@@ -43,10 +53,12 @@ func newAuthCommand(globalOption *GlobalOption) *cobra.Command {
 		},
 	}
 
-	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
+	o.Out = globalOption.Out
+	o.ErrOut = globalOption.ErrOut
+	cmd.SetOut(o.Out)
+	cmd.SetErr(o.ErrOut)
 
-	cmd.SetHelpTemplate(help.AUTH_HELP_TEMPLATE)
+	cmd.SetHelpTemplate(auth_help_template)
 
 	return cmd
 }

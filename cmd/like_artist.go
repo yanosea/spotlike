@@ -8,7 +8,6 @@ import (
 
 	"github.com/yanosea/spotlike/api"
 	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -20,6 +19,20 @@ import (
 )
 
 const (
+	like_artist_help_template = `🤍🎤  Like artist(s) in Spotify by ID.
+
+You must set the args or the flag "id" of artist(s) for like.
+If you set both args and flag "id", both will be liked.
+
+Usage:
+  spotlike like artist [flags]
+
+Flags:
+  -f, --force       like artist(s) without confirming
+  -h, --help        help for artist
+  -i, --id string   ID of the artist(s) for like
+  -v, --verbose     print verbose output
+`
 	like_artist_use   = "artist"
 	like_artist_short = "🤍🎤 Like artist(s) in Spotify by ID."
 	like_artist_long  = `🤍🎤 Like artist(s) in Spotify by ID.
@@ -84,10 +97,12 @@ func newLikeArtistCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.PersistentFlags().BoolVarP(&o.Force, like_artist_flag_force, like_artist_shorthand_force, false, like_artist_flag_description_force)
 	cmd.PersistentFlags().BoolVarP(&o.Verbose, like_artist_flag_verbose, like_artist_shorthand_verbose, false, like_artist_flag_description_verbose)
 
-	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
+	o.Out = globalOption.Out
+	o.ErrOut = globalOption.ErrOut
+	cmd.SetOut(o.Out)
+	cmd.SetErr(o.ErrOut)
 
-	cmd.SetHelpTemplate(help.LIKE_ARTIST_HELP_TEMPLATE)
+	cmd.SetHelpTemplate(like_artist_help_template)
 
 	return cmd
 }

@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -13,6 +12,28 @@ import (
 )
 
 const (
+	like_help_template = `🤍 Like content in Spotify by ID.
+
+You must use sub command below...
+
+  * 🎤  artist
+  * 💿 album
+  * 🎵 track
+
+Usage:
+  spotlike like [flags]
+  spotlike like [command]
+
+Available Commands:
+  album       🤍💿 Like album(s) in Spotify by ID.
+  artist      🤍🎤 Like artist(s) in Spotify by ID.
+  track       🤍🎵 Like track(s) in Spotify by ID.
+
+Flags:
+  -h, --help   help for like
+
+Use "spotlike like [command] --help" for more information about a command.
+`
 	like_use   = "like"
 	like_short = "🤍 Like content in Spotify by ID."
 
@@ -47,7 +68,7 @@ func newLikeCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
 
-	cmd.SetHelpTemplate(help.LIKE_HELP_TEMPLATE)
+	cmd.SetHelpTemplate(like_help_template)
 
 	cmd.AddCommand(
 		newLikeArtistCommand(globalOption),

@@ -4,7 +4,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/yanosea/spotlike/help"
 	"github.com/yanosea/spotlike/util"
 
 	// https://github.com/fatih/color
@@ -15,7 +14,32 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
+var version = "develop"
+
 const (
+	root_help_template = `⚪ spotlike is the CLI tool to LIKE contents in Spotify.
+
+You can get the ID of some contents in Spotify.
+You can LIKE the contents in Spotify by ID.
+
+Usage:
+  spotlike [flags]
+  spotlike [command]
+
+Available Commands:
+  auth        🔑 Authenticate your Spotify client.
+  completion  🔧 Generate the autocompletion script for the specified shell.
+  help        🤝 Help about any command
+  like        🤍 Like content in Spotify by ID.
+  search      🔍 Search for the ID of content in Spotify.
+  version     🔖 Show the version of spotlike.
+
+Flags:
+  -h, --help      🤝 help for spotlike
+  -v, --version   🔖 version for spotlike
+
+Use "spotlike [command] --help" for more information about a command.
+`
 	root_use   = "spotlike"
 	root_short = "⚪ spotlike is the CLI tool to LIKE contents in Spotify."
 	root_long  = `⚪ spotlike is the CLI tool to LIKE contents in Spotify.
@@ -41,8 +65,6 @@ type GlobalOption struct {
 	Out    io.Writer
 	ErrOut io.Writer
 }
-
-var version = "develop"
 
 func Execute() int {
 	o := os.Stdout
@@ -85,7 +107,7 @@ func NewRootCommand(outWriter, errWriter io.Writer) (*cobra.Command, error) {
 	cmd.SetOut(outWriter)
 	cmd.SetErr(errWriter)
 
-	cmd.SetHelpTemplate(help.ROOT_HELP_TEMPLATE)
+	cmd.SetHelpTemplate(root_help_template)
 
 	cmd.AddCommand(
 		newAuthCommand(o),

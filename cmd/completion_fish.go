@@ -1,13 +1,29 @@
 package cmd
 
 import (
-	"github.com/yanosea/spotlike/help"
-
 	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
 )
 
 const (
+	completion_fish_help_template = `🔧🐟 Generate the autocompletion script for the fish shell.
+
+To load completions in your current shell session:
+
+  spotlike completion fish | source
+
+To load completions for every new session, execute once:
+
+  spotlike completion fish > ~/.config/fish/completions/spotlike.fish
+
+You will need to start a new shell for this setup to take effect.
+
+Usage:
+  spotlike completion fish [flags]
+
+Flags:
+  -h, --help   help for fish
+`
 	completion_fish_use   = "fish"
 	completion_fish_short = "🔧🐟 Generate the autocompletion script for the fish shell."
 	completion_fish_long  = `🔧🐟 Generate the autocompletion script for the fish shell.
@@ -36,7 +52,7 @@ func newCompletionFishCommand(globalOption *GlobalOption) *cobra.Command {
 	cmd.SetOut(globalOption.Out)
 	cmd.SetErr(globalOption.ErrOut)
 
-	cmd.SetHelpTemplate(help.COMPLETION_FISH_HELP_TEMPLATE)
+	cmd.SetHelpTemplate(completion_fish_help_template)
 
 	return cmd
 }
