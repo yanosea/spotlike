@@ -66,7 +66,7 @@ func SetAuthInfo() {
 	}
 
 	// SPOTIFY_SECRET
-	if spotifySecret := os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET); spotifySecret == "" {
+	if os.Getenv(util.AUTH_ENV_SPOTIFY_SECRET) == "" {
 		prompt := promptui.Prompt{
 			Label: auth_input_label_spotify_secret,
 			Mask:  '*',
