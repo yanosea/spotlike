@@ -124,8 +124,8 @@ func Authenticate(o io.Writer) (*spotify.Client, error) {
 	authenticator := spotifyauth.New(
 		spotifyauth.WithScopes(
 			spotifyauth.ScopeUserFollowRead,
-			spotifyauth.ScopeUserLibraryRead,
 			spotifyauth.ScopeUserFollowModify,
+			spotifyauth.ScopeUserLibraryRead,
 			spotifyauth.ScopeUserLibraryModify,
 		),
 		spotifyauth.WithClientID(os.Getenv(util.AUTH_ENV_SPOTIFY_ID)),
