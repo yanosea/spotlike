@@ -16,7 +16,7 @@ const (
 
 You must use sub command below...
 
-  * 🎤  artist
+  * 🎤 artist
   * 💿 album
   * 🎵 track
 
