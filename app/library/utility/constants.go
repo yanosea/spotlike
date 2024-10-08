@@ -1,4 +1,4 @@
-package util
+package utility
 
 import (
 	// https://github.com/zmb3/spotify/v2
