@@ -1,128 +1,84 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"strings"
-
-	"github.com/yanosea/spotlike/api"
-	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/util"
-
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
-	// https://github.com/zmb3/spotify/v2
-	"github.com/zmb3/spotify/v2"
-)
 
-const (
-	search_help_template = `🔍 Search for the ID of content in Spotify.
-
-You can set the args or the flag "query" to specify the search query.
-If you set both args and flag "query", they will be combined.
-
-You can set the flag "number" to limiting the number of search results.
-Default is 1.
-
-You can set the flag "type" to search type of the content.
-If you don't set the flag "type", searching without specifying the content type will be executed.
-You must specify the the flag "type" below :
-
-  * 🎤 artist
-  * 💿 album
-  * 🎵 track
-
-Usage:
-  spotlike search [flags]
-
-Flags:
-  -h, --help           help for search
-  -n, --number int     number of search results (default 1)
-  -q, --query string   query for search
-  -t, --type string    type of the content for search
-`
-	search_use   = "search"
-	search_short = "🔍 Search for the ID of content in Spotify."
-	search_long  = `🔍 Search for the ID of content in Spotify.
-
-You can set the args or the flag "query" to specify the search query.
-If you set both args and flag "query", they will be combined.
-
-You can set the flag "number" to limiting the number of search results.
-Default is 1.
-
-You can set the flag "type" to search type of the content.
-If you don't set the flag "type", searching without specifying the content type will be executed.
-You must specify the the flag "type" below :
-
-  * 🎤 artist
-  * 💿 album
-  * 🎵 track`
-	search_flag_query                                = "query"
-	search_flag_query_shorthand                      = "q"
-	search_flag_query_description                    = "query for search"
-	search_flag_number                               = "number"
-	search_flag_number_shorthand                     = "n"
-	search_flag_number_description                   = "number of search results"
-	search_flag_type                                 = "type"
-	search_flag_type_shorthand                       = "t"
-	search_flag_type_description                     = "type of the content for search"
-	search_error_message_args_or_flag_query_required = `The arguments or the flag "query" is required...`
-	search_error_message_flag_type_invalid           = `The argument of the flag "type" must be "artist", "album", or "track"...`
+	"github.com/yanosea/spotlike/app/library/api"
+	"github.com/yanosea/spotlike/app/library/auth"
+	"github.com/yanosea/spotlike/app/library/utility"
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/app/proxy/color"
+	"github.com/yanosea/spotlike/app/proxy/io"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
 type searchOption struct {
-	Client *spotify.Client
-
+	Out        ioproxy.WriterInstanceInterface
+	ErrOut     ioproxy.WriterInstanceInterface
 	Args       []string
+	Utility    utility.UtilityInterface
 	Query      string
 	Number     int
 	SearchType string
-
-	Out    io.Writer
-	ErrOut io.Writer
 }
 
-func newSearchCommand(globalOption *GlobalOption) *cobra.Command {
-	o := &searchOption{}
-
-	cmd := &cobra.Command{
-		Use:   search_use,
-		Short: search_short,
-		Long:  search_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			o.Client = globalOption.Client
-			if o.Client == nil {
-				if !auth.IsEnvsSet() {
-					auth.SetAuthInfo()
-				}
-				client, err := auth.Authenticate(globalOption.Out)
-				if err != nil {
-					return err
-				}
-				o.Client = client
-			}
-			o.Args = args
-			o.Out = globalOption.Out
-			o.ErrOut = globalOption.ErrOut
-
-			return o.search()
-		},
+func NewSearchCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	o := &searchOption{
+		Out:     g.Out,
+		ErrOut:  g.ErrOut,
+		Args:    g.Args,
+		Utility: g.Utility,
 	}
 
-	cmd.PersistentFlags().StringVarP(&o.Query, search_flag_query, search_flag_query_shorthand, "", search_flag_query_description)
-	cmd.PersistentFlags().IntVarP(&o.Number, search_flag_number, search_flag_number_shorthand, 1, search_flag_number_description)
-	cmd.PersistentFlags().StringVarP(&o.SearchType, search_flag_type, search_flag_type_shorthand, "", search_flag_type_description)
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-	o.Out = globalOption.Out
-	o.ErrOut = globalOption.ErrOut
+	cmd.FieldCommand.Use = constant.SEARCH_USE
+	cmd.FieldCommand.Args = cobra.MaximumNArgs(1)
+	cmd.FieldCommand.RunE = o.searchRunE
+
+	cmd.PersistentFlags().StringVarP(
+		&o.Query,
+		constant.SEARCH_FLAG_QUERY,
+		constant.SEARCH_FLAG_QUERY_SHORTHAND,
+		"",
+		constant.SEARCH_FLAG_QUERY_DESCRIPTION,
+	)
+	cmd.PersistentFlags().IntVarP(
+		&o.Number,
+		constant.SEARCH_FLAG_NUMBER,
+		constant.SEARCH_FLAG_NUMBER_SHORTHAND,
+		1,
+		constant.SEARCH_FLAG_NUMBER_DESCRIPTION,
+	)
+	cmd.PersistentFlags().StringVarP(
+		&o.SearchType,
+		constant.SEARCH_FLAG_TYPE,
+		constant.SEARCH_FLAG_TYPE_SHORTHAND,
+		"",
+		constant.SEARCH_FLAG_TYPE_DESCRIPTION,
+	)
+
 	cmd.SetOut(o.Out)
 	cmd.SetErr(o.ErrOut)
-
-	cmd.SetHelpTemplate(search_help_template)
+	cmd.SetHelpTemplate(constant.SEARCH_HELP_TEMPLATE)
 
 	return cmd
+}
+
+func (o *searchOption) searchRunE(_ *cobra.Command, _ []string) error {
+	if o.Client == nil {
+		if !auth.IsEnvsSet() {
+			auth.SetAuthInfo()
+		}
+		client, err := auth.Authenticate(g.Out)
+		if err != nil {
+			return err
+		}
+		o.Client = client
+	}
+
+	return o.search()
 }
 
 func (o *searchOption) search() error {

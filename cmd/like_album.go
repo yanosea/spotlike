@@ -40,23 +40,23 @@ func NewLikeAlbumCommand(g *GlobalOption) *cobraproxy.CommandInstance {
 	cmd.PersistentFlags().StringVarP(
 		&o.Id,
 		constant.LIKE_ALBUM_FLAG_ID,
-		constant.LIKE_ALBUM_SHORTHAND_ID,
+		constant.LIKE_ALBUM_FLAG_ID_SHORTHAND,
 		"",
-		constant.LIKE_ALBUM_FLAG_DESCRIPTION_ID,
+		constant.LIKE_ALBUM_FLAG_ID_DESCRIPTION,
 	)
 	cmd.PersistentFlags().BoolVarP(
 		&o.Force,
 		constant.LIKE_ALBUM_FLAG_FORCE,
-		constant.LIKE_ALBUM_SHORTHAND_FORCE,
+		constant.LIKE_ALBUM_FLAG_FORCE_SHORTHAND,
 		false,
-		constant.LIKE_ALBUM_FLAG_DESCRIPTION_FORCE,
+		constant.LIKE_ALBUM_FLAG_FORCE_DESCRIPTION,
 	)
 	cmd.PersistentFlags().BoolVarP(
 		&o.Verbose,
 		constant.LIKE_ALBUM_FLAG_VERBOSE,
-		constant.LIKE_ALBUM_SHORTHAND_VERBOSE,
+		constant.LIKE_ALBUM_FLAG_VERBOSE_SHORTHAND,
 		false,
-		constant.LIKE_ALBUM_FLAG_DESCRIPTION_VERBOSE,
+		constant.LIKE_ALBUM_FLAG_VERBOSE_DESCRIPTION,
 	)
 
 	cmd.SetOut(o.Out)

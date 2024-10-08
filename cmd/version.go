@@ -1,53 +1,41 @@
 package cmd
 
 import (
-	"fmt"
-
-	"github.com/yanosea/spotlike/util"
-
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
+
+	"github.com/yanosea/spotlike/app/library/versionprovider"
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/app/proxy/debug"
+	"github.com/yanosea/spotlike/app/proxy/fmt"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
-const (
-	version_help_template = `🔖 Show the version of spotlike.
+// NewVersionCommand creates a new version command.
+func NewVersionCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-Simply show the version of spotlike.
+	cmd.FieldCommand.Use = constant.VERSION_USE
+	cmd.FieldCommand.RunE = g.versionRunE
 
-Usage:
-  spotlike version [flags]
-
-Flags:
-  -h, --help   help for version
-`
-	version_use   = "version"
-	version_short = "🔖 Show the version of spotlike."
-	version_long  = `🔖 Show the version of spotlike.
-
-Simply show the version of spotlike.`
-	version_message_template = "🔖 spotlike version %s"
-)
-
-func newVersionCommand(globalOption *GlobalOption) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   version_use,
-		Short: version_short,
-		Long:  version_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return globalOption.version()
-		},
-	}
-
-	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
-
-	cmd.SetHelpTemplate(version_help_template)
+	cmd.SetOut(g.Out)
+	cmd.SetErr(g.ErrOut)
+	cmd.SetHelpTemplate(constant.VERSION_HELP_TEMPLATE)
 
 	return cmd
 }
 
+// versionRunE is the function that is called when the version command is executed.
+func (g *GlobalOption) versionRunE(_ *cobra.Command, _ []string) error {
+	return g.version()
+}
+
+// version shows the version of spotlike.
 func (g *GlobalOption) version() error {
-	// show version
-	util.PrintlnWithWriter(g.Out, fmt.Sprintf(version_message_template, ver))
+	v := versionprovider.New(debugproxy.New())
+	fmtProxy := fmtproxy.New()
+	// get version from buildinfo and write it
+	g.Utility.PrintlnWithWriter(g.Out, fmtProxy.Sprintf(constant.VERSION_MESSAGE_TEMPLATE, v.GetVersion(ver)))
+
 	return nil
 }

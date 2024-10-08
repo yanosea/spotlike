@@ -1,7 +1,7 @@
 package versionprovider
 
 import (
-	"github.com/yanosea/jrp/app/proxy/debug"
+	"github.com/yanosea/spotlike/app/proxy/debug"
 )
 
 // VersionProvidable is an interface for VersionProvider.

@@ -18,18 +18,21 @@ Flags:
   -i, --id string   ID of the album(s) or the artist(s) for like
   -v, --verbose     print verbose output
 `
-	LIKE_ALBUM_FLAG_ID                                    = "id"
-	LIKE_ALBUM_SHORTHAND_ID                               = "i"
-	LIKE_ALBUM_FLAG_DESCRIPTION_ID                        = "ID of the album(s) or the artist(s) for like"
-	LIKE_ALBUM_FLAG_FORCE                                 = "force"
-	LIKE_ALBUM_SHORTHAND_FORCE                            = "f"
-	LIKE_ALBUM_FLAG_DESCRIPTION_FORCE                     = "like album(s) without confirming"
-	LIKE_ALBUM_FLAG_VERBOSE                               = "verbose"
-	LIKE_ALBUM_SHORTHAND_VERBOSE                          = "v"
-	LIKE_ALBUM_FLAG_DESCRIPTION_VERBOSE                   = "print verbose output"
-	LIKE_ALBUM_ERROR_MESSAGE_TEMPLATE_ID_NOT_ARTIST_ALBUM = "The ID you passed [%s] is not album or artist..."
-	LIKE_ALBUM_INPUT_LABEL_TEMPLATE_ALL_ALBUM_BY_ARTIST   = "❔ Do you execute like all albums by [%s]"
-	LIKE_ALBUM_MESSAGE_TEMPLATE_LIKE_ALBUM_ALREADY_LIKED  = "✨ %s by [%s] already liked!\t:\t[%s]"
-	LIKE_ALBUM_MESSAGE_TEMPLATE_LIKE_ALBUM_REFUSED        = "❌ Like %s by [%s] refused!\t:\t[%s]"
-	LIKE_ALBUM_MESSAGE_TEMPLATE_LIKE_ALBUM_SUCCEEDED      = "✅ Like %s by [%s] succeeded!\t:\t[%s]"
+	LIKE_ALBUM_FLAG_ID                  = "id"
+	LIKE_ALBUM_FLAG_ID_SHORTHAND        = "i"
+	LIKE_ALBUM_FLAG_ID_DESCRIPTION      = "ID of the album(s) or the artist(s) for like"
+	LIKE_ALBUM_FLAG_FORCE               = "force"
+	LIKE_ALBUM_FLAG_FORCE_SHORTHAND     = "f"
+	LIKE_ALBUM_FLAG_FORCE_DEFAULT       = false
+	LIKE_ALBUM_FLAG_FORCE_DESCRIPTION   = "like album(s) without confirming"
+	LIKE_ALBUM_FLAG_VERBOSE             = "verbose"
+	LIKE_ALBUM_FLAG_VERBOSE_SHORTHAND   = "v"
+	LIKE_ALBUM_FLAG_VERBOSE_DEFAULT     = false
+	LIKE_ALBUM_FLAG_VERBOSE_DESCRIPTION = "print verbose output"
+
+	LIKE_ALBUM_MESSAGE_TEMPLATE_LIKE_ALBUM_ALREADY_LIKED     = "✨ %s by [%s] already liked!\t:\t[%s]"
+	LIKE_ALBUM_MESSAGE_TEMPLATE_LIKE_ALBUM_REFUSED           = "❌ Like %s by [%s] refused!\t:\t[%s]"
+	LIKE_ALBUM_MESSAGE_TEMPLATE_LIKE_ALBUM_SUCCEEDED         = "✅ Like %s by [%s] succeeded!\t:\t[%s]"
+	LIKE_ALBUM_ERROR_MESSAGE_TEMPLATE_ID_NOT_ARTIST_ALBUM    = "The ID you passed [%s] is not album or artist..."
+	LIKE_ALBUM_PROMPT_LABEL_TEMPLATE_CONFIRM_LIKE_ALL_ALBUMS = "❔ Do you execute like all albums by [%s]"
 )

@@ -5,13 +5,13 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/yanosea/jrp/app/library/utility"
-	"github.com/yanosea/jrp/app/proxy/buffer"
-	"github.com/yanosea/jrp/app/proxy/fmt"
-	"github.com/yanosea/jrp/app/proxy/os"
-	"github.com/yanosea/jrp/app/proxy/strconv"
+	"github.com/yanosea/spotlike/app/library/utility"
+	"github.com/yanosea/spotlike/app/proxy/buffer"
+	"github.com/yanosea/spotlike/app/proxy/fmt"
+	"github.com/yanosea/spotlike/app/proxy/os"
+	"github.com/yanosea/spotlike/app/proxy/strconv"
 
-	"github.com/yanosea/jrp/mock/app/proxy/buffer"
+	"github.com/yanosea/spotlike/mock/app/proxy/buffer"
 	"go.uber.org/mock/gomock"
 )
 

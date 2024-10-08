@@ -5,9 +5,9 @@ import (
 	"runtime/debug"
 	"testing"
 
-	"github.com/yanosea/jrp/app/proxy/debug"
+	"github.com/yanosea/spotlike/app/proxy/debug"
 
-	"github.com/yanosea/jrp/mock/app/proxy/debug"
+	"github.com/yanosea/spotlike/mock/app/proxy/debug"
 	"go.uber.org/mock/gomock"
 )
 

@@ -3,8 +3,8 @@ package testutility
 import (
 	"testing"
 
-	"github.com/yanosea/jrp/app/proxy/buffer"
-	"github.com/yanosea/jrp/app/proxy/os"
+	"github.com/yanosea/spotlike/app/proxy/buffer"
+	"github.com/yanosea/spotlike/app/proxy/os"
 )
 
 // Capturable is an interface for capturing output.

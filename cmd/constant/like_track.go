@@ -19,19 +19,22 @@ Flags:
   -i, --id string   ID of the track(s) or the artist(s) or the album for like
   -v, --verbose     print verbose output
 `
-	LIKE_TRACK_FLAG_ID                                          = "id"
-	LIKE_TRACK_SHORTHAND_ID                                     = "i"
-	LIKE_TRACK_FLAG_DESCRIPTION_ID                              = "ID of the track(s) or the artist(s) or the album for like"
-	LIKE_TRACK_FLAG_FORCE                                       = "force"
-	LIKE_TRACK_SHORTHAND_FORCE                                  = "f"
-	LIKE_TRACK_FLAG_DESCRIPTION_FORCE                           = "like track(s) without confirming"
-	LIKE_TRACK_FLAG_VERBOSE                                     = "verbose"
-	LIKE_TRACK_SHORTHAND_VERBOSE                                = "v"
-	LIKE_TRACK_FLAG_DESCRIPTION_VERBOSE                         = "print verbose output"
-	LIKE_TRACK_ERROR_MESSAGE_TEMPLATE_ID_NOT_ARTIST_ALBUM_TRACK = "The ID you passed [%s] is not track, album or artist..."
-	LIKE_TRACK_INPUT_LABEL_TEMPLATE_ALL_TRACK_BY_ARTIST         = "❔ Do you execute like all tracks by [%s]"
-	LIKE_TRACK_INPUT_LABEL_TEMPLATE_ALL_TRACK_IN_ALBUM          = "❔ Do you execute like all tracks in [%s]"
-	LIKE_TRACK_MESSAGE_TEMPLATE_LIKE_TRACK_ALREADY_LIKED        = "✨ %s in [%s] by [%s] already liked!\t:\t[%s]"
-	LIKE_TRACK_MESSAGE_TEMPLATE_LIKE_TRACK_REFUSED              = "❌ Like %s in [%s] by [%s] refused!\t:\t[%s]"
-	LIKE_TRACK_MESSAGE_TEMPLATE_LIKE_TRACK_SUCCEEDED            = "✅ Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
+	LIKE_TRACK_FLAG_ID                  = "id"
+	LIKE_TRACK_FLAG_ID_SHORTHAND        = "i"
+	LIKE_TRACK_FLAG_ID_DESCRIPTION      = "ID of the track(s) or the artist(s) or the album for like"
+	LIKE_TRACK_FLAG_FORCE               = "force"
+	LIKE_TRACK_FLAG_FORCE_SHORTHAND     = "f"
+	LIKE_TRACK_FLAG_FORCE_DEFAULT       = false
+	LIKE_TRACK_FLAG_FORCE_DESCRIPTION   = "like track(s) without confirming"
+	LIKE_TRACK_FLAG_VERBOSE             = "verbose"
+	LIKE_TRACK_FLAG_VERBOSE_SHORTHAND   = "v"
+	LIKE_TRACK_FLAG_VERBOSE_DEFAULT     = false
+	LIKE_TRACK_FLAG_VERBOSE_DESCRIPTION = "print verbose output"
+
+	LIKE_TRACK_MESSAGE_TEMPLATE_LIKE_TRACK_ALREADY_LIKED              = "✨ %s in [%s] by [%s] already liked!\t:\t[%s]"
+	LIKE_TRACK_MESSAGE_TEMPLATE_LIKE_TRACK_REFUSED                    = "❌ Like %s in [%s] by [%s] refused!\t:\t[%s]"
+	LIKE_TRACK_MESSAGE_TEMPLATE_LIKE_TRACK_SUCCEEDED                  = "✅ Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
+	LIKE_TRACK_ERROR_MESSAGE_TEMPLATE_ID_NOT_ARTIST_ALBUM_TRACK       = "The ID you passed [%s] is not track, album or artist..."
+	LIKE_TRACK_PROMPT_LABEL_TEMPLATE_CONFIRM_LIKE_ALL_TRACK_BY_ARTIST = "❔ Do you execute like all tracks by [%s]"
+	LIKE_TRACK_PROMPT_LABEL_TEMPLATE_CONFIRM_LIKE_ALL_TRACK_IN_ALBUM  = "❔ Do you execute like all tracks in [%s]"
 )
