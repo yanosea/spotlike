@@ -80,7 +80,7 @@ func NewRootCommand(ow, ew ioproxy.WriterInstanceInterface, cmdArgs []string) co
 	cmd.FieldCommand.Version = v.GetVersion(ver)
 	cmd.FieldCommand.SilenceErrors = true
 	cmd.FieldCommand.SilenceUsage = true
-	cmd.FieldCommand.Args = cobraProxy.MaximumNArgs(1).FieldPositionalArgs
+	cmd.FieldCommand.Args = cobra.MaximumNArgs(1)
 	cmd.FieldCommand.RunE = o.rootRunE
 
 	cmd.SetOut(ow)
@@ -88,11 +88,11 @@ func NewRootCommand(ow, ew ioproxy.WriterInstanceInterface, cmdArgs []string) co
 	cmd.SetHelpTemplate(constant.ROOT_HELP_TEMPLATE)
 
 	cmd.AddCommand(
-		NewAuthCommand(o),
-		NewCompletionCommand(o),
-		NewLikeCommand(o),
-		NewSearchCommand(o),
-		NewVersionCommand(o),
+		NewAuthCommand(g),
+		NewCompletionCommand(g),
+		NewLikeCommand(g),
+		NewSearchCommand(g),
+		NewVersionCommand(g),
 	)
 
 	cmd.SetArgs(cmdArgs)
@@ -102,7 +102,8 @@ func NewRootCommand(ow, ew ioproxy.WriterInstanceInterface, cmdArgs []string) co
 
 // rootRunE is the function to run root command.
 func (o *rootOption) rootRunE(_ *cobra.Command, _ []string) error {
+	colorproxy := colorproxy.New()
 	// if no sub command is specified, print the message and return nil.
-	o.Utility.PrintlnWithWriter(o.Out, constant.ROOT_MESSAGE_NO_SUB_COMMAND)
+	o.Utility.PrintlnWithWriter(o.Out, colorproxy.YellowString(constant.ROOT_MESSAGE_NO_SUB_COMMAND))
 	return nil
 }

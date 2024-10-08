@@ -1,121 +1,85 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"strings"
-
-	"github.com/yanosea/spotlike/api"
-	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/util"
-
-	// https://github.com/fatih/color
-	"github.com/fatih/color"
-	// https://github.com/manifoldco/promptui
-	"github.com/manifoldco/promptui"
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
-	// https://github.com/zmb3/spotify/v2
-	"github.com/zmb3/spotify/v2"
-)
 
-const (
-	like_track_help_template = `🤍🎵 Like track(s) in Spotify by ID.
-
-You must set the args or the flag "id" of track(s), album(s) or artist(s) for like.
-If you set both args and flag "id", both will be liked.
-
-If you pass the artist ID, spotlike will like all albums released by the artist.
-If you pass the album ID, spotlike will like all tracks included in the album.
-
-Usage:
-  spotlike like track [flags]
-
-Flags:
-  -f, --force       like track(s) without confirming
-  -h, --help        help for track
-  -i, --id string   ID of the track(s) or the artist(s) or the album for like
-  -v, --verbose     print verbose output
-`
-	like_track_use   = "track"
-	like_track_short = "🤍🎵 Like track(s) in Spotify by ID."
-	like_track_long  = `🤍🎵 Like track(s) in Spotify by ID.
-
-You must set the args or the flag "id" of track(s), album(s) or artist(s) for like.
-If you set both args and flag "id", both will be liked.
-
-If you pass the artist ID, spotlike will like all albums released by the artist.
-If you pass the album ID, spotlike will like all tracks included in the album.`
-	like_track_flag_id                                          = "id"
-	like_track_shorthand_id                                     = "i"
-	like_track_flag_description_id                              = "ID of the track(s) or the artist(s) or the album for like"
-	like_track_flag_force                                       = "force"
-	like_track_shorthand_force                                  = "f"
-	like_track_flag_description_force                           = "like track(s) without confirming"
-	like_track_flag_verbose                                     = "verbose"
-	like_track_shorthand_verbose                                = "v"
-	like_track_flag_description_verbose                         = "print verbose output"
-	like_track_error_message_template_id_not_artist_album_track = "The ID you passed [%s] is not track, album or artist..."
-	like_track_input_label_template_all_track_by_artist         = "❔ Do you execute like all tracks by [%s]"
-	like_track_input_label_template_all_track_in_album          = "❔ Do you execute like all tracks in [%s]"
-	like_track_message_template_like_track_already_liked        = "✨ %s in [%s] by [%s] already liked!\t:\t[%s]"
-	like_track_message_template_like_track_refused              = "❌ Like %s in [%s] by [%s] refused!\t:\t[%s]"
-	like_track_message_template_like_track_succeeded            = "✅ Like %s in [%s] by [%s] succeeded!\t:\t[%s]"
+	"github.com/yanosea/spotlike/app/library/api"
+	"github.com/yanosea/spotlike/app/library/auth"
+	"github.com/yanosea/spotlike/app/library/utility"
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/app/proxy/color"
+	"github.com/yanosea/spotlike/app/proxy/io"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
 type likeTrackOption struct {
-	Client *spotify.Client
-
+	Out     ioproxy.WriterInstanceInterface
+	ErrOut  ioproxy.WriterInstanceInterface
 	Args    []string
+	Utility utility.UtilityInterface
 	Id      string
-	Level   string
 	Force   bool
+	Level   string
 	Verbose bool
-
-	Out    io.Writer
-	ErrOut io.Writer
 }
 
-func newLikeTrackCommand(globalOption *GlobalOption) *cobra.Command {
-	o := &likeTrackOption{}
-
-	cmd := &cobra.Command{
-		Use:   like_track_use,
-		Short: like_track_short,
-		Long:  like_track_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			o.Client = globalOption.Client
-			if o.Client == nil {
-				if !auth.IsEnvsSet() {
-					auth.SetAuthInfo()
-				}
-				client, err := auth.Authenticate(globalOption.Out)
-				if err != nil {
-					return err
-				}
-				o.Client = client
-			}
-			o.Args = args
-			o.Out = globalOption.Out
-			o.ErrOut = globalOption.ErrOut
-
-			return o.likeTrack()
-		},
+func NewLikeTrackCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	o := &likeTrackOption{
+		Out:     g.Out,
+		ErrOut:  g.ErrOut,
+		Args:    g.Args,
+		Utility: g.Utility,
 	}
 
-	cmd.PersistentFlags().StringVarP(&o.Id, like_track_flag_id, like_track_shorthand_id, "", like_track_flag_description_id)
-	cmd.PersistentFlags().BoolVarP(&o.Force, like_track_flag_force, like_track_shorthand_force, false, like_track_flag_description_force)
-	cmd.PersistentFlags().BoolVarP(&o.Verbose, like_track_flag_verbose, like_track_shorthand_verbose, false, like_track_flag_description_verbose)
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-	o.Out = globalOption.Out
-	o.ErrOut = globalOption.ErrOut
+	cmd.FieldCommand.Use = constant.LIKE_TRACK_USE
+	cmd.FieldCommand.Args = cobra.MaximumNArgs(1)
+	cmd.FieldCommand.RunE = o.likeTrackRunE
+
+	cmd.PersistentFlags().StringVarP(&o.Id,
+		constant.LIKE_TRACK_FLAG_ID,
+		constant.LIKE_TRACK_SHORTHAND_ID,
+		"",
+		constant.LIKE_TRACK_FLAG_DESCRIPTION_ID,
+	)
+	cmd.PersistentFlags().BoolVarP(&o.Force,
+		constant.LIKE_TRACK_FLAG_FORCE,
+		constant.LIKE_TRACK_SHORTHAND_FORCE,
+		false,
+		constant.LIKE_TRACK_FLAG_DESCRIPTION_FORCE,
+	)
+	cmd.PersistentFlags().BoolVarP(&o.Verbose,
+		constant.LIKE_TRACK_FLAG_VERBOSE,
+		constant.LIKE_TRACK_SHORTHAND_VERBOSE,
+		false,
+		constant.LIKE_TRACK_FLAG_DESCRIPTION_VERBOSE,
+	)
+
+	o.Out = g.Out
+	o.ErrOut = g.ErrOut
 	cmd.SetOut(o.Out)
 	cmd.SetErr(o.ErrOut)
 
-	cmd.SetHelpTemplate(like_track_help_template)
+	cmd.SetHelpTemplate(constant.LIKE_TRACK_HELP_TEMPLATE)
 
 	return cmd
+}
+
+func (o *likeTrackOption) likeTrackRunE(_ *cobra.Command, _ []string) error {
+	if o.Client == nil {
+		if !auth.IsEnvsSet() {
+			auth.SetAuthInfo()
+		}
+		client, err := auth.Authenticate(g.Out)
+		if err != nil {
+			return err
+		}
+		o.Client = client
+	}
+
+	return o.likeTrack()
 }
 
 func (o *likeTrackOption) likeTrack() error {
@@ -208,15 +172,17 @@ func (o *likeTrackOption) printLikeTrackResult(likeResults []*api.LikeResult) {
 }
 
 func formatLikeTrackResult(result *api.LikeResult) string {
+	colorProxy := colorproxy.New()
 	if result.AlreadyLiked {
-		return color.BlueString(fmt.Sprintf(like_track_message_template_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+		return colorProxy.BlueString(fmt.Sprintf(like_track_message_template_like_track_already_liked, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	} else if result.Refused {
-		return color.YellowString(fmt.Sprintf(like_track_message_template_like_track_refused, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+		return colorProxy.YellowString(fmt.Sprintf(like_track_message_template_like_track_refused, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	} else {
-		return color.GreenString(fmt.Sprintf(like_track_message_template_like_track_succeeded, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
+		return colorProxy.GreenString(fmt.Sprintf(like_track_message_template_like_track_succeeded, util.STRING_TRACK, result.AlbumName, result.ArtistNames, result.TrackName))
 	}
 }
 
 func formatLikeResultError(error error) string {
-	return color.RedString(fmt.Sprintf("Error:\n  %s", error))
+	colorProxy := colorproxy.New()
+	return colorProxy.RedString(fmt.Sprintf("Error:\n  %s", error))
 }

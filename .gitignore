@@ -1,5 +1,9 @@
 # IGNORE FOLDER
-dist/
-
 # IGNORE FILE
 spotlike
+spotlike.exe
+.DS_Store
+*.log
+
+# NOT IGNORE FOLDER
+!spotlike/

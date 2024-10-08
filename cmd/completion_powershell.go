@@ -1,50 +1,33 @@
 package cmd
 
 import (
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
+
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
-const (
-	completion_powershell_help_template = `🔧🪟 Generate the autocompletion script for the powershell shell.
+// NewCompletionPowerShellCommand creates a new completion powershell command.
+func NewCompletionPowerShellCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-To load completions in your current shell session:
+	cmd.FieldCommand.Use = constant.COMPLETION_POWERSHELL_USE
+	cmd.FieldCommand.RunE = g.completionPowerShellRunE
 
-  spotlike completion powershell | Out-String | Invoke-Expression
-
-To load completions for every new session, add the output of the above command to your powershell profile.
-
-Usage:
-  spotlike completion powershell [flags]
-
-Flags:
-  -h, --help   help for powershell
-`
-	completion_powershell_use   = "powershell"
-	completion_powershell_short = "🔧🪟 Generate the autocompletion script for the powershell shell."
-	completion_powershell_long  = `🔧🪟 Generate the autocompletion script for the powershell shell.
-
-To load completions in your current shell session:
-
-  spotlike completion powershell | Out-String | Invoke-Expression
-
-To load completions for every new session, add the output of the above command to your powershell profile.`
-)
-
-func newCompletionPowerShellCommand(globalOption *GlobalOption) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   completion_powershell_use,
-		Short: completion_powershell_short,
-		Long:  completion_powershell_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.GenPowerShellCompletion(globalOption.Out)
-		},
-	}
-
-	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
-
-	cmd.SetHelpTemplate(completion_powershell_help_template)
+	cmd.SetOut(g.Out)
+	cmd.SetErr(g.ErrOut)
+	cmd.SetHelpTemplate(constant.COMPLETION_POWERSHELL_HELP_TEMPLATE)
 
 	return cmd
+}
+
+// completionPowerShellRunE is a function that is called when the completion powershell command is executed.
+func (g *GlobalOption) completionPowerShellRunE(c *cobra.Command, _ []string) error {
+	return g.completionPowerShell(c)
+}
+
+// completionPowerShell generates the powershell completion script.
+func (g *GlobalOption) completionPowerShell(c *cobra.Command) error {
+	return c.GenPowerShellCompletion(g.Out)
 }

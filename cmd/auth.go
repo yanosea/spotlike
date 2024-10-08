@@ -1,73 +1,51 @@
 package cmd
 
 import (
-	"io"
-
-	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/util"
-
-	// https://github.com/fatih/color
-	"github.com/fatih/color"
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
-)
 
-const (
-	auth_help_template = `🔑 Authenticate your Spotify client.
-
-You have to authenticate your Spotify client to use spotlike at first.
-spotlike will ask you to input your Client ID, Client Secret, Redirect URI, and Refresh Token.
-
-Usage:
-  spotlike auth [flags]
-
-Flags:
-  -h, --help   help for auth
-`
-	auth_use   = "auth"
-	auth_short = "🔑 Authenticate your Spotify client."
-	auth_long  = `🔑 Authenticate your Spotify client.
-
-You have to authenticate your Spotify client to use spotlike at first.
-spotlike will ask you to input your Client ID, Client Secret, Redirect URI, and Refresh Token.`
-	auth_message_already_authenticated = "✅ You are already authenticated and set envs!"
+	"github.com/yanosea/spotlike/app/library/auth"
+	"github.com/yanosea/spotlike/app/library/utility"
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/app/proxy/color"
+	"github.com/yanosea/spotlike/app/proxy/io"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
 type authOption struct {
-	Out    io.Writer
-	ErrOut io.Writer
+	Out     ioproxy.WriterInstanceInterface
+	ErrOut  ioproxy.WriterInstanceInterface
+	Args    []string
+	Utility utility.UtilityInterface
 }
 
-func newAuthCommand(globalOption *GlobalOption) *cobra.Command {
-	o := &authOption{}
-	cmd := &cobra.Command{
-		Use:   auth_use,
-		Short: auth_short,
-		Long:  auth_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-
-			o.Out = globalOption.Out
-			o.ErrOut = globalOption.ErrOut
-
-			return o.auth()
-		},
+func NewAuthCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	o := &authOption{
+		Out:     g.Out,
+		ErrOut:  g.ErrOut,
+		Args:    g.Args,
+		Utility: g.Utility,
 	}
 
-	o.Out = globalOption.Out
-	o.ErrOut = globalOption.ErrOut
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
+
+	cmd.FieldCommand.Use = constant.AUTH_USE
+	cmd.FieldCommand.Args = cobra.MaximumNArgs(1)
+	cmd.FieldCommand.RunE = o.authRunE
+
 	cmd.SetOut(o.Out)
 	cmd.SetErr(o.ErrOut)
-
-	cmd.SetHelpTemplate(auth_help_template)
+	cmd.SetHelpTemplate(constant.AUTH_HELP_TEMPLATE)
 
 	return cmd
 }
 
-func (o *authOption) auth() error {
+func (o *authOption) authRunE(_ *cobra.Command, _ []string) error {
 	// check if auth info is already set
 	if auth.IsEnvsSet() {
+		colorProxy := colorproxy.New()
 		// if already set, print message and return
-		util.PrintlnWithWriter(o.Out, color.YellowString(auth_message_already_authenticated))
+		o.Utility.PrintlnWithWriter(o.Out, colorProxy.YellowString(constant.AUTH_MESSAGE_ALREADY_AUTHENTICATED))
 		return nil
 	}
 

@@ -1,110 +1,86 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"strings"
-
-	"github.com/yanosea/spotlike/api"
-	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/util"
-
-	// https://github.com/fatih/color
-	"github.com/fatih/color"
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
-	// https://github.com/zmb3/spotify/v2
-	"github.com/zmb3/spotify/v2"
-)
 
-const (
-	like_artist_help_template = `🤍🎤  Like artist(s) in Spotify by ID.
-
-You must set the args or the flag "id" of artist(s) for like.
-If you set both args and flag "id", both will be liked.
-
-Usage:
-  spotlike like artist [flags]
-
-Flags:
-  -f, --force       like artist(s) without confirming
-  -h, --help        help for artist
-  -i, --id string   ID of the artist(s) for like
-  -v, --verbose     print verbose output
-`
-	like_artist_use   = "artist"
-	like_artist_short = "🤍🎤 Like artist(s) in Spotify by ID."
-	like_artist_long  = `🤍🎤 Like artist(s) in Spotify by ID.
-
-You must set the args or the flag "id" of artist(s) for like.
-If you set both args and flag "id", both will be liked.`
-	like_artist_flag_id                                    = "id"
-	like_artist_shorthand_id                               = "i"
-	like_artist_flag_description_id                        = "ID of the artist(s) for like"
-	like_artist_flag_force                                 = "force"
-	like_artist_shorthand_force                            = "f"
-	like_artist_flag_description_force                     = "like artist(s) without confirming"
-	like_artist_flag_verbose                               = "verbose"
-	like_artist_shorthand_verbose                          = "v"
-	like_artist_flag_description_verbose                   = "print verbose output"
-	like_artist_error_message_template_id_not_artist       = "The ID you passed [%s] is not artist..."
-	like_artist_message_template_like_artist_already_liked = "✨ %s already liked!\t:\t[%s]"
-	like_artist_message_template_like_artist_refused       = "❌ Like %s refused!\t:\t[%s]"
-	like_artist_message_template_like_artist_succeeded     = "✅ Like %s succeeded!\t:\t[%s]"
+	"github.com/yanosea/spotlike/app/library/api"
+	"github.com/yanosea/spotlike/app/library/auth"
+	"github.com/yanosea/spotlike/app/library/utility"
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/app/proxy/color"
+	"github.com/yanosea/spotlike/app/proxy/io"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
 type likeArtistOption struct {
-	Client *spotify.Client
-
+	Out     ioproxy.WriterInstanceInterface
+	ErrOut  ioproxy.WriterInstanceInterface
 	Args    []string
+	Utility utility.UtilityInterface
 	Id      string
 	Force   bool
 	Verbose bool
-
-	Out    io.Writer
-	ErrOut io.Writer
 }
 
-func newLikeArtistCommand(globalOption *GlobalOption) *cobra.Command {
-	o := &likeArtistOption{}
-
-	cmd := &cobra.Command{
-		Use:   like_artist_use,
-		Short: like_artist_short,
-		Long:  like_artist_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			o.Client = globalOption.Client
-			if o.Client == nil {
-				if !auth.IsEnvsSet() {
-					auth.SetAuthInfo()
-				}
-				client, err := auth.Authenticate(globalOption.Out)
-				if err != nil {
-					return err
-				}
-				o.Client = client
-			}
-			o.Args = args
-			o.Out = globalOption.Out
-			o.ErrOut = globalOption.ErrOut
-
-			return o.likeArtist()
-		},
+func NewLikeArtistCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	o := &likeArtistOption{
+		Out:     g.Out,
+		ErrOut:  g.ErrOut,
+		Args:    g.Args,
+		Utility: g.Utility,
 	}
 
-	cmd.PersistentFlags().StringVarP(&o.Id, like_artist_flag_id, like_artist_shorthand_id, "", like_artist_flag_description_id)
-	cmd.PersistentFlags().BoolVarP(&o.Force, like_artist_flag_force, like_artist_shorthand_force, false, like_artist_flag_description_force)
-	cmd.PersistentFlags().BoolVarP(&o.Verbose, like_artist_flag_verbose, like_artist_shorthand_verbose, false, like_artist_flag_description_verbose)
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-	o.Out = globalOption.Out
-	o.ErrOut = globalOption.ErrOut
+	cmd.FieldCommand.Use = constant.LIKE_ARTIST_USE
+	cmd.FieldCommand.Args = cobra.MaximumNArgs(1)
+	cmd.FieldCommand.RunE = o.likeArtistRunE
+
+	cmd.PersistentFlags().StringVarP(
+		&o.Id,
+		constant.LIKE_ARTIST_FLAG_ID,
+		constant.LIKE_ARTIST_SHORTHAND_ID,
+		"",
+		constant.LIKE_ARTIST_FLAG_DESCRIPTION_ID,
+	)
+	cmd.PersistentFlags().BoolVarP(&o.Force,
+		constant.LIKE_ARTIST_FLAG_FORCE,
+		constant.LIKE_ARTIST_SHORTHAND_FORCE,
+		false,
+		constant.LIKE_ARTIST_FLAG_DESCRIPTION_FORCE,
+	)
+	cmd.PersistentFlags().BoolVarP(&o.Verbose,
+		constant.LIKE_ARTIST_FLAG_VERBOSE,
+		constant.LIKE_ARTIST_SHORTHAND_VERBOSE,
+		false,
+		constant.LIKE_ARTIST_FLAG_DESCRIPTION_VERBOSE,
+	)
+
+	o.Out = g.Out
+	o.ErrOut = g.ErrOut
 	cmd.SetOut(o.Out)
 	cmd.SetErr(o.ErrOut)
 
-	cmd.SetHelpTemplate(like_artist_help_template)
+	cmd.SetHelpTemplate(constant.LIKE_ARTIST_HELP_TEMPLATE)
 
 	return cmd
+}
+
+func (o *likeArtistOption) likeArtistRunE(_ *cobra.Command, _ []string) error {
+	o.Client = g.Client
+	if o.Client == nil {
+		if !auth.IsEnvsSet() {
+			auth.SetAuthInfo()
+		}
+		client, err := auth.Authenticate(g.Out)
+		if err != nil {
+			return err
+		}
+		o.Client = client
+	}
+
+	return o.likeArtist()
 }
 
 func (o *likeArtistOption) likeArtist() error {
@@ -158,11 +134,12 @@ func (o *likeArtistOption) printLikeArtistResult(likeResults []*api.LikeResult) 
 }
 
 func formatLikeArtistResult(result *api.LikeResult) string {
+	colorProxy := colorproxy.New()
 	if result.AlreadyLiked {
-		return color.BlueString(fmt.Sprintf(like_artist_message_template_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames))
+		return colorProxy.BlueString(fmt.Sprintf(like_artist_message_template_like_artist_already_liked, util.STRING_ARTIST, result.ArtistNames))
 	} else if result.Refused {
-		return color.YellowString(fmt.Sprintf(like_artist_message_template_like_artist_refused, util.STRING_ARTIST, result.ArtistNames))
+		return colorProxy.YellowString(fmt.Sprintf(like_artist_message_template_like_artist_refused, util.STRING_ARTIST, result.ArtistNames))
 	} else {
-		return color.GreenString(fmt.Sprintf(like_artist_message_template_like_artist_succeeded, util.STRING_ARTIST, result.ArtistNames))
+		return colorProxy.GreenString(fmt.Sprintf(like_artist_message_template_like_artist_succeeded, util.STRING_ARTIST, result.ArtistNames))
 	}
 }

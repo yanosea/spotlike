@@ -1,117 +1,84 @@
 package cmd
 
 import (
-	"errors"
-	"fmt"
-	"io"
-	"strings"
-
-	"github.com/yanosea/spotlike/api"
-	"github.com/yanosea/spotlike/auth"
-	"github.com/yanosea/spotlike/util"
-
-	// https://github.com/fatih/color
-	"github.com/fatih/color"
-	// https://github.com/manifoldco/promptui
-	"github.com/manifoldco/promptui"
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
-	// https://github.com/zmb3/spotify/v2
-	"github.com/zmb3/spotify/v2"
-)
 
-const (
-	like_album_help_template = `🤍💿 Like album(s) in Spotify by ID.
-
-You must set the args or the flag "id" of album(s) or artist(s) for like.
-If you set both args and flag "id", both will be liked.
-
-If you pass the artist ID, spotlike will like all albums released by the artist.
-
-Usage:
-  spotlike like album [flags]
-
-Flags:
-  -f, --force       like album(s) without confirming
-  -h, --help        help for album
-  -i, --id string   ID of the album(s) or the artist(s) for like
-  -v, --verbose     print verbose output
-`
-	like_album_use   = "album"
-	like_album_short = "🤍💿 Like album(s) in Spotify by ID."
-	like_album_long  = `🤍💿 Like album(s) in Spotify by ID.
-
-You must set the args or the flag "id" of album(s) or artist(s) for like.
-If you set both args and flag "id", both will be liked.
-
-If you pass the artist ID, spotlike will like all albums released by the artist.`
-	like_album_flag_id                                    = "id"
-	like_album_shorthand_id                               = "i"
-	like_album_flag_description_id                        = "ID of the album(s) or the artist(s) for like"
-	like_album_flag_force                                 = "force"
-	like_album_shorthand_force                            = "f"
-	like_album_flag_description_force                     = "like album(s) without confirming"
-	like_album_flag_verbose                               = "verbose"
-	like_album_shorthand_verbose                          = "v"
-	like_album_flag_description_verbose                   = "print verbose output"
-	like_album_error_message_template_id_not_artist_album = "The ID you passed [%s] is not album or artist..."
-	like_album_input_label_template_all_album_by_artist   = "❔ Do you execute like all albums by [%s]"
-	like_album_message_template_like_album_already_liked  = "✨ %s by [%s] already liked!\t:\t[%s]"
-	like_album_message_template_like_album_refused        = "❌ Like %s by [%s] refused!\t:\t[%s]"
-	like_album_message_template_like_album_succeeded      = "✅ Like %s by [%s] succeeded!\t:\t[%s]"
+	"github.com/yanosea/spotlike/app/library/api"
+	"github.com/yanosea/spotlike/app/library/auth"
+	"github.com/yanosea/spotlike/app/library/utility"
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/app/proxy/color"
+	"github.com/yanosea/spotlike/app/proxy/io"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
 type likeAlbumOption struct {
-	Client *spotify.Client
-
+	Out     ioproxy.WriterInstanceInterface
+	ErrOut  ioproxy.WriterInstanceInterface
 	Args    []string
+	Utility utility.UtilityInterface
 	Id      string
 	Force   bool
 	Verbose bool
-
-	Out    io.Writer
-	ErrOut io.Writer
 }
 
-func newLikeAlbumCommand(globalOption *GlobalOption) *cobra.Command {
-	o := &likeAlbumOption{}
-
-	cmd := &cobra.Command{
-		Use:   like_album_use,
-		Short: like_album_short,
-		Long:  like_album_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			o.Client = globalOption.Client
-			if o.Client == nil {
-				if !auth.IsEnvsSet() {
-					auth.SetAuthInfo()
-				}
-				client, err := auth.Authenticate(globalOption.Out)
-				if err != nil {
-					return err
-				}
-				o.Client = client
-			}
-			o.Args = args
-			o.Out = globalOption.Out
-			o.ErrOut = globalOption.ErrOut
-
-			return o.likeAlbum()
-		},
+func NewLikeAlbumCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	o := &likeAlbumOption{
+		Out:     g.Out,
+		ErrOut:  g.ErrOut,
+		Args:    g.Args,
+		Utility: g.Utility,
 	}
 
-	cmd.PersistentFlags().StringVarP(&o.Id, like_album_flag_id, like_album_shorthand_id, "", like_album_flag_description_id)
-	cmd.PersistentFlags().BoolVarP(&o.Force, like_album_flag_force, like_album_shorthand_force, false, like_album_flag_description_force)
-	cmd.PersistentFlags().BoolVarP(&o.Verbose, like_album_flag_verbose, like_album_shorthand_verbose, false, like_album_flag_description_verbose)
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-	o.Out = globalOption.Out
-	o.ErrOut = globalOption.ErrOut
+	cmd.FieldCommand.Use = constant.LIKE_ALBUM_USE
+	cmd.FieldCommand.Args = cobra.MaximumNArgs(1)
+	cmd.FieldCommand.RunE = o.likeAlbumRunE
+
+	cmd.PersistentFlags().StringVarP(
+		&o.Id,
+		constant.LIKE_ALBUM_FLAG_ID,
+		constant.LIKE_ALBUM_SHORTHAND_ID,
+		"",
+		constant.LIKE_ALBUM_FLAG_DESCRIPTION_ID,
+	)
+	cmd.PersistentFlags().BoolVarP(
+		&o.Force,
+		constant.LIKE_ALBUM_FLAG_FORCE,
+		constant.LIKE_ALBUM_SHORTHAND_FORCE,
+		false,
+		constant.LIKE_ALBUM_FLAG_DESCRIPTION_FORCE,
+	)
+	cmd.PersistentFlags().BoolVarP(
+		&o.Verbose,
+		constant.LIKE_ALBUM_FLAG_VERBOSE,
+		constant.LIKE_ALBUM_SHORTHAND_VERBOSE,
+		false,
+		constant.LIKE_ALBUM_FLAG_DESCRIPTION_VERBOSE,
+	)
+
 	cmd.SetOut(o.Out)
 	cmd.SetErr(o.ErrOut)
-
-	cmd.SetHelpTemplate(like_album_help_template)
+	cmd.SetHelpTemplate(constant.LIKE_ALBUM_HELP_TEMPLATE)
 
 	return cmd
+}
+
+func (o *likeAlbumOption) likeAlbumRunE(_ *cobra.Command, _ []string) error {
+	if o.Client == nil {
+		if !auth.IsEnvsSet() {
+			auth.SetAuthInfo()
+		}
+		client, err := auth.Authenticate(g.Out)
+		if err != nil {
+			return err
+		}
+		o.Client = client
+	}
+
+	return o.likeAlbum()
 }
 
 func (o *likeAlbumOption) likeAlbum() error {
@@ -160,7 +127,7 @@ func (o *likeAlbumOption) likeAlbum() error {
 			likeResults = api.LikeAlbumById(o.Client, searchResult.Id, o.Force)
 		default:
 			// if the id was not artist or album
-			return errors.New(fmt.Sprintf(like_album_error_message_template_id_not_artist_album, id))
+			return errors.New(fmt.Sprintf(constant.LIKE_ALBUM_ERROR_MESSAGE_TEMPLATE_ID_NOT_ARTIST_ALBUM, id))
 		}
 		// print the like result
 		o.printLikeAlbumResult(likeResults)
@@ -179,18 +146,19 @@ func (o *likeAlbumOption) printLikeAlbumResult(likeResults []*api.LikeResult) {
 			continue
 		}
 		if result.Error != nil {
-			util.PrintlnWithWriter(o.ErrOut, formatLikeResultError(result.Error))
+			o.Utility.PrintlnWithWriter(o.ErrOut, formatLikeResultError(result.Error))
 		}
-		util.PrintlnWithWriter(o.Out, formatLikeAlbumResult(result))
+		o.Utility.PrintlnWithWriter(o.Out, formatLikeAlbumResult(result))
 	}
 }
 
 func formatLikeAlbumResult(result *api.LikeResult) string {
+	colorProxy := colorproxy.New()
 	if result.AlreadyLiked {
-		return color.BlueString(fmt.Sprintf(like_album_message_template_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+		return colorProxy.BlueString(fmt.Sprintf(like_album_message_template_like_album_already_liked, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	} else if result.Refused {
-		return color.YellowString(fmt.Sprintf(like_album_message_template_like_album_refused, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+		return colorProxy.YellowString(fmt.Sprintf(like_album_message_template_like_album_refused, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	} else {
-		return color.GreenString(fmt.Sprintf(like_album_message_template_like_album_succeeded, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
+		return colorProxy.GreenString(fmt.Sprintf(like_album_message_template_like_album_succeeded, util.STRING_ALBUM, result.ArtistNames, result.AlbumName))
 	}
 }

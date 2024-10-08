@@ -1,58 +1,33 @@
 package cmd
 
 import (
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
+
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
-const (
-	completion_fish_help_template = `🔧🐟 Generate the autocompletion script for the fish shell.
+// NewCompletionFishCommand creates a new command for fish completion.
+func NewCompletionFishCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-To load completions in your current shell session:
+	cmd.FieldCommand.Use = constant.COMPLETION_FISH_USE
+	cmd.FieldCommand.RunE = g.completionFishRunE
 
-  spotlike completion fish | source
-
-To load completions for every new session, execute once:
-
-  spotlike completion fish > ~/.config/fish/completions/spotlike.fish
-
-You will need to start a new shell for this setup to take effect.
-
-Usage:
-  spotlike completion fish [flags]
-
-Flags:
-  -h, --help   help for fish
-`
-	completion_fish_use   = "fish"
-	completion_fish_short = "🔧🐟 Generate the autocompletion script for the fish shell."
-	completion_fish_long  = `🔧🐟 Generate the autocompletion script for the fish shell.
-
-To load completions in your current shell session:
-
-  spotlike completion fish | source
-
-To load completions for every new session, execute once:
-
-  spotlike completion fish > ~/.config/fish/completions/spotlike.fish
-
-You will need to start a new shell for this setup to take effect.`
-)
-
-func newCompletionFishCommand(globalOption *GlobalOption) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   completion_fish_use,
-		Short: completion_fish_short,
-		Long:  completion_fish_long,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return cmd.GenFishCompletion(globalOption.Out, false)
-		},
-	}
-
-	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
-
-	cmd.SetHelpTemplate(completion_fish_help_template)
+	cmd.SetOut(g.Out)
+	cmd.SetErr(g.ErrOut)
+	cmd.SetHelpTemplate(constant.COMPLETION_FISH_HELP_TEMPLATE)
 
 	return cmd
+}
+
+// completionFishRunE is the function that is called when the completion fish command is executed.
+func (g *GlobalOption) completionFishRunE(c *cobra.Command, _ []string) error {
+	return g.completionFish(c)
+}
+
+// completionFish generates the fish completion script.
+func (g *GlobalOption) completionFish(c *cobra.Command) error {
+	return c.GenFishCompletion(g.Out, false)
 }

@@ -1,72 +1,45 @@
 package cmd
 
 import (
-	"github.com/yanosea/spotlike/util"
-
-	// https://github.com/spf13/cobra
 	"github.com/spf13/cobra"
+
+	"github.com/yanosea/spotlike/app/proxy/cobra"
+	"github.com/yanosea/spotlike/app/proxy/color"
+	"github.com/yanosea/spotlike/cmd/constant"
 )
 
-const (
-	completion_help_template = `🔧 Generate the autocompletion script for the specified shell.
+// NewCompletionCommand creates a new completion command.
+func NewCompletionCommand(g *GlobalOption) *cobraproxy.CommandInstance {
+	cobraProxy := cobraproxy.New()
+	cmd := cobraProxy.NewCommand()
 
-Usage:
-  spotlike completion [flags]
-  spotlike completion [command]
+	cmd.FieldCommand.Use = constant.COMPLETION_USE
+	cmd.FieldCommand.RunE = g.completionRunE
 
-Available Commands:
-  bash        🔧🐚 Generate the autocompletion script for the bash shell.
-  fish        🔧🐟 Generate the autocompletion script for the fish shell.
-  powershell  🔧🪟 Generate the autocompletion script for the powershell shell.
-  zsh         🔧🧙 Generate the autocompletion script for the zsh shell.
-
-Flags:
-  -h, --help   help for completion
-
-Use "spotlike completion [command] --help" for more information about a command.
-`
-	completion_use   = "completion"
-	completion_short = "🔧 Generate the autocompletion script for the specified shell."
-	completion_long  = `🔧 Generate the autocompletion script for the specified shell.
-
-See each sub-command's help for details on how to use the generated script.
-You must use sub command below...
-
-  * 🐚 bash
-  * 🐟 fish
-  * 🪟 powershell
-  * 🧙 zsh`
-	completion_message_no_sub_command = `Use sub command below...
-
-  * 🐚 bash
-  * 🐟 fish
-  * 🪟 powershell
-  * 🧙 zsh`
-)
-
-func newCompletionCommand(globalOption *GlobalOption) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   completion_use,
-		Short: completion_short,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			// If no sub command is specified, print the message and return nil.
-			util.PrintlnWithWriter(globalOption.Out, completion_message_no_sub_command)
-
-			return nil
-		},
-	}
-
-	cmd.SetOut(globalOption.Out)
-	cmd.SetErr(globalOption.ErrOut)
-
-	cmd.SetHelpTemplate(completion_help_template)
+	cmd.SetOut(g.Out)
+	cmd.SetErr(g.ErrOut)
+	cmd.SetHelpTemplate(constant.COMPLETION_HELP_TEMPLATE)
 
 	cmd.AddCommand(
-		newCompletionBashCommand(globalOption),
-		newCompletionFishCommand(globalOption),
-		newCompletionPowerShellCommand(globalOption),
-		newCompletionZshCommand(globalOption),
+		NewCompletionBashCommand(g),
+		NewCompletionFishCommand(g),
+		NewCompletionPowerShellCommand(g),
+		NewCompletionZshCommand(g),
 	)
 
 	return cmd
+}
+
+// completionRunE is the function that is called when the completion command is executed.
+func (g *GlobalOption) completionRunE(_ *cobra.Command, _ []string) error {
+	return g.completion()
+}
+
+// completion just prints the message.
+func (g *GlobalOption) completion() error {
+	// if no sub command is specified, print the message and return nil.
+	colorProxy := colorproxy.New()
+	g.Utility.PrintlnWithWriter(g.Out, colorProxy.YellowString(constant.COMPLETION_MESSAGE_NO_SUB_COMMAND))
+
+	return nil
 }
