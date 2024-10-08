@@ -3,8 +3,8 @@ package cobraproxy
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/yanosea/jrp/app/proxy/io"
-	"github.com/yanosea/jrp/app/proxy/pflag"
+	"github.com/yanosea/spotlike/app/proxy/io"
+	"github.com/yanosea/spotlike/app/proxy/pflag"
 )
 
 // CommandInstanceInterface is an interface for cobra.Command.

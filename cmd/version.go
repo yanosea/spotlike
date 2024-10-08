@@ -48,6 +48,6 @@ func newVersionCommand(globalOption *GlobalOption) *cobra.Command {
 
 func (g *GlobalOption) version() error {
 	// show version
-	util.PrintlnWithWriter(g.Out, fmt.Sprintf(version_message_template, version))
+	util.PrintlnWithWriter(g.Out, fmt.Sprintf(version_message_template, ver))
 	return nil
 }
