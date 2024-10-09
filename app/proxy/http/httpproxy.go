@@ -8,6 +8,7 @@ import (
 type Http interface {
 	Error(w ResponseWriterInstanceInterface, error error, code int)
 	HandleFunc(pattern string, handler func(ResponseWriterInstanceInterface, *RequestInstance))
+	ListenAndServe(addr string, handler http.Handler) error
 	NotFound(w ResponseWriterInstanceInterface, r *RequestInstance)
 }
 
@@ -28,6 +29,11 @@ func (*HttpProxy) HandleFunc(pattern string, handler func(ResponseWriterInstance
 	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		handler(&ResponseWriterInstance{FieldResponseWriter: w}, &RequestInstance{FieldRequest: *r})
 	})
+}
+
+// ListenAndServe is a proxy for http.ListenAndServe.
+func (*HttpProxy) ListenAndServe(addr string, handler http.Handler) error {
+	return http.ListenAndServe(addr, handler)
 }
 
 // NotFound is a proxy for http.NotFound.

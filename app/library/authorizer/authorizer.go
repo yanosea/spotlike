@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/yanosea/spotlike/app/proxy/http"
+	"github.com/yanosea/spotlike/app/proxy/oauth2"
 	"github.com/yanosea/spotlike/app/proxy/os"
 	"github.com/yanosea/spotlike/app/proxy/randstr"
 	"github.com/yanosea/spotlike/app/proxy/spotify"
@@ -59,7 +60,7 @@ func New(
 	return authorizer
 }
 
-func (a *Authorizer) Authenticate() (*spotifyproxy.ClientInstanceInterface, AuthenticateStatus, error) {
+func (a *Authorizer) Authenticate() (spotifyproxy.ClientInstanceInterface, AuthenticateStatus, error) {
 	// get port from uri
 	port, err := a.getPortFromUri(a.Os.Getenv(ENV_SPOTIFY_REDIRECT_URI))
 	if err != nil {
@@ -99,7 +100,7 @@ func (a *Authorizer) Authenticate() (*spotifyproxy.ClientInstanceInterface, Auth
 	}()
 	client = <-channel
 
-	return client, nil
+	return client, AuthenticatedSuccessfully, nil
 }
 
 func (a *Authorizer) GetAuthUrl() string {
@@ -147,11 +148,8 @@ func (a *Authorizer) SetAuthInfo(
 	return SetEnvSuccessfully
 }
 
-func (a *Authorizer) Refresh(refreshToken string) (*spotify.Client, error) {
-	tok := &oauth2.Token{
-		TokenType:    "bearer",
-		RefreshToken: refreshToken,
-	}
+func (a *Authorizer) Refresh() (spotifyproxy.ClientInstanceInterface, AuthenticateStatus, error) {
+	tok := oauth2proxy.NewToken("bearer", a.RefreshToken)
 
 	client := spotify.New(authenticator.Client(context.Background(), tok))
 	if client == nil {
