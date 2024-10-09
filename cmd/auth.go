@@ -26,7 +26,6 @@ type authOption struct {
 	ErrOut        ioproxy.WriterInstanceInterface
 	Args          []string
 	Authorizer    authorizer.Authorizable
-	Client        spotifyproxy.ClientInstanceInterface
 	PromptuiProxy promptuiproxy.Promptui
 	Utility       utility.UtilityInterface
 }
@@ -89,28 +88,24 @@ func (o *authOption) auth() error {
 		// TODO : print what was lack of
 		return nil
 	}
-
-	var (
-		client spotifyproxy.ClientInstanceInterface
-		status authorizer.AuthenticateStatus
-	)
-	if refreshToken != "" {
-		// if refresh token is set, refresh
-		client, status = o.Authorizer.Refresh()
-	} else {
+	// authenticate or refresh
+	var status authorizer.AuthenticateStatus
+	if refreshToken == "" {
 		// if refresh token is not set, get and print auth url
 		o.Utility.PrintlnWithWriter(o.Out, o.Authorizer.GetAuthUrl())
 		// authenticate
-		client, status, err = o.Authorizer.Authenticate()
-	}
+		_, status, err = o.Authorizer.Authenticate()
+		if err != nil {
+			return err
+		}
+	} else {
+		// if refresh token is set, refresh
+		_, status = o.Authorizer.Refresh()
 
-	if err != nil {
-		return err
 	}
 
 	// TODO : print success message
 	o.Utility.PrintlnWithWriter(o.Out, status)
-	o.Client = client
 
 	return nil
 }
