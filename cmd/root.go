@@ -11,6 +11,7 @@ import (
 	"github.com/yanosea/spotlike/app/proxy/fmt"
 	"github.com/yanosea/spotlike/app/proxy/io"
 	"github.com/yanosea/spotlike/app/proxy/os"
+	"github.com/yanosea/spotlike/app/proxy/promptui"
 	"github.com/yanosea/spotlike/cmd/constant"
 )
 
@@ -88,7 +89,7 @@ func NewRootCommand(ow, ew ioproxy.WriterInstanceInterface, cmdArgs []string) co
 	cmd.SetHelpTemplate(constant.ROOT_HELP_TEMPLATE)
 
 	cmd.AddCommand(
-		NewAuthCommand(g),
+		NewAuthCommand(g, promptuiproxy.New()),
 		NewCompletionCommand(g),
 		NewLikeCommand(g),
 		NewSearchCommand(g),
