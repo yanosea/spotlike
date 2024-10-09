@@ -8,7 +8,7 @@ import (
 
 // RequestInstanceInterface is an interface for http.Request.
 type RequestInstanceInterface interface {
-	Context() contextproxy.ContextInstance
+	Context() *contextproxy.ContextInstance
 	FormValue(key string) string
 }
 

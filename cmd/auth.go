@@ -7,8 +7,10 @@ import (
 	"github.com/yanosea/spotlike/app/library/utility"
 	"github.com/yanosea/spotlike/app/proxy/cobra"
 	"github.com/yanosea/spotlike/app/proxy/color"
+	"github.com/yanosea/spotlike/app/proxy/context"
 	"github.com/yanosea/spotlike/app/proxy/http"
 	"github.com/yanosea/spotlike/app/proxy/io"
+	"github.com/yanosea/spotlike/app/proxy/oauth2"
 	"github.com/yanosea/spotlike/app/proxy/os"
 	"github.com/yanosea/spotlike/app/proxy/promptui"
 	"github.com/yanosea/spotlike/app/proxy/randstr"
@@ -24,7 +26,7 @@ type authOption struct {
 	ErrOut        ioproxy.WriterInstanceInterface
 	Args          []string
 	Authorizer    authorizer.Authorizable
-	Os            osproxy.Os
+	Client        spotifyproxy.ClientInstanceInterface
 	PromptuiProxy promptuiproxy.Promptui
 	Utility       utility.UtilityInterface
 }
@@ -38,14 +40,15 @@ func NewAuthCommand(g *GlobalOption, promptuiProxy promptuiproxy.Promptui) *cobr
 		Utility: g.Utility,
 	}
 	o.Authorizer = authorizer.New(
+		contextproxy.New(),
 		httpproxy.New(),
+		oauth2proxy.New(),
 		osproxy.New(),
 		randstrproxy.New(),
 		spotifyproxy.New(),
 		spotifyauthproxy.New(),
 		urlproxy.New(),
 	)
-	o.Os = osproxy.New()
 	o.PromptuiProxy = promptuiProxy
 
 	cobraProxy := cobraproxy.New()
@@ -93,7 +96,7 @@ func (o *authOption) auth() error {
 	)
 	if refreshToken != "" {
 		// if refresh token is set, refresh
-		client, status, err = o.Authorizer.Refresh()
+		client, status = o.Authorizer.Refresh()
 	} else {
 		// if refresh token is not set, get and print auth url
 		o.Utility.PrintlnWithWriter(o.Out, o.Authorizer.GetAuthUrl())
@@ -106,6 +109,8 @@ func (o *authOption) auth() error {
 	}
 
 	// TODO : print success message
+	o.Utility.PrintlnWithWriter(o.Out, status)
+	o.Client = client
 
 	return nil
 }

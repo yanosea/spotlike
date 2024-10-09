@@ -1,10 +1,7 @@
 package authorizer
 
 import (
-	"context"
-	"fmt"
-	"strings"
-
+	"github.com/yanosea/spotlike/app/proxy/context"
 	"github.com/yanosea/spotlike/app/proxy/http"
 	"github.com/yanosea/spotlike/app/proxy/oauth2"
 	"github.com/yanosea/spotlike/app/proxy/os"
@@ -19,14 +16,16 @@ type Authorizable interface {
 	Authenticate() (spotifyproxy.ClientInstanceInterface, AuthenticateStatus, error)
 	GetAuthUrl() string
 	IsEnvsSet() bool
-	Refresh() (spotifyproxy.ClientInstanceInterface, AuthenticateStatus, error)
+	Refresh() (spotifyproxy.ClientInstanceInterface, AuthenticateStatus)
 	SetAuthInfo(spotifyId string, spotifySecret string, spotifyRedirectUri string, spotifyRefreshToken string) SetEnvStatus
 }
 
 // Authorizer is a struct that implements Authorizable interface.
 type Authorizer struct {
 	Authenticator spotifyauthproxy.AuthenticatorInstanceInterface
+	Context       contextproxy.Context
 	Http          httpproxy.Http
+	Oauth2        oauth2proxy.Oauth2
 	Os            osproxy.Os
 	Randstr       randstrproxy.Randstr
 	RefreshToken  string
@@ -38,7 +37,9 @@ type Authorizer struct {
 
 // New is a constructor of Authorizer.
 func New(
+	contextProxy contextproxy.Context,
 	httpProxy httpproxy.Http,
+	oauth2Proxy oauth2proxy.Oauth2,
 	osProxy osproxy.Os,
 	randstrProxy randstrproxy.Randstr,
 	spotifyProxy spotifyproxy.Spotify,
@@ -47,7 +48,9 @@ func New(
 ) *Authorizer {
 	authorizer := &Authorizer{
 		Authenticator: nil,
+		Context:       contextProxy,
 		Http:          httpProxy,
+		Oauth2:        oauth2Proxy,
 		Os:            osProxy,
 		Randstr:       randstrProxy,
 		RefreshToken:  "",
@@ -148,22 +151,13 @@ func (a *Authorizer) SetAuthInfo(
 	return SetEnvSuccessfully
 }
 
-func (a *Authorizer) Refresh() (spotifyproxy.ClientInstanceInterface, AuthenticateStatus, error) {
-	tok := oauth2proxy.NewToken("bearer", a.RefreshToken)
-
-	client := spotify.New(authenticator.Client(context.Background(), tok))
-	if client == nil {
-		clearCommands := []string{
-			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_ID)),
-			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_SECRET)),
-			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REDIRECT_URI)),
-			util.FormatIndent(fmt.Sprintf(auth_message_template_set_env_command, util.AUTH_ENV_SPOTIFY_REFRESH_TOKEN)),
-		}
-		auth_error_message_refresh_failed := fmt.Sprintf("%s\n\n%s", auth_error_message_template_refresh_failed, strings.Join(clearCommands, "\n"))
-		return nil, errors.New(auth_error_message_refresh_failed)
+func (a *Authorizer) Refresh() (spotifyproxy.ClientInstanceInterface, AuthenticateStatus) {
+	tok := a.Oauth2.NewToken("bearer", a.RefreshToken)
+	if client := a.Spotify.NewClient(a.Authenticator.Client(a.Context.Background(), tok)); client != nil {
+		return client, AuthenticatedSuccessfully
+	} else {
+		return nil, AuthenticateFailed
 	}
-
-	return client, nil
 }
 
 // getAuthenticator gets authenticator.

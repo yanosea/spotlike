@@ -31,7 +31,7 @@ func (a *AuthenticatorInstance) Client(ctx *contextproxy.ContextInstance, token 
 }
 
 // Token is a proxy for spotifyauth.Authenticator.Token().
-func (a *AuthenticatorInstance) Token(ctx *contextproxy.ContextInstance, state string, r *httpproxy.RequestInstance) (oauth2proxy.TokenInstanceInterface, error) {
+func (a *AuthenticatorInstance) Token(ctx *contextproxy.ContextInstance, state string, r *httpproxy.RequestInstance) (*oauth2proxy.TokenInstance, error) {
 	token, err := a.FieldAuthenticator.Token(ctx.FieldContext, state, &r.FieldRequest)
 	if err != nil {
 		return nil, err

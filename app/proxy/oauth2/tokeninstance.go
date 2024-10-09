@@ -11,13 +11,3 @@ type TokenInstanceInterface interface{}
 type TokenInstance struct {
 	FieldToken *oauth2.Token
 }
-
-// NewToken is a constructor for TokenInstance.
-func NewToken(tokentype string, refreshToken string) TokenInstanceInterface {
-	return &TokenInstance{
-		FieldToken: &oauth2.Token{
-			TokenType:    tokentype,
-			RefreshToken: refreshToken,
-		},
-	}
-}
