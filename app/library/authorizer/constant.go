@@ -24,8 +24,6 @@ const (
 	AuthenticateFailedInvalidUri
 	// AuthenticateedFailed is a status for authenticateed failed
 	AuthenticateFailed
-	// AuthenticateedAlready is a status for authenticateed already
-	AuthenticateAlready
 )
 
 const (

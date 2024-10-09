@@ -103,6 +103,10 @@ func (a *Authorizer) Authenticate() (spotifyproxy.ClientInstanceInterface, Authe
 	}()
 	client = <-channel
 
+	if client == nil {
+		return nil, AuthenticateFailed, nil
+	}
+
 	return client, AuthenticatedSuccessfully, nil
 }
 

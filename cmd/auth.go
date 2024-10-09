@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
+	"github.com/yanosea/spotlike/app/library/authhelper"
 	"github.com/yanosea/spotlike/app/library/authorizer"
 	"github.com/yanosea/spotlike/app/library/utility"
 	"github.com/yanosea/spotlike/app/proxy/cobra"
@@ -22,12 +23,12 @@ import (
 
 // authOption is the struct for auth command.
 type authOption struct {
-	Out           ioproxy.WriterInstanceInterface
-	ErrOut        ioproxy.WriterInstanceInterface
-	Args          []string
-	Authorizer    authorizer.Authorizable
-	PromptuiProxy promptuiproxy.Promptui
-	Utility       utility.UtilityInterface
+	Out        ioproxy.WriterInstanceInterface
+	ErrOut     ioproxy.WriterInstanceInterface
+	Args       []string
+	AuthHelper authhelper.AuthHelpable
+	Authorizer authorizer.Authorizable
+	Utility    utility.UtilityInterface
 }
 
 // NewAuthCommand creates a new auth command.
@@ -38,6 +39,7 @@ func NewAuthCommand(g *GlobalOption, promptuiProxy promptuiproxy.Promptui) *cobr
 		Args:    g.Args,
 		Utility: g.Utility,
 	}
+	o.AuthHelper = authhelper.New(promptuiProxy)
 	o.Authorizer = authorizer.New(
 		contextproxy.New(),
 		httpproxy.New(),
@@ -48,7 +50,6 @@ func NewAuthCommand(g *GlobalOption, promptuiProxy promptuiproxy.Promptui) *cobr
 		spotifyauthproxy.New(),
 		urlproxy.New(),
 	)
-	o.PromptuiProxy = promptuiProxy
 
 	cobraProxy := cobraproxy.New()
 	cmd := cobraProxy.NewCommand()
@@ -79,7 +80,7 @@ func (o *authOption) authRunE(_ *cobra.Command, _ []string) error {
 
 func (o *authOption) auth() error {
 	// get auth info
-	clientId, clientSecret, redirectUri, refreshToken, err := o.askAuthInfo()
+	clientId, clientSecret, redirectUri, refreshToken, err := o.AuthHelper.AskAuthInfo()
 	if err != nil {
 		return err
 	}
@@ -92,6 +93,7 @@ func (o *authOption) auth() error {
 	var status authorizer.AuthenticateStatus
 	if refreshToken == "" {
 		// if refresh token is not set, get and print auth url
+		o.Utility.PrintlnWithWriter(o.Out, constant.AUTH_MESSAGE_LOGIN_SPOTIFY)
 		o.Utility.PrintlnWithWriter(o.Out, o.Authorizer.GetAuthUrl())
 		// authenticate
 		_, status, err = o.Authorizer.Authenticate()
@@ -101,70 +103,10 @@ func (o *authOption) auth() error {
 	} else {
 		// if refresh token is set, refresh
 		_, status = o.Authorizer.Refresh()
-
 	}
 
 	// TODO : print success message
 	o.Utility.PrintlnWithWriter(o.Out, status)
 
 	return nil
-}
-
-func (o *authOption) askAuthInfo() (string, string, string, string, error) {
-	var (
-		err          error
-		clientId     string
-		clientSecret string
-		redirectUri  string
-		refreshToken string
-	)
-
-	// ask client id
-	spotifyIdPrompt := o.PromptuiProxy.NewPrompt()
-	spotifyIdPrompt.SetLabel(constant.AUTH_PROMPT_SPOTIFY_ID)
-	for {
-		clientId, err = spotifyIdPrompt.Run()
-		if err != nil {
-			return "", "", "", "", err
-		}
-		if clientId != "" {
-			break
-		}
-		// TODO : notify that it is required
-	}
-	// ask client secret
-	spotifySecretPrompt := o.PromptuiProxy.NewPrompt()
-	spotifySecretPrompt.SetLabel(constant.AUTH_PROMPT_SPOTIFY_SECRET)
-	for {
-		clientSecret, err = spotifySecretPrompt.Run()
-		if err != nil {
-			return "", "", "", "", err
-		}
-		if clientSecret != "" {
-			break
-		}
-		// TODO : notify that it is required
-	}
-	// ask redirect uri
-	redirectUriPrompt := o.PromptuiProxy.NewPrompt()
-	redirectUriPrompt.SetLabel(constant.AUTH_PROMPT_SPOTIFY_REDIRECT_URI)
-	for {
-		redirectUri, err = redirectUriPrompt.Run()
-		if err != nil {
-			return "", "", "", "", err
-		}
-		if redirectUri != "" {
-			break
-		}
-		// TODO : notify that it is required
-	}
-	// ask refresh token
-	refreshTokenPrompt := o.PromptuiProxy.NewPrompt()
-	refreshTokenPrompt.SetLabel(constant.AUTH_PROMPT_SPOTIFY_REFRESH_TOKEN)
-	refreshToken, err = refreshTokenPrompt.Run()
-	if err != nil {
-		return "", "", "", "", err
-	}
-
-	return clientId, clientSecret, redirectUri, refreshToken, nil
 }
