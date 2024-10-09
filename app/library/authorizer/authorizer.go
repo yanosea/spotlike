@@ -3,7 +3,6 @@ package authorizer
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/yanosea/spotlike/app/proxy/http"
@@ -68,31 +67,31 @@ func (a *Authorizer) Authenticate() (*spotifyproxy.ClientInstanceInterface, Auth
 	}
 
 	var (
-		client  *spotifyproxy.ClientInstance
-		channel = make(chan *spotifyproxy.ClientInstance)
+		client  spotifyproxy.ClientInstanceInterface
+		channel = make(chan spotifyproxy.ClientInstanceInterface)
 	)
 
 	a.Http.HandleFunc("/callback", func(w httpproxy.ResponseWriterInstanceInterface, r *httpproxy.RequestInstance) {
 		tok, err := a.Authenticator.Token(r.Context(), a.State, r)
 		if err != nil {
-			a.Http.Error(w, err, http.StatusForbidden)
+			a.Http.Error(w, err, httpproxy.StatusForbidden)
 			return
 		}
 
-		if st := r.FormValue("state"); st != state {
-			http.NotFound(w, r)
+		if st := r.FormValue("state"); st != a.State {
+			a.Http.NotFound(w, r)
 			return
 		}
 
-		client := spotify.New(authenticator.Client(r.Context(), tok))
+		client := a.Spotify.NewClient(a.Authenticator.Client(r.Context(), tok))
 
-		refreshToken = tok.RefreshToken
+		a.RefreshToken = tok.FieldToken.RefreshToken
 		channel <- client
 	})
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {})
+	a.Http.HandleFunc("/", func(w httpproxy.ResponseWriterInstanceInterface, r *httpproxy.RequestInstance) {})
 	go func() error {
-		err := http.ListenAndServe(":"+port, nil)
+		err := a.Http.ListenAndServe(":"+port, nil)
 		if err != nil {
 			return err
 		}

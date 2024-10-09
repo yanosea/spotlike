@@ -8,6 +8,7 @@ import (
 type Http interface {
 	Error(w ResponseWriterInstanceInterface, error error, code int)
 	HandleFunc(pattern string, handler func(ResponseWriterInstanceInterface, *RequestInstance))
+	NotFound(w ResponseWriterInstanceInterface, r *RequestInstance)
 }
 
 // HttpProxy is a struct that implements Http.
@@ -27,4 +28,9 @@ func (*HttpProxy) HandleFunc(pattern string, handler func(ResponseWriterInstance
 	http.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
 		handler(&ResponseWriterInstance{FieldResponseWriter: w}, &RequestInstance{FieldRequest: *r})
 	})
+}
+
+// NotFound is a proxy for http.NotFound.
+func (*HttpProxy) NotFound(w ResponseWriterInstanceInterface, r *RequestInstance) {
+	http.NotFound(w, &r.FieldRequest)
 }

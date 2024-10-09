@@ -9,5 +9,5 @@ type TokenInstanceInterface interface{}
 
 // TokenInstance is a struct that implements TokenInstanceInterface.
 type TokenInstance struct {
-	FieldToken oauth2.Token
+	FieldToken *oauth2.Token
 }
