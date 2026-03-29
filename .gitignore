@@ -1,0 +1,9 @@
+# IGNORE DIRECTORY
+# IGNORE FILE
+app/presentation/cli/spotlike/spotlike
+app/presentation/cli/spotlike/spotlike.exe
+container.exist
+main
+test.run
+.DS_Store
+*.log

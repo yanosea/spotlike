@@ -1,0 +1,6 @@
+services:
+  spotlike-test-container:
+    container_name: spotlike-test-container
+    build:
+      context: .
+      dockerfile: ./ops/docker/app/Dockerfile

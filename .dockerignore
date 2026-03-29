@@ -1,0 +1,11 @@
+# IGNORE FOLDER
+.git
+# IGNORE FILE
+app/presentation/cli/spotlike/spotlike
+app/presentation/cli/spotlike/spotlike.exe
+container.exist
+docs/demo*.gif
+main
+test.run
+.DS_Store
+*.log
