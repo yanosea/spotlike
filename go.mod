@@ -12,7 +12,7 @@ require (
 	github.com/thanhpk/randstr v1.0.6
 	github.com/zmb3/spotify/v2 v2.4.3
 	go.uber.org/mock v0.6.0
-	golang.org/x/oauth2 v0.36.0
+	golang.org/x/oauth2 v0.37.0
 )
 
 require (
